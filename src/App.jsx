@@ -1,8 +1,7 @@
 import { Routes, Route, Link } from 'react-router-dom'
 import Home from './pages/Home'
 import About from './pages/About'
-import './App.css'
-import { ThemeProvider, useTheme } from './theme/useTheme.jsx'
+import { ThemeProvider, useTheme } from './hooks/useTheme'
 
 function AppContent() {
   const { theme, toggleTheme } = useTheme()
