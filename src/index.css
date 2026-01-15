@@ -3,15 +3,42 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+:root.light {
+  --background-color: #ffffff;
+  --text-color: #213547;
+  --button-background: #f9f9f9;
+  --button-hover-border: #747bff;
+  color-scheme: light;
+}
+
+:root.dark {
+  --background-color: #242424;
+  --text-color: rgba(255, 255, 255, 0.87);
+  --button-background: #1a1a1a;
+  --button-hover-border: #646cff;
+  color-scheme: dark;
+}
+
+/* Default to dark theme if not explicitly set by class, or if system preference is dark */
+:root {
+  color: var(--text-color, rgba(255, 255, 255, 0.87));
+  background-color: var(--background-color, #242424);
+}
+
+/* Apply light theme if system prefers light and no explicit theme is set */
+@media (prefers-color-scheme: light) {
+  :root:not(.dark) {
+    color: var(--text-color, #213547);
+    background-color: var(--background-color, #ffffff);
+  }
+}
+
 
 a {
   font-weight: 500;
@@ -42,27 +69,14 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--button-background);
   cursor: pointer;
   transition: border-color 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: var(--button-hover-border);
 }
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
 }
