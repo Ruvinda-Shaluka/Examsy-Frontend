@@ -1,22 +1,16 @@
 import { Routes, Route, Link } from 'react-router-dom'
-import Home from './pages/Home'
-import About from './pages/About'
-import { ThemeProvider, useTheme } from './hooks/useTheme'
+import Dashboard from './pages/Dashboard'
+import RegisterStudent from './pages/RegisterStudent'
+import RegisterTeacher from './pages/RegisterTeacher'
+import { ThemeProvider, useTheme } from './hooks/useTheme.jsx'
 
 function AppContent() {
   const { theme, toggleTheme } = useTheme()
 
   return (
     <>
-      <nav>
-        <ul>
-          <li>
-            <Link to="/">Home</Link>
-          </li>
-          <li>
-            <Link to="/about">About</Link>
-          </li>
-        </ul>
+      <nav className="p-4 bg-white dark:bg-gray-800 text-black dark:text-white flex justify-between items-center">
+        <Link to="/" className="text-xl font-bold">Examsy</Link>
         <div className="theme-switcher">
           <button onClick={() => toggleTheme('light')} disabled={theme === 'light'}>
             Light
@@ -30,8 +24,9 @@ function AppContent() {
         </div>
       </nav>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/register-student" element={<RegisterStudent />} />
+        <Route path="/register-teacher" element={<RegisterTeacher />} />
       </Routes>
     </>
   )
