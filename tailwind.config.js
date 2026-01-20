@@ -1,12 +1,19 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: 'class',
-  content: [
-    "./index.html",
-    "./src/**/*.{js,jsx,ts,tsx}",
-  ],
+  content: ["./src/**/*.{js,jsx,ts,tsx}"],
+  darkMode: 'class', // Enables class-based dark mode
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        examsy: {
+          primary: 'var(--color-primary)',
+          bg: 'var(--color-bg)',
+          surface: 'var(--color-surface)',
+          text: 'var(--color-text)',
+          muted: 'var(--color-muted)',
+        }
+      }
+    },
   },
   plugins: [],
 }
