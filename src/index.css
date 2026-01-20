@@ -2,18 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --color-primary: #4F46E5;
-  --color-bg: #F8FAFC;
-  --color-surface: #FFFFFF;
-  --color-text: #0F172A;
-  --color-muted: #64748B;
+body {
+  background-color: #F8FAFC;
 }
 
-.dark {
-  --color-primary: #4F46E5;
-  --color-bg: #020617;
-  --color-surface: #18181B;
-  --color-text: #F8FAFC;
-  --color-muted: #94A3B8;
+.dark body {
+  background-color: #020617;
 }
