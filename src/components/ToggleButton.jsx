@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './ToggleButton.css';
-import { useTheme } from '../../hooks/useTheme.jsx';
+import { useTheme } from '../hooks/useTheme.jsx';
 
 const ToggleButton = () => {
     const { theme, toggleTheme } = useTheme();

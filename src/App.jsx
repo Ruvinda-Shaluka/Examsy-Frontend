@@ -2,7 +2,7 @@ import { Routes, Route, Link } from 'react-router-dom';
 import RegisterStudent from './pages/RegisterStudent';
 import RegisterTeacher from './pages/RegisterTeacher';
 import { ThemeProvider } from './hooks/useTheme.jsx';
-import ToggleButton from './components/toggle-buttons/ToggleButton.jsx';
+import ToggleButton from './components/ToggleButton.jsx';
 import LandingPage from './pages/LandingPage.jsx';
 import TextPressure from './components/TextPressure.jsx';
 
