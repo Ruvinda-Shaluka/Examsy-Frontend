@@ -1,14 +1,13 @@
 import { Routes, Route, Link } from 'react-router-dom';
 import RegisterStudent from './pages/RegisterStudent';
 import RegisterTeacher from './pages/RegisterTeacher';
-import { ThemeProvider } from './hooks/useTheme.jsx';
-import ToggleButton from './components/toggle-buttons/ToggleButton.jsx';
+import ToggleButton from './components/ToggleButton.jsx';
 import LandingPage from './pages/LandingPage.jsx';
 import TextPressure from './components/TextPressure.jsx';
 
-function AppContent() {
+function App() {
   return (
-    <div className="bg-examsy-bg min-h-screen">
+    <div className="min-h-screen">
       <nav className="p-4 bg-examsy-surface text-examsy-text flex justify-between items-center shadow-md">
           <div style={{ position: 'relative', height: '48px', width: '150px' }}>
               <TextPressure
@@ -39,14 +38,6 @@ function AppContent() {
       </main>
     </div>
   );
-}
-
-function App() {
-  return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
-  )
 }
 
 export default App;
