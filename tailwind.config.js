@@ -6,11 +6,11 @@ export default {
     extend: {
       colors: {
         examsy: {
-          primary: '#4F46E5',
-          bg: '#F8FAFC',
-          surface: '#FFFFFF',
-          text: '#0F172A',
-          muted: '#64748B',
+          primary: 'var(--color-primary)',
+          bg: 'var(--color-bg)',
+          surface: 'var(--color-surface)',
+          text: 'var(--color-text)',
+          muted: 'var(--color-muted)',
         }
       }
     },

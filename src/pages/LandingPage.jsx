@@ -1,44 +1,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Zap, BarChart3, Users, MousePointer2, Clock, Twitter, Linkedin, Github } from 'lucide-react';
-import LiquidEther from '../components/LiquidEther';
 
 const LandingPage = () => {
     return (
-        <div className="min-h-screen text-examsy-text transition-colors duration-300">
+        <div className="min-h-screen bg-examsy-bg text-examsy-text transition-colors duration-300">
 
-            <div style={{ width: '100%', height: '100vh', position: 'absolute', top: 0, zIndex: -1 }}>
-                <LiquidEther
-                    colors={['#5227FF', '#FF9FFC', '#B19EEF']}
-                    mouseForce={20}
-                    cursorSize={70}
-                    isViscous
-                    viscous={30}
-                    iterationsViscous={32}
-                    iterationsPoisson={32}
-                    resolution={0.3}
-                    isBounce
-                    autoDemo
-                    autoSpeed={0.5}
-                    autoIntensity={2.2}
-                    takeoverDuration={0.25}
-                    autoResumeDelay={3000}
-                    autoRampDuration={0.6}
-                    color0="#5227FF"
-                    color1="#0212f2"
-                    color2="#B19EEF"
-                />
-            </div>
             {/* HERO SECTION */}
-            <section className="pt-24 pb-20 px-6 relative z-10">
+            <section className="pt-24 pb-20 px-6">
                 <div className="container mx-auto text-center">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-examsy-primary/10 text-examsy-primary text-sm font-bold mb-6">
                         <Zap size={14} /> NEW: AI-Powered OCR Grading
                     </div>
-                    <h1 className="text-5xl lg:text-6xl font-extrabold leading-tight mb-6 text-examsy-text">
+                    <h1 className="text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
                         The Future of Classroom Management
                     </h1>
-                    <p className="text-lg text-examsy-text mb-10 max-w-2xl mx-auto">
+                    <p className="text-lg text-examsy-muted mb-10 max-w-2xl mx-auto">
                         Examsy is an all-in-one platform to conduct exams, manage classes, and track student progress with powerful analytics.
                     </p>
                     <div className="flex justify-center gap-4">
@@ -53,7 +30,7 @@ const LandingPage = () => {
             </section>
 
             {/* FEATURES SECTION */}
-            <section className="py-24">
+            <section className="py-24 bg-examsy-surface/50">
                 <div className="container mx-auto px-6">
                     <div className="text-center max-w-3xl mx-auto mb-16">
                         <h2 className="text-4xl font-bold mb-4">Why Choose Examsy?</h2>
@@ -82,7 +59,7 @@ const LandingPage = () => {
             </section>
             
             {/* FOOTER */}
-            <footer className="py-12">
+            <footer className="py-12 bg-examsy-surface/30">
                 <div className="container mx-auto px-6 text-center">
                     <p className="text-examsy-muted mb-4">&copy; {new Date().getFullYear()} Examsy. All rights reserved.</p>
                     <div className="flex justify-center gap-6">
@@ -97,7 +74,7 @@ const LandingPage = () => {
 };
 
 const FeatureCard = ({ icon, title, desc }) => (
-    <div className="p-8 rounded-2xl border border-transparent hover:border-examsy-primary/20 hover:shadow-xl transition-all duration-300">
+    <div className="p-8 bg-examsy-surface rounded-2xl border border-transparent hover:border-examsy-primary/20 hover:shadow-xl transition-all duration-300">
         <div className="w-16 h-16 bg-examsy-primary/10 rounded-full flex items-center justify-center mb-6 mx-auto">
             {icon}
         </div>
