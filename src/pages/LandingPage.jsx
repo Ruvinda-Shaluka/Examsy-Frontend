@@ -43,7 +43,7 @@ const LandingPage = () => {
                         The Future of Classroom Management
                     </h1>
                     <p className="text-lg text-examsy-muted mb-10 max-w-2xl mx-auto">
-                        Examsy is an all-in-one platform to conduct exams, manage classes, and track student progress
+                        <span className="font-bold font-black">Examsy</span> is an all-in-one platform to conduct exams, manage classes, and track student progress
                         with powerful analytics.
                     </p>
                     <div className="flex justify-center gap-4">
@@ -63,29 +63,30 @@ const LandingPage = () => {
             <section className="py-24 bg-examsy-surface/50">
                 <div className="container mx-auto px-6">
                     <div className="text-center max-w-3xl mx-auto mb-16">
-                        <h2 className="text-4xl font-bold mb-4">Why Choose Examsy?</h2>
+                        {/* Added 'flex', 'items-center', and 'justify-center' to align the baseline */}
+                        <h2 className="text-4xl font-bold mb-4 flex items-center justify-center gap-2">
+                            Why Choose
+                            <span className="inline-block relative top-[2px]"> {/* Use a slight top offset if needed */}
+                                <TextPressure
+                                    text="Examsy ?"
+                                    flex
+                                    alpha={false}
+                                    stroke={false}
+                                    width
+                                    weight={false}
+                                    italic
+                                    textColor="#000"
+                                    strokeColor="#5227FF"
+                                    minFontSize={36}
+                                />
+                </span>
+                        </h2>
                         <p className="text-examsy-muted">
                             From interactive online exams to automated grading of handwritten papers, we provide the
                             tools you need to build a smarter classroom.
                         </p>
                     </div>
-                    <div className="grid md:grid-cols-3 gap-8 text-center">
-                        <FeatureCard
-                            icon={<MousePointer2 size={32} className="text-examsy-primary"/>}
-                            title="Interactive Exams"
-                            desc="Engage students with dynamic MCQs and receive instant results and performance reports."
-                        />
-                        <FeatureCard
-                            icon={<Zap size={32} className="text-examsy-primary"/>}
-                            title="AI-Powered OCR"
-                            desc="Automatically digitize and grade handwritten exam papers, saving you hours of manual work."
-                        />
-                        <FeatureCard
-                            icon={<BarChart3 size={32} className="text-examsy-primary"/>}
-                            title="Classroom Analytics"
-                            desc="Gain insights into student performance with detailed analytics and progress tracking."
-                        />
-                    </div>
+                    {/* ... rest of the code */}
                 </div>
             </section>
             <LandingPageFooter/>

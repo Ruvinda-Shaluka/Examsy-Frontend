@@ -1,4 +1,6 @@
 import { Github, Linkedin, Twitter, Mail } from "lucide-react";
+import TextPressure from "./TextPressure.jsx";
+import React from "react";
 
 const LandingPageFooter = () => {
     return (
@@ -6,7 +8,20 @@ const LandingPageFooter = () => {
             <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12">
 
                 <div className="space-y-4 text-center md:text-left">
-                    <h3 className="text-2xl font-bold text-indigo-500">Examsy</h3>
+                    <h3 className="text-2xl font-bold text-indigo-500">
+                        <TextPressure
+                        text="Examsy!"
+                        flex
+                        alpha={false}
+                        stroke={false}
+                        width
+                        weight={false}
+                        italic
+                        textColor="#465ed2"
+                        strokeColor="#5227FF"
+                        minFontSize={28}
+                    />
+                    </h3>
                     <p className="text-slate-400 text-sm">Empowering educators with real-time exam tools.</p>
                 </div>
 
