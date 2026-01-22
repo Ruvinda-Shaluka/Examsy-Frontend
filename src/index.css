@@ -1,19 +1,17 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
-    --color-primary: #4f46e5;    /* Indigo-600 */
-    --color-bg: #f8fafc;         /* Slate-50 */
-    --color-surface: #ffffff;    /* White */
-    --color-text: #0f172a;       /* Slate-900 */
-    --color-muted: #64748b;      /* Slate-500 */
+@theme {
+    /* This replaces your tailwind.config.js 'examsy' colors */
+    --color-examsy-primary: #4f46e5;
+    --color-examsy-bg: #f8fafc;
+    --color-examsy-surface: #ffffff;
+    --color-examsy-text: #0f172a;
+    --color-examsy-muted: #64748b;
+
+    /* Dark Mode specific theme variables */
+    --color-examsy-dark-bg: #020617;
+    --color-examsy-dark-surface: #18181b;
 }
 
-.dark {
-    --color-primary: #6366f1;    /* Indigo-500 */
-    --color-bg: #020617;         /* Zinc-950 (Very dark gray/black) */
-    --color-surface: #18181b;    /* Zinc-900 */
-    --color-text: #f8fafc;       /* Slate-50 */
-    --color-muted: #94a3b8;      /* Slate-400 */
-}
+/* Custom dark mode logic if you are using 'class' strategy */
+@custom-variant dark (&:where(.dark, .dark *));
