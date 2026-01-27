@@ -1,58 +1,73 @@
 import React, { useState } from 'react';
-import { GoogleLogin } from '@react-oauth/google';
+import { User, Mail, Lock, Calendar, Hash, ArrowRight, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useExamsyAuth } from '../hooks/useExamsyAuth';
+import GoogleAuthButton from '../components/GoogleAuthButton';
+import { InputField, SelectField } from '../components/FormHelpers';
 
 const RegisterStudent = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [step, setStep] = useState(1);
 
-    const handleGoogleSuccess = (response) => {
-        console.log("Google Data Received:", response);
-        setIsLoggedIn(true); // Reveal the rest of the form
-    };
+    // Google Auth Hook triggers Step 2 on success
+    const { login } = useExamsyAuth(() => setStep(2));
 
     return (
-        <div className="min-h-screen bg-examsy-bg text-examsy-text py-12 px-4 transition-colors duration-300">
-            <div className="relative max-w-xl mx-auto">
-                <div className="relative px-4 py-10 bg-examsy-surface shadow-2xl rounded-3xl sm:p-10 border border-zinc-200 dark:border-zinc-800">
-                    <div className="max-w-md mx-auto">
-                        <div className="text-center mb-8">
-                            <h1 className="text-3xl font-extrabold text-examsy-primary">Student Registration</h1>
-                            <p className="text-examsy-muted mt-2">Join your classrooms and track your progress.</p>
-                        </div>
+        <div className="min-h-screen bg-examsy-bg text-examsy-text transition-colors duration-500 flex items-center justify-center py-12 px-4">
+            <div className="w-full max-w-xl bg-examsy-surface rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden transition-colors duration-500">
+                <div className="p-8 sm:p-10">
 
-                        {!isLoggedIn ? (
-                            <div className="flex flex-col items-center justify-center py-10 space-y-6">
-                                <GoogleLogin
-                                    onSuccess={handleGoogleSuccess}
-                                    theme="filled_blue"
-                                    shape="pill"
-                                    text="continue_with"
-                                />
-                                <p className="text-xs text-examsy-muted italic text-center">
-                                    Login with Google first to secure your academic profile.
-                                </p>
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 className="text-3xl font-extrabold tracking-tight">Join as a Student</h2>
+                            <p className="text-examsy-muted mt-1">Start your journey with Examsy today.</p>
+                        </div>
+                        <Link to="/" className="p-2 hover:bg-examsy-bg rounded-full transition-colors text-examsy-muted">
+                            <X size={20} />
+                        </Link>
+                    </div>
+
+                    {step === 1 ? (
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <InputField label="Full Name" icon={<User size={18} />} id="fullname" type="text" placeholder="John Doe" />
+                                <InputField label="Email" icon={<Mail size={18} />} id="email" type="email" placeholder="john@example.com" />
+                                <InputField label="Username" icon={<Hash size={18} />} id="username" type="text" placeholder="johndoe_1" />
+                                <InputField label="Password" icon={<Lock size={18} />} id="password" type="password" placeholder="••••••••" />
                             </div>
-                        ) : (
-                            <form className="mt-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                    <InputGroup label="Full Name" id="fullname" type="text" placeholder="John Doe" />
-                                    <InputGroup label="Student ID" id="studentid" type="text" placeholder="STU-12345" />
-                                    <InputGroup label="Username" id="username" type="text" placeholder="johndoe99" />
-                                    <div className="flex flex-col">
-                                        <label className="font-semibold text-sm text-examsy-muted pb-1" htmlFor="grade">Grade/Level</label>
-                                        <select id="grade" className="bg-examsy-bg border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-examsy-primary outline-none">
-                                            <option>Grade 10</option>
-                                            <option>Grade 11</option>
-                                            <option>A/L Batch</option>
-                                        </select>
-                                    </div>
+
+                            <button className="w-full bg-examsy-primary text-white py-3 rounded-xl font-bold hover:opacity-90 transition shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                                Create Account <ArrowRight size={18} />
+                            </button>
+
+                            <div className="relative my-8">
+                                <div className="absolute inset-0 flex items-center">
+                                    <span className="w-full border-t border-zinc-200 dark:border-zinc-800"></span>
                                 </div>
-                                <div className="mt-8">
-                                    <button type="submit" className="w-full py-3 bg-examsy-primary text-white font-bold rounded-xl hover:opacity-90 transition shadow-lg shadow-indigo-500/20">
-                                        Complete Profile
-                                    </button>
+                                <div className="relative flex justify-center text-xs uppercase text-examsy-muted font-bold">
+                                    <span className="bg-examsy-surface px-4">Or sign up with</span>
                                 </div>
-                            </form>
-                        )}
+                            </div>
+
+                            <GoogleAuthButton onClick={login} />
+                        </div>
+                    ) : (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <InputField label="Index Number" icon={<Hash size={18} />} id="index" type="text" placeholder="STU/2026/001" />
+                                <InputField label="Date of Birth" icon={<Calendar size={18} />} id="dob" type="date" />
+                                <SelectField label="Gender" id="gender" options={['Male', 'Female', 'Other']} />
+                                <SelectField label="Grade" id="grade" options={['Grade 10', 'Grade 11', 'Advanced Level', 'University']} />
+                            </div>
+                            <button className="w-full bg-examsy-primary text-white py-4 rounded-xl font-bold hover:opacity-90 transition shadow-lg shadow-indigo-500/20 text-lg">
+                                Complete Registration
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-800 text-center">
+                        <p className="text-sm text-examsy-muted">
+                            Already have an account? <Link to="/login" className="text-examsy-primary font-bold hover:underline">Log in</Link>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -60,17 +75,4 @@ const RegisterStudent = () => {
     );
 };
 
-// Reusable Input Component
-const InputGroup = ({ label, id, type, placeholder }) => (
-    <div>
-        <label className="font-semibold text-sm text-examsy-muted pb-1 block" htmlFor={id}>{label}</label>
-        <input
-            className="bg-examsy-bg border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm w-full focus:ring-2 focus:ring-examsy-primary outline-none text-examsy-text"
-            type={type}
-            id={id}
-            placeholder={placeholder}
-        />
-    </div>
-);
-
-export default RegisterStudent;
+export default RegisterStudent; // CRITICAL: This was missing!

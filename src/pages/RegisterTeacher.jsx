@@ -1,59 +1,83 @@
 import React, { useState } from 'react';
-import { GoogleLogin } from '@react-oauth/google';
+import { User, Mail, Lock, Briefcase, BookOpen, ArrowRight, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useExamsyAuth } from '../hooks/useExamsyAuth';
+import GoogleAuthButton from '../components/GoogleAuthButton';
+import { InputField } from '../components/FormHelpers';
 
 const RegisterTeacher = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-    const handleGoogleSuccess = (response) => {
-        setIsLoggedIn(true);
-    };
+    // Google Auth Hook triggers Step 2 (Instructor Details) on success
+    const { login } = useExamsyAuth(() => setIsLoggedIn(true));
 
     return (
-        <div className="min-h-screen bg-examsy-bg text-examsy-text py-12 px-4 transition-colors duration-300">
-            <div className="relative max-w-xl mx-auto">
-                <div className="relative px-4 py-10 bg-examsy-surface shadow-2xl rounded-3xl sm:p-10 border border-zinc-200 dark:border-zinc-800">
-                    <div className="max-w-md mx-auto">
-                        <div className="text-center mb-8">
-                            <h1 className="text-3xl font-extrabold text-examsy-primary">Teacher Onboarding</h1>
-                            <p className="text-examsy-muted mt-2">Create exams and manage your classes.</p>
-                        </div>
+        <div className="min-h-screen bg-examsy-bg text-examsy-text transition-colors duration-500 flex items-center justify-center py-12 px-4">
+            <div className="w-full max-w-xl bg-examsy-surface rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden transition-colors duration-500">
+                <div className="p-8 sm:p-10">
 
-                        {!isLoggedIn ? (
-                            <div className="flex flex-col items-center justify-center py-10">
-                                <GoogleLogin onSuccess={handleGoogleSuccess} theme="filled_blue" shape="pill" />
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 className="text-3xl font-extrabold tracking-tight">Teacher Registration</h2>
+                            <p className="text-examsy-muted mt-1">Join the faculty to manage exams and students.</p>
+                        </div>
+                        <Link to="/" className="p-2 hover:bg-examsy-bg rounded-full transition-colors text-examsy-muted">
+                            <X size={20} />
+                        </Link>
+                    </div>
+
+                    {!isLoggedIn ? (
+                        <div className="space-y-6">
+                            {/* Standard Fields */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <InputField label="Full Name" icon={<User size={18} />} id="t-name" type="text" placeholder="Dr. Jane Smith" />
+                                <InputField label="Work Email" icon={<Mail size={18} />} id="t-email" type="email" placeholder="smith@examsy.edu" />
+                                <InputField label="Username" icon={<User size={18} />} id="t-user" type="text" placeholder="jane_teacher" />
+                                <InputField label="Password" icon={<Lock size={18} />} id="t-pass" type="password" placeholder="••••••••" />
                             </div>
-                        ) : (
-                            <form className="mt-5 space-y-4 animate-in fade-in duration-500">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                    <InputGroup label="Full Name" id="t-name" type="text" placeholder="Prof. Anderson" />
-                                    <InputGroup label="Instructor ID" id="t-id" type="text" placeholder="EDU-990" />
-                                    <InputGroup label="Specialization" id="t-subject" type="text" placeholder="Advanced Java" />
-                                    <InputGroup label="Department" id="t-dept" type="text" placeholder="Computer Science" />
+
+                            <button className="w-full bg-examsy-primary text-white py-3 rounded-xl font-bold hover:opacity-90 transition shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                                Create Teacher Account <ArrowRight size={18} />
+                            </button>
+
+                            <div className="relative my-8">
+                                <div className="absolute inset-0 flex items-center">
+                                    <span className="w-full border-t border-zinc-200 dark:border-zinc-800"></span>
                                 </div>
-                                <div className="mt-8">
-                                    <button type="submit" className="w-full py-3 bg-examsy-primary text-white font-bold rounded-xl hover:opacity-90 transition">
-                                        Access Teacher Dashboard
-                                    </button>
+                                <div className="relative flex justify-center text-xs uppercase text-examsy-muted font-bold">
+                                    <span className="bg-examsy-surface px-4">Or sign up with</span>
                                 </div>
-                            </form>
-                        )}
+                            </div>
+
+                            <GoogleAuthButton onClick={login} label="Register via Institution Account" />
+                        </div>
+                    ) : (
+                        /* STEP 2: Collecting Specialized Teacher Data */
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <InputField label="Instructor ID" icon={<Briefcase size={18} />} id="t-id" type="text" placeholder="EMP-2026-X" />
+                                <InputField label="Specialization" icon={<BookOpen size={18} />} id="t-sub" type="text" placeholder="Java / Physics" />
+                            </div>
+
+                            <p className="text-xs text-examsy-muted italic leading-relaxed">
+                                Note: Your Instructor ID will be used to verify your authority to create exams and manage student rankings.
+                            </p>
+
+                            <button className="w-full bg-examsy-primary text-white py-4 rounded-xl font-bold hover:opacity-90 transition shadow-lg shadow-indigo-500/20 text-lg">
+                                Access Teacher Dashboard
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-800 text-center">
+                        <p className="text-sm text-examsy-muted">
+                            Already have an account? <Link to="/login" className="text-examsy-primary font-bold hover:underline">Log in</Link>
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
     );
 };
-
-const InputGroup = ({ label, id, type, placeholder }) => (
-    <div>
-        <label className="font-semibold text-sm text-examsy-muted pb-1 block" htmlFor={id}>{label}</label>
-        <input
-            className="bg-examsy-bg border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm w-full focus:ring-2 focus:ring-examsy-primary outline-none text-examsy-text placeholder:opacity-50"
-            type={type}
-            id={id}
-            placeholder={placeholder}
-        />
-    </div>
-);
 
 export default RegisterTeacher;

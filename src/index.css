@@ -1,17 +1,27 @@
 @import "tailwindcss";
 
-@theme {
-    /* This replaces your tailwind.config.js 'examsy' colors */
-    --color-examsy-primary: #4f46e5;
-    --color-examsy-bg: #f8fafc;
-    --color-examsy-surface: #ffffff;
-    --color-examsy-text: #0f172a;
-    --color-examsy-muted: #64748b;
-
-    /* Dark Mode specific theme variables */
-    --color-examsy-dark-bg: #020617;
-    --color-examsy-dark-surface: #18181b;
+/* 1. Define the "Bridge" Variables */
+:root {
+    --bg-main: #f8fafc;        /* Light Mode Bg */
+    --bg-surface: #ffffff;     /* Light Mode Form */
+    --text-main: #0f172a;      /* Light Mode Text */
+    --text-muted: #64748b;
 }
 
-/* Custom dark mode logic if you are using 'class' strategy */
+.dark {
+    --bg-main: #020617;        /* Dark Mode Bg (Deep Black/Navy) */
+    --bg-surface: #18181b;     /* Dark Mode Form (Dark Gray) */
+    --text-main: #f8fafc;      /* Dark Mode Text (Off-white) */
+    --text-muted: #94a3b8;
+}
+
+/* 2. Map Tailwind to those Variables */
+@theme {
+    --color-examsy-primary: #4f46e5;
+    --color-examsy-bg: var(--bg-main);
+    --color-examsy-surface: var(--bg-surface);
+    --color-examsy-text: var(--text-main);
+    --color-examsy-muted: var(--text-muted);
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
