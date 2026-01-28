@@ -1,18 +1,26 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Lock, Chrome, ArrowRight, User, GraduationCap } from 'lucide-react';
+import { Mail, Lock, Chrome, ArrowRight, User, GraduationCap, ChevronLeft } from 'lucide-react';
 import TextPressure from '../components/TextPressure.jsx';
 import { useTheme } from '../hooks/useTheme.jsx';
 
 const LoginPage = () => {
     const { theme } = useTheme();
-    // State to handle role switching: 'student' or 'teacher'
     const [role, setRole] = useState('student');
 
     return (
-        <div className="min-h-screen w-full flex bg-examsy-bg transition-colors duration-500">
+        <div className="min-h-screen w-full flex bg-examsy-bg transition-colors duration-500 relative">
 
-            {/* --- LEFT SIDE (Stays exactly the same) --- */}
+            {/* --- RETURN TO HOME BUTTON --- */}
+            <Link
+                to="/"
+                className="absolute top-6 left-6 z-[110] flex items-center gap-2 px-4 py-2 bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-xl text-examsy-muted hover:text-examsy-primary hover:border-examsy-primary/30 transition-all duration-300 group shadow-sm"
+            >
+                <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                <span className="font-bold text-sm">Return to Home</span>
+            </Link>
+
+            {/* --- LEFT SIDE (Visual Branding) --- */}
             <div className="hidden lg:flex w-5/12 bg-examsy-surface relative overflow-hidden items-center justify-center p-12 lg:p-20 border-r border-white/5">
                 <div className="absolute top-0 left-0 w-full h-full bg-examsy-primary/5 blur-[150px] -z-10"></div>
 
@@ -43,7 +51,7 @@ const LoginPage = () => {
             </div>
 
 
-            {/* --- RIGHT SIDE (Updated with Role Toggle) --- */}
+            {/* --- RIGHT SIDE (Login Form) --- */}
             <div className="w-full lg:w-7/12 flex items-center justify-center p-6 md:p-12 relative">
                 <div className="w-full max-w-[500px] mx-auto animate-fade-in-up">
 
@@ -51,9 +59,8 @@ const LoginPage = () => {
                         <h1 className="text-4xl font-extrabold text-examsy-text mb-3 tracking-tight">Welcome Back</h1>
                         <p className="text-examsy-muted text-lg">Please enter your details to sign in.</p>
 
-                        {/* --- ROLE TOGGLE BUTTON --- */}
+                        {/* ROLE TOGGLE BUTTON */}
                         <div className="mt-8 relative inline-flex p-1.5 bg-examsy-surface rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-inner w-72">
-                            {/* Sliding Background */}
                             <div
                                 className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-examsy-primary rounded-xl transition-all duration-300 ease-out z-0 shadow-lg shadow-examsy-primary/30 ${
                                     role === 'teacher' ? 'translate-x-[calc(100%+0px)]' : 'translate-x-0'
@@ -100,7 +107,7 @@ const LoginPage = () => {
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-examsy-muted" size={20} />
                                 <input
                                     type="email"
-                                    className="w-full pl-12 pr-4 h-14 bg-examsy-surface border-2 border-zinc-200 dark:border-zinc-700 focus:border-examsy-primary focus:ring-4 focus:ring-examsy-primary/10 rounded-2xl outline-none transition-all"
+                                    className="w-full pl-12 pr-4 h-14 bg-examsy-surface border-2 border-zinc-200 dark:border-zinc-700 focus:border-examsy-primary focus:ring-4 focus:ring-examsy-primary/10 rounded-2xl outline-none transition-all text-examsy-text placeholder-examsy-muted/40"
                                     placeholder="john@examsy.com"
                                 />
                             </div>
@@ -112,7 +119,7 @@ const LoginPage = () => {
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-examsy-muted" size={20} />
                                 <input
                                     type="password"
-                                    className="w-full pl-12 pr-4 h-14 bg-examsy-surface border-2 border-zinc-200 dark:border-zinc-700 focus:border-examsy-primary focus:ring-4 focus:ring-examsy-primary/10 rounded-2xl outline-none transition-all"
+                                    className="w-full pl-12 pr-4 h-14 bg-examsy-surface border-2 border-zinc-200 dark:border-zinc-700 focus:border-examsy-primary focus:ring-4 focus:ring-examsy-primary/10 rounded-2xl outline-none transition-all text-examsy-text placeholder-examsy-muted/40"
                                     placeholder="••••••••••••"
                                 />
                             </div>
@@ -120,7 +127,7 @@ const LoginPage = () => {
 
                         <div className="flex items-center justify-between text-sm pt-2">
                             <label className="flex items-center gap-2 cursor-pointer text-examsy-muted font-medium">
-                                <input type="checkbox" className="w-5 h-5 rounded accent-examsy-primary" />
+                                <input type="checkbox" className="w-5 h-5 rounded accent-examsy-primary border-zinc-300 dark:border-zinc-700" />
                                 Remember me
                             </label>
                             <Link to="/forgot-password" class="text-examsy-primary font-bold hover:underline underline-offset-4">
@@ -128,12 +135,12 @@ const LoginPage = () => {
                             </Link>
                         </div>
 
-                        <button type="submit" className="w-full bg-examsy-primary hover:bg-examsy-primary/90 text-white h-14 rounded-2xl font-bold text-lg shadow-lg shadow-examsy-primary/25 flex items-center justify-center gap-2 transition-all hover:scale-[1.01]">
+                        <button type="submit" className="w-full bg-examsy-primary hover:bg-examsy-primary/90 text-white h-14 rounded-2xl font-bold text-lg shadow-lg shadow-examsy-primary/25 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99]">
                             Sign In As {role.charAt(0).toUpperCase() + role.slice(1)} <ArrowRight size={20} />
                         </button>
                     </form>
 
-                    {/* DYNAMIC FOOTER LINK */}
+                    {/* Dynamic Footer Link */}
                     <p className="text-center text-examsy-muted mt-10 font-medium">
                         Don't have an account yet? {' '}
                         <Link
