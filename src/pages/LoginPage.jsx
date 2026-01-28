@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Lock, Chrome, ArrowRight, User, GraduationCap, ChevronLeft } from 'lucide-react';
+import { Mail, Lock, ArrowRight, User, GraduationCap, ChevronLeft } from 'lucide-react';
 import TextPressure from '../components/TextPressure.jsx';
+import GoogleAuthButton from '../components/GoogleAuthButton'; // Import the new component
 import { useTheme } from '../hooks/useTheme.jsx';
 
 const LoginPage = () => {
     const { theme } = useTheme();
     const [role, setRole] = useState('student');
+
+    const handleGoogleLogin = () => {
+        // Add your Google Login logic here
+        console.log("Google login triggered");
+    };
 
     return (
         <div className="min-h-screen w-full flex bg-examsy-bg transition-colors duration-500 relative">
@@ -38,7 +44,7 @@ const LoginPage = () => {
                     <img
                         src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=2072&auto=format&fit=crop"
                         alt="Learning Illustration"
-                        className="w-full h-64 object-cover rounded-3xl shadow-2xl mb-10 border border-white/10 opacity-90"
+                        className="w-full h-64 object-cover rounded-3xl shadow-2xl mb-10 border border-white/10 opacity-90 grayscale-[20%] hover:grayscale-0 transition-all duration-500"
                     />
 
                     <h2 className="text-3xl font-bold text-examsy-text mb-4 leading-tight">
@@ -87,11 +93,10 @@ const LoginPage = () => {
                         </div>
                     </div>
 
-                    {/* Google Login */}
-                    <button className="w-full flex items-center justify-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-examsy-text font-semibold h-14 rounded-2xl transition-all duration-300 mb-8">
-                        <Chrome size={22} className="text-red-500" />
-                        <span>Continue with Google</span>
-                    </button>
+                    {/* Integrated Google Login Button component */}
+                    <div className="mb-8">
+                        <GoogleAuthButton onClick={handleGoogleLogin} label="Continue with Google" />
+                    </div>
 
                     <div className="relative flex items-center gap-4 mb-8">
                         <div className="h-px bg-zinc-300 dark:bg-zinc-700 flex-1"></div>
