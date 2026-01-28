@@ -22,8 +22,8 @@ const LandingPage = () => {
 
     return (
         <div className="bg-examsy-bg min-h-screen text-examsy-text transition-colors duration-500">
-            {/* Navbar */}
-            <nav className="p-4 bg-examsy-surface/80 backdrop-blur-md text-examsy-text flex justify-between items-center shadow-md sticky top-0 z-[100] border-b border-white/5">
+            {/* Navbar - Fixed height used for pinning reference (h-20) */}
+            <nav className="h-20 p-4 bg-examsy-surface/80 backdrop-blur-md text-examsy-text flex justify-between items-center shadow-md sticky top-0 z-[100] border-b border-white/5">
                 <div style={{ position: 'relative', height: '48px', width: '150px' }}>
                     <TextPressure
                         text="Examsy !"
@@ -41,7 +41,6 @@ const LandingPage = () => {
             {/* HERO SECTION */}
             <section className="relative pt-24 pb-20 px-6 overflow-hidden">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-full bg-examsy-primary/10 blur-[120px] rounded-full -z-10 opacity-50"></div>
-
                 <div className="container mx-auto text-center relative z-10">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-examsy-primary/10 border border-examsy-primary/20 text-examsy-primary text-sm font-medium mb-8">
                         <span className="relative flex h-2 w-2">
@@ -50,16 +49,13 @@ const LandingPage = () => {
                         </span>
                         New: AI-Powered OCR for Handwritten Exams
                     </div>
-
                     <h1 className="text-5xl lg:text-7xl font-extrabold leading-tight mb-6 tracking-tight">
                         The Future of <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-examsy-primary to-indigo-400">Classroom Management</span>
                     </h1>
-
                     <p className="text-xl text-examsy-muted mb-12 max-w-2xl mx-auto leading-relaxed">
                         <span className="font-bold text-examsy-text">Examsy</span> is an all-in-one platform to conduct exams, manage classes, and track student growth with effortless automation.
                     </p>
-
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
                         <Link to="/register-teacher" className="px-8 py-4 bg-examsy-primary hover:bg-examsy-primary/90 text-white rounded-2xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-examsy-primary/20 group">
                             Start for Free <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -68,78 +64,49 @@ const LandingPage = () => {
                             Find Your Classes
                         </Link>
                     </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto pt-12 border-t border-zinc-200/10">
-                        <div>
-                            <div className="text-3xl font-extrabold mb-1">50+</div>
-                            <div className="text-examsy-muted text-sm uppercase tracking-wider font-semibold">Institutions</div>
-                        </div>
-                        <div>
-                            <div className="text-3xl font-extrabold mb-1">10k+</div>
-                            <div className="text-examsy-muted text-sm uppercase tracking-wider font-semibold">Students</div>
-                        </div>
-                        <div>
-                            <div className="text-3xl font-extrabold mb-1">99.9%</div>
-                            <div className="text-examsy-muted text-sm uppercase tracking-wider font-semibold">Uptime</div>
-                        </div>
-                        <div>
-                            <div className="text-3xl font-extrabold mb-1">24/7</div>
-                            <div className="text-examsy-muted text-sm uppercase tracking-wider font-semibold">Support</div>
-                        </div>
-                    </div>
                 </div>
             </section>
 
-            {/* WHY CHOOSE SECTION */}
-            <section className="py-12 bg-examsy-surface transition-colors duration-500 overflow-hidden">
+            {/* WHY CHOOSE SECTION - THE FIX IS HERE */}
+            <section className="relative bg-examsy-surface">
                 <div className="container mx-auto px-6">
-                    <div className="flex flex-col items-center justify-center text-center mb-10">
+                    {/* Sticky Header: Pins exactly below the 5rem (h-20) navbar.
+                        'z-50' ensures it stays above cards until they stack.
+                    */}
+                    <div className="sticky top-20 z-50 pt-12 pb-8 bg-examsy-surface flex flex-col items-center text-center">
                         <div className="flex items-center justify-center gap-4 flex-wrap">
                             <h2 className="text-4xl font-bold">Why Choose</h2>
-                            <div className="h-[55px] w-[200px] relative">
+                            <div className="h-[60px] w-[220px] relative">
                                 <TextPressure
                                     text="Examsy ?"
                                     flex alpha={false} stroke={false} width weight={false} italic
                                     textColor={theme === 'dark' ? '#fff' : '#000'}
                                     strokeColor="#5227FF"
-                                    minFontSize={38}
+                                    minFontSize={40}
                                 />
                             </div>
                         </div>
-                        <p className="text-examsy-muted mt-4 max-w-xl text-center px-4">
+                        <p className="text-examsy-muted mt-4 max-w-xl">
                             Experience a smarter way to prepare. Our platform is built to stack the odds in your favor, one module at a time.
                         </p>
                     </div>
 
-                    <div className="max-w-4xl mx-auto">
+                    {/* SCROLLABLE STACK AREA */}
+                    <div className="max-w-4xl mx-auto pb-24">
                         <ScrollStack
                             itemStackDistance={18}
-                            stackPosition="12%"
+                            stackPosition="50%" // Pins cards in the center of the viewport
                             baseScale={0.98}
                             blurAmount={3}
                         >
                             <ScrollStackItem>
-                                <FeatureCard
-                                    icon={<MousePointer2 />}
-                                    title="Interactive Exams"
-                                    desc="Engage students with dynamic MCQs and real-time feedback loops that simplify grading."
-                                />
+                                <FeatureCard icon={<MousePointer2 />} title="Interactive Exams" desc="Engage students with dynamic MCQs and real-time feedback loops." />
                             </ScrollStackItem>
-
                             <ScrollStackItem>
-                                <FeatureCard
-                                    icon={<Zap />}
-                                    title="AI-Powered OCR"
-                                    desc="Digitize and grade handwritten papers in seconds with our custom AI handwriting recognition."
-                                />
+                                <FeatureCard icon={<Zap />} title="AI-Powered OCR" desc="Digitize and grade handwritten papers in seconds with custom AI." />
                             </ScrollStackItem>
-
                             <ScrollStackItem>
-                                <FeatureCard
-                                    icon={<BarChart3 />}
-                                    title="Classroom Analytics"
-                                    desc="Gain deep insights into student performance and identify learning gaps automatically."
-                                />
+                                <FeatureCard icon={<BarChart3 />} title="Classroom Analytics" desc="Gain deep insights into performance and identify learning gaps." />
                             </ScrollStackItem>
                         </ScrollStack>
                     </div>

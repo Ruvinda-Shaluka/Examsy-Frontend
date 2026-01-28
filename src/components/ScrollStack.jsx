@@ -16,10 +16,10 @@ export const ScrollStackItem = ({ children, itemClassName = '' }) => (
 
 const ScrollStack = ({
                          children,
-                         itemStackDistance = 15, // How much of the card border is visible at the top
-                         stackPosition = '12%',   // Where the cards "pin" on the screen
-                         baseScale = 0.98,        // Keeps cards large (User requested less scaling)
-                         blurAmount = 3,          // How much the underneath cards blur
+                         itemStackDistance = 18,
+                         stackPosition = '50%',
+                         baseScale = 0.98,
+                         blurAmount = 3,
                      }) => {
     const scrollerRef = useRef(null);
     const animationFrameRef = useRef(null);
@@ -33,13 +33,14 @@ const ScrollStack = ({
         const containerHeight = window.innerHeight;
         const stackPositionPx = (parseFloat(stackPosition) / 100) * containerHeight;
 
+        // Use a relative end point based on the last card
         const endElement = document.querySelector('.scroll-stack-end');
         const endElementTop = endElement ? endElement.getBoundingClientRect().top + window.scrollY : 0;
 
         let activeIndex = 0;
         cardsRef.current.forEach((card, i) => {
             const cardRect = card.getBoundingClientRect();
-            if (cardRect.top <= stackPositionPx + (i * itemStackDistance) + 20) {
+            if (cardRect.top <= stackPositionPx + (i * itemStackDistance)) {
                 activeIndex = i;
             }
         });
@@ -49,13 +50,11 @@ const ScrollStack = ({
 
             const cardTop = card.getBoundingClientRect().top + window.scrollY - (lastTransformsRef.current.get(i)?.translateY || 0);
             const pinStart = cardTop - stackPositionPx - (itemStackDistance * i);
-            const pinEnd = endElementTop - 500;
+            const pinEnd = endElementTop - (containerHeight * 0.5);
 
-            // Faster fade in
-            const fadeInProgress = Math.min(Math.max((scrollTop - (pinStart - 150)) / 150, 0), 1);
+            const fadeInProgress = Math.min(Math.max((scrollTop - (pinStart - 100)) / 100, 0), 1);
             card.style.opacity = fadeInProgress;
 
-            // Pinning logic
             let translateY = 0;
             if (scrollTop >= pinStart && scrollTop <= pinEnd) {
                 translateY = scrollTop - cardTop + stackPositionPx + (itemStackDistance * i);
@@ -65,7 +64,6 @@ const ScrollStack = ({
 
             const depth = activeIndex - i;
             const isUnderneath = depth > 0;
-
             const blur = isUnderneath ? depth * blurAmount : 0;
             const scale = isUnderneath ? Math.pow(baseScale, depth) : 1;
 
@@ -83,17 +81,14 @@ const ScrollStack = ({
 
     useLayoutEffect(() => {
         const lenis = new Lenis({ lerp: 0.12, duration: 1, smoothWheel: true });
-
         const raf = (time) => {
             lenis.raf(time);
             updateCardTransforms();
             animationFrameRef.current = requestAnimationFrame(raf);
         };
         animationFrameRef.current = requestAnimationFrame(raf);
-
         const cards = Array.from(scrollerRef.current.querySelectorAll('.scroll-stack-card'));
         cardsRef.current = cards;
-
         return () => {
             cancelAnimationFrame(animationFrameRef.current);
             lenis.destroy();
@@ -102,10 +97,11 @@ const ScrollStack = ({
 
     return (
         <div className="relative w-full" ref={scrollerRef}>
-            {/* Reduced bottom padding to make the section feel shorter */}
-            <div className="scroll-stack-inner pt-2 pb-[10vh]">
-                {/* Gap 12vh makes cards appear faster as you scroll */}
-                <div className="flex flex-col gap-[12vh] items-center">
+            {/* The pb-[60vh] determines how much scroll distance remains
+                after the final card pins before the section scrolls away.
+            */}
+            <div className="scroll-stack-inner pt-2 pb-[60vh]">
+                <div className="flex flex-col gap-[15vh] items-center">
                     {children}
                 </div>
                 <div className="scroll-stack-end w-full h-px" />
