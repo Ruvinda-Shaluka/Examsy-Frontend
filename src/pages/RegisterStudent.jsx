@@ -75,4 +75,4 @@ const RegisterStudent = () => {
     );
 };
 
-export default RegisterStudent; // CRITICAL: This was missing!
+export default RegisterStudent;

@@ -22,7 +22,7 @@ const LandingPage = () => {
 
     return (
         <div className="bg-examsy-bg min-h-screen text-examsy-text transition-colors duration-500">
-            {/* Navbar - Fixed height used for pinning reference (h-20) */}
+            {/* Navbar - Includes Login Link */}
             <nav className="h-20 p-4 bg-examsy-surface/80 backdrop-blur-md text-examsy-text flex justify-between items-center shadow-md sticky top-0 z-[100] border-b border-white/5">
                 <div style={{ position: 'relative', height: '48px', width: '150px' }}>
                     <TextPressure
@@ -32,16 +32,20 @@ const LandingPage = () => {
                     />
                 </div>
                 <div className="flex items-center">
+                    <Link to="/login" className="mr-6 font-semibold hover:text-examsy-primary">Login</Link>
                     <Link to="/register-student" className="mr-6 font-semibold hover:text-examsy-primary">Student</Link>
                     <Link to="/register-teacher" className="mr-6 font-semibold hover:text-examsy-primary">Teacher</Link>
                     <ToggleButton />
                 </div>
             </nav>
 
-            {/* HERO SECTION */}
+            {/* IMPROVED HERO SECTION */}
             <section className="relative pt-24 pb-20 px-6 overflow-hidden">
+                {/* Background Glow */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-full bg-examsy-primary/10 blur-[120px] rounded-full -z-10 opacity-50"></div>
+
                 <div className="container mx-auto text-center relative z-10">
+                    {/* Feature Badge */}
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-examsy-primary/10 border border-examsy-primary/20 text-examsy-primary text-sm font-medium mb-8">
                         <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-examsy-primary opacity-75"></span>
@@ -49,13 +53,16 @@ const LandingPage = () => {
                         </span>
                         New: AI-Powered OCR for Handwritten Exams
                     </div>
+
                     <h1 className="text-5xl lg:text-7xl font-extrabold leading-tight mb-6 tracking-tight">
                         The Future of <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-examsy-primary to-indigo-400">Classroom Management</span>
                     </h1>
+
                     <p className="text-xl text-examsy-muted mb-12 max-w-2xl mx-auto leading-relaxed">
                         <span className="font-bold text-examsy-text">Examsy</span> is an all-in-one platform to conduct exams, manage classes, and track student growth with effortless automation.
                     </p>
+
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
                         <Link to="/register-teacher" className="px-8 py-4 bg-examsy-primary hover:bg-examsy-primary/90 text-white rounded-2xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-examsy-primary/20 group">
                             Start for Free <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -64,15 +71,33 @@ const LandingPage = () => {
                             Find Your Classes
                         </Link>
                     </div>
+
+                    {/* Statistics Row */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto pt-12 border-t border-zinc-200/10">
+                        <div>
+                            <div className="text-3xl font-extrabold mb-1">50+</div>
+                            <div className="text-examsy-muted text-sm uppercase tracking-wider font-semibold">Institutions</div>
+                        </div>
+                        <div>
+                            <div className="text-3xl font-extrabold mb-1">10k+</div>
+                            <div className="text-examsy-muted text-sm uppercase tracking-wider font-semibold">Students</div>
+                        </div>
+                        <div>
+                            <div className="text-3xl font-extrabold mb-1">99.9%</div>
+                            <div className="text-examsy-muted text-sm uppercase tracking-wider font-semibold">Uptime</div>
+                        </div>
+                        <div>
+                            <div className="text-3xl font-extrabold mb-1">24/7</div>
+                            <div className="text-examsy-muted text-sm uppercase tracking-wider font-semibold">Support</div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            {/* WHY CHOOSE SECTION - THE FIX IS HERE */}
+            {/* WHY CHOOSE SECTION - STICKY HEADER FIX */}
             <section className="relative bg-examsy-surface">
                 <div className="container mx-auto px-6">
-                    {/* Sticky Header: Pins exactly below the 5rem (h-20) navbar.
-                        'z-50' ensures it stays above cards until they stack.
-                    */}
+                    {/* Sticky Header: Pins exactly below the 5rem navbar */}
                     <div className="sticky top-20 z-50 pt-12 pb-8 bg-examsy-surface flex flex-col items-center text-center">
                         <div className="flex items-center justify-center gap-4 flex-wrap">
                             <h2 className="text-4xl font-bold">Why Choose</h2>
@@ -95,7 +120,7 @@ const LandingPage = () => {
                     <div className="max-w-4xl mx-auto pb-24">
                         <ScrollStack
                             itemStackDistance={18}
-                            stackPosition="50%" // Pins cards in the center of the viewport
+                            stackPosition="50%"
                             baseScale={0.98}
                             blurAmount={3}
                         >
