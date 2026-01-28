@@ -1,127 +1,154 @@
 import React from 'react';
-import {Link} from 'react-router-dom';
-import {BarChart3, MousePointer2, Zap} from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { BarChart3, MousePointer2, Zap, ArrowRight } from 'lucide-react';
 import ToggleButton from '../components/ToggleButton.jsx';
 import TextPressure from '../components/TextPressure.jsx';
 import LandingPageFooter from "../components/LandingPageFooter.jsx";
-import { useTheme } from '../hooks/useTheme.jsx'; // Import your hook
+import ScrollStack, { ScrollStackItem } from '../components/ScrollStack';
+import { useTheme } from '../hooks/useTheme.jsx';
+
+const FeatureCard = ({ icon, title, desc }) => (
+    <div className="h-[360px] w-full flex flex-col items-center justify-center text-center p-8 bg-examsy-bg rounded-[40px] border border-zinc-200 dark:border-zinc-800 shadow-xl transition-colors duration-500">
+        <div className="text-examsy-primary mb-5">
+            {React.cloneElement(icon, { size: 44 })}
+        </div>
+        <h3 className="text-2xl font-bold mb-3">{title}</h3>
+        <p className="text-examsy-muted text-base leading-relaxed max-w-sm">{desc}</p>
+    </div>
+);
 
 const LandingPage = () => {
-    const { theme } = useTheme(); // Get the current theme status
+    const { theme } = useTheme();
 
     return (
         <div className="bg-examsy-bg min-h-screen text-examsy-text transition-colors duration-500">
-            <nav className="p-4 bg-examsy-surface text-examsy-text flex justify-between items-center shadow-md transition-colors duration-500">
-                <div style={{position: 'relative', height: '48px', width: '150px'}}>
+            {/* Navbar */}
+            <nav className="p-4 bg-examsy-surface/80 backdrop-blur-md text-examsy-text flex justify-between items-center shadow-md sticky top-0 z-[100] border-b border-white/5">
+                <div style={{ position: 'relative', height: '48px', width: '150px' }}>
                     <TextPressure
                         text="Examsy !"
-                        flex
-                        alpha={false}
-                        stroke={false}
-                        width
-                        weight={false}
-                        italic
-                        textColor={theme === 'dark' ? '#6366f1' : '#465ed2'} // Dynamic color for visibility
-                        strokeColor="#5227FF"
-                        minFontSize={28}
+                        flex alpha={false} stroke={false} width weight={false} italic
+                        textColor="#465ed2" strokeColor="#5227FF" minFontSize={28}
                     />
                 </div>
                 <div className="flex items-center">
-                    <Link to="/register-student"
-                          className="mr-6 font-semibold hover:text-examsy-primary transition-colors">Student</Link>
-                    <Link to="/register-teacher"
-                          className="mr-6 font-semibold hover:text-examsy-primary transition-colors">Teacher</Link>
-                    <ToggleButton/>
+                    <Link to="/register-student" className="mr-6 font-semibold hover:text-examsy-primary">Student</Link>
+                    <Link to="/register-teacher" className="mr-6 font-semibold hover:text-examsy-primary">Teacher</Link>
+                    <ToggleButton />
                 </div>
             </nav>
 
             {/* HERO SECTION */}
-            <section className="pt-24 pb-20 px-6">
-                <div className="container mx-auto text-center">
-                    <div
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-examsy-primary/10 text-examsy-primary text-sm font-bold mb-6">
-                        <Zap size={14}/> NEW: AI-Powered OCR Grading
+            <section className="relative pt-24 pb-20 px-6 overflow-hidden">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-full bg-examsy-primary/10 blur-[120px] rounded-full -z-10 opacity-50"></div>
+
+                <div className="container mx-auto text-center relative z-10">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-examsy-primary/10 border border-examsy-primary/20 text-examsy-primary text-sm font-medium mb-8">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-examsy-primary opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-examsy-primary"></span>
+                        </span>
+                        New: AI-Powered OCR for Handwritten Exams
                     </div>
-                    {/* Explicitly used text-examsy-text for the H1 visibility */}
-                    <h1 className="text-5xl lg:text-6xl font-extrabold leading-tight mb-6 text-examsy-text">
-                        The Future of Classroom Management
+
+                    <h1 className="text-5xl lg:text-7xl font-extrabold leading-tight mb-6 tracking-tight">
+                        The Future of <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-examsy-primary to-indigo-400">Classroom Management</span>
                     </h1>
-                    <p className="text-lg text-examsy-muted mb-10 max-w-2xl mx-auto">
-                        <span className="font-bold">Examsy</span> is an all-in-one platform to conduct exams, manage classes, and track student progress with powerful analytics.
+
+                    <p className="text-xl text-examsy-muted mb-12 max-w-2xl mx-auto leading-relaxed">
+                        <span className="font-bold text-examsy-text">Examsy</span> is an all-in-one platform to conduct exams, manage classes, and track student growth with effortless automation.
                     </p>
-                    <div className="flex justify-center gap-4">
-                        <Link to="/register-teacher"
-                              className="px-8 py-3 bg-examsy-primary text-white font-bold rounded-lg hover:bg-examsy-primary/90 transition-all">
-                            Get Started
+
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
+                        <Link to="/register-teacher" className="px-8 py-4 bg-examsy-primary hover:bg-examsy-primary/90 text-white rounded-2xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-examsy-primary/20 group">
+                            Start for Free <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                         </Link>
-                        <Link to="/register-student"
-                              className="px-8 py-3 bg-examsy-surface text-examsy-text border border-zinc-200 dark:border-zinc-700 font-bold rounded-lg hover:bg-opacity-80 transition-all">
-                            Join a Class
+                        <Link to="/register-student" className="px-8 py-4 bg-examsy-surface border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-2xl font-bold flex items-center gap-2 transition-all">
+                            Find Your Classes
                         </Link>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto pt-12 border-t border-zinc-200/10">
+                        <div>
+                            <div className="text-3xl font-extrabold mb-1">50+</div>
+                            <div className="text-examsy-muted text-sm uppercase tracking-wider font-semibold">Institutions</div>
+                        </div>
+                        <div>
+                            <div className="text-3xl font-extrabold mb-1">10k+</div>
+                            <div className="text-examsy-muted text-sm uppercase tracking-wider font-semibold">Students</div>
+                        </div>
+                        <div>
+                            <div className="text-3xl font-extrabold mb-1">99.9%</div>
+                            <div className="text-examsy-muted text-sm uppercase tracking-wider font-semibold">Uptime</div>
+                        </div>
+                        <div>
+                            <div className="text-3xl font-extrabold mb-1">24/7</div>
+                            <div className="text-examsy-muted text-sm uppercase tracking-wider font-semibold">Support</div>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            {/* FEATURES SECTION */}
-            <section className="py-24 bg-examsy-surface transition-colors duration-500">
+            {/* WHY CHOOSE SECTION */}
+            <section className="py-12 bg-examsy-surface transition-colors duration-500 overflow-hidden">
                 <div className="container mx-auto px-6">
-                    <div className="text-center max-w-3xl mx-auto mb-16">
-                        <h2 className="text-4xl font-bold mb-4 flex items-center justify-center gap-2 text-examsy-text">
-                            Why Choose
-                            <span className="inline-block relative top-[2px]">
+                    <div className="flex flex-col items-center justify-center text-center mb-10">
+                        <div className="flex items-center justify-center gap-4 flex-wrap">
+                            <h2 className="text-4xl font-bold">Why Choose</h2>
+                            <div className="h-[55px] w-[200px] relative">
                                 <TextPressure
                                     text="Examsy ?"
-                                    flex
-                                    alpha={false}
-                                    stroke={false}
-                                    width
-                                    weight={false}
-                                    italic
-                                    textColor={theme === 'dark' ? '#f8fafc' : '#0f172a'} // Dynamic visibility
+                                    flex alpha={false} stroke={false} width weight={false} italic
+                                    textColor={theme === 'dark' ? '#fff' : '#000'}
                                     strokeColor="#5227FF"
-                                    minFontSize={36}
+                                    minFontSize={38}
                                 />
-                            </span>
-                        </h2>
-                        <p className="text-examsy-muted">
-                            From interactive online exams to automated grading of handwritten papers, we provide the tools you need to build a smarter classroom.
+                            </div>
+                        </div>
+                        <p className="text-examsy-muted mt-4 max-w-xl text-center px-4">
+                            Experience a smarter way to prepare. Our platform is built to stack the odds in your favor, one module at a time.
                         </p>
                     </div>
-                    <div className="grid md:grid-cols-3 gap-8">
-                        <FeatureCard
-                            icon={<MousePointer2 size={32} className="text-examsy-primary"/>}
-                            title="Interactive Exams"
-                            desc="Engage students with dynamic MCQs and receive instant results and performance reports."
-                        />
-                        <FeatureCard
-                            icon={<Zap size={32} className="text-examsy-primary"/>}
-                            title="AI-Powered OCR"
-                            desc="Automatically digitize and grade handwritten exam papers, saving you hours of manual work."
-                        />
-                        <FeatureCard
-                            icon={<BarChart3 size={32} className="text-examsy-primary"/>}
-                            title="Classroom Analytics"
-                            desc="Gain insights into student performance with detailed analytics and progress tracking."
-                        />
+
+                    <div className="max-w-4xl mx-auto">
+                        <ScrollStack
+                            itemStackDistance={18}
+                            stackPosition="12%"
+                            baseScale={0.98}
+                            blurAmount={3}
+                        >
+                            <ScrollStackItem>
+                                <FeatureCard
+                                    icon={<MousePointer2 />}
+                                    title="Interactive Exams"
+                                    desc="Engage students with dynamic MCQs and real-time feedback loops that simplify grading."
+                                />
+                            </ScrollStackItem>
+
+                            <ScrollStackItem>
+                                <FeatureCard
+                                    icon={<Zap />}
+                                    title="AI-Powered OCR"
+                                    desc="Digitize and grade handwritten papers in seconds with our custom AI handwriting recognition."
+                                />
+                            </ScrollStackItem>
+
+                            <ScrollStackItem>
+                                <FeatureCard
+                                    icon={<BarChart3 />}
+                                    title="Classroom Analytics"
+                                    desc="Gain deep insights into student performance and identify learning gaps automatically."
+                                />
+                            </ScrollStackItem>
+                        </ScrollStack>
                     </div>
                 </div>
             </section>
-            <LandingPageFooter/>
+
+            <LandingPageFooter />
         </div>
     );
 };
-
-const FeatureCard = ({icon, title, desc}) => (
-    <div
-        className="p-8 bg-examsy-bg rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-examsy-primary/50 hover:shadow-xl transition-all duration-300">
-        <div className="w-16 h-16 bg-examsy-primary/10 rounded-full flex items-center justify-center mb-6 mx-auto">
-            {icon}
-        </div>
-        <h3 className="text-xl font-bold mb-3 text-examsy-text">{title}</h3>
-        <p className="text-examsy-muted leading-relaxed">
-            {desc}
-        </p>
-    </div>
-);
 
 export default LandingPage;
