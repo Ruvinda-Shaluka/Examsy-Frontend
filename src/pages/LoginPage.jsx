@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, User, GraduationCap, ChevronLeft } from 'lucide-react';
 import TextPressure from '../components/TextPressure.jsx';
-import GoogleAuthButton from '../components/GoogleAuthButton'; // Import the new component
+import GoogleAuthButton from '../components/GoogleAuthButton';
 import { useTheme } from '../hooks/useTheme.jsx';
 
 const LoginPage = () => {
@@ -10,7 +10,6 @@ const LoginPage = () => {
     const [role, setRole] = useState('student');
 
     const handleGoogleLogin = () => {
-        // Add your Google Login logic here
         console.log("Google login triggered");
     };
 
@@ -50,9 +49,12 @@ const LoginPage = () => {
                     <h2 className="text-3xl font-bold text-examsy-text mb-4 leading-tight">
                         Empower Your Future.
                     </h2>
-                    <p className="text-lg text-examsy-muted leading-relaxed">
-                        "Education is the passport to the future, for tomorrow belongs to those who prepare for it today."
-                    </p>
+                    <div className="space-y-2">
+                        <p className="text-lg text-examsy-muted leading-relaxed">
+                            "Education is the passport to the future, for tomorrow belongs to those who prepare for it today."
+                        </p>
+                        <p className="text-examsy-primary font-bold tracking-widest text-sm uppercase">— Malcolm X</p>
+                    </div>
                 </div>
             </div>
 
@@ -93,7 +95,6 @@ const LoginPage = () => {
                         </div>
                     </div>
 
-                    {/* Integrated Google Login Button component */}
                     <div className="mb-8">
                         <GoogleAuthButton onClick={handleGoogleLogin} label="Continue with Google" />
                     </div>
@@ -145,7 +146,6 @@ const LoginPage = () => {
                         </button>
                     </form>
 
-                    {/* Dynamic Footer Link */}
                     <p className="text-center text-examsy-muted mt-10 font-medium">
                         Don't have an account yet? {' '}
                         <Link

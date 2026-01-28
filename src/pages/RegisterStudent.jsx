@@ -40,9 +40,12 @@ const RegisterStudent = () => {
                         className="w-full h-64 object-cover rounded-3xl shadow-2xl mb-10 border border-white/10 opacity-90 grayscale-[20%] hover:grayscale-0 transition-all duration-500"
                     />
                     <h2 className="text-3xl font-bold text-examsy-text mb-4 leading-tight">Unlock Your Potential.</h2>
-                    <p className="text-lg text-examsy-muted leading-relaxed italic">
-                        "The beautiful thing about learning is that no one can take it away from you."
-                    </p>
+                    <div className="space-y-2">
+                        <p className="text-lg text-examsy-muted leading-relaxed italic">
+                            "The beautiful thing about learning is that no one can take it away from you."
+                        </p>
+                        <p className="text-examsy-primary font-bold tracking-widest text-sm uppercase">— B.B. King</p>
+                    </div>
                 </div>
             </div>
 
