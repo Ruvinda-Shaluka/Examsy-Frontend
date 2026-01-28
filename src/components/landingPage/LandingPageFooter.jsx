@@ -1,5 +1,5 @@
 import { Github, Linkedin, MessageSquare, Mail, ExternalLink } from "lucide-react";
-import TextPressure from "./TextPressure.jsx";
+import TextPressure from "../logo/TextPressure.jsx";
 import React from "react";
 
 const LandingPageFooter = () => {

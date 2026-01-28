@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, User, GraduationCap, ChevronLeft } from 'lucide-react';
-import TextPressure from '../components/TextPressure.jsx';
-import GoogleAuthButton from '../components/GoogleAuthButton';
+import TextPressure from '../components/logo/TextPressure.jsx';
+import GoogleAuthButton from '../components/forms/GoogleAuthButton.jsx';
 import { useTheme } from '../hooks/useTheme.jsx';
 
 const LoginPage = () => {

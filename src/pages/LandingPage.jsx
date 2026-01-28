@@ -1,8 +1,8 @@
 import React from 'react';
-import LandingNavbar from '../components/LandingNavbar.jsx';
-import LandingHero from '../components/LandingHero.jsx';
-import LandingWhyChoose from '../components/LandingWhyChoose.jsx';
-import LandingPageFooter from "../components/LandingPageFooter.jsx";
+import LandingNavbar from '../components/landingPage/LandingNavbar.jsx';
+import LandingHero from '../components/landingPage/LandingHero.jsx';
+import LandingWhyChoose from '../components/landingPage/LandingWhyChoose.jsx';
+import LandingPageFooter from "../components/landingPage/LandingPageFooter.jsx";
 
 const LandingPage = () => {
     return (

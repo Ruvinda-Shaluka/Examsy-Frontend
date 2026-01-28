@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { User, Mail, Lock, Briefcase, BookOpen, ArrowRight, ChevronLeft, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useExamsyAuth } from '../hooks/useExamsyAuth';
-import GoogleAuthButton from '../components/GoogleAuthButton';
-import { InputField } from '../components/FormHelpers';
-import TextPressure from '../components/TextPressure.jsx';
+import GoogleAuthButton from '../components/forms/GoogleAuthButton.jsx';
+import { InputField } from '../components/forms/FormHelpers.jsx';
+import TextPressure from '../components/logo/TextPressure.jsx';
 import { useTheme } from '../hooks/useTheme.jsx';
 
 const RegisterTeacher = () => {
