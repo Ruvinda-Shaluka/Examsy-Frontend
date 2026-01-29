@@ -24,7 +24,7 @@ const LandingHero = () => (
                 <Link to="/register-teacher" className="w-full sm:w-auto px-8 py-4 bg-examsy-primary text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg group">
                     Start for Free <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
-                <Link to="/register-student" className="w-full sm:w-auto px-8 py-4 bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-2xl font-bold flex items-center justify-center gap-2">
+                <Link to="/login" className="w-full sm:w-auto px-8 py-4 bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-2xl font-bold flex items-center justify-center gap-2">
                     Find Your Classes
                 </Link>
             </div>
