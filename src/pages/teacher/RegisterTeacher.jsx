@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { User, Mail, Lock, Briefcase, BookOpen, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useExamsyAuth } from '../hooks/useExamsyAuth';
-import GoogleAuthButton from '../components/forms/GoogleAuthButton.jsx';
-import { InputField } from '../components/forms/FormHelpers.jsx';
-import AuthLayout from '../components/auth/AuthLayout.jsx';
-import AuthHeader from '../components/auth/AuthHeader.jsx';
+import { useExamsyAuth } from '../../hooks/useExamsyAuth.js';
+import GoogleAuthButton from '../../components/forms/GoogleAuthButton.jsx';
+import { InputField } from '../../components/forms/FormHelpers.jsx';
+import AuthLayout from '../../components/auth/AuthLayout.jsx';
+import AuthHeader from '../../components/auth/AuthHeader.jsx';
 
 const RegisterTeacher = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);

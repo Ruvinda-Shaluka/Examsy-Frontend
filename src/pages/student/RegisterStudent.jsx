@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { User, Mail, Lock, Calendar, Hash, ArrowRight, GraduationCap } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useExamsyAuth } from '../hooks/useExamsyAuth';
-import GoogleAuthButton from '../components/forms/GoogleAuthButton.jsx';
-import { InputField, SelectField } from '../components/forms/FormHelpers.jsx';
-import AuthLayout from '../components/auth/AuthLayout.jsx';
-import AuthHeader from '../components/auth/AuthHeader.jsx';
+import { useExamsyAuth } from '../../hooks/useExamsyAuth.js';
+import GoogleAuthButton from '../../components/forms/GoogleAuthButton.jsx';
+import { InputField, SelectField } from '../../components/forms/FormHelpers.jsx';
+import AuthLayout from '../../components/auth/AuthLayout.jsx';
+import AuthHeader from '../../components/auth/AuthHeader.jsx';
 
 const RegisterStudent = () => {
     const [step, setStep] = useState(1);
