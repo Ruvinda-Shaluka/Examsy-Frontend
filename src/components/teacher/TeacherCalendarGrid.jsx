@@ -1,41 +1,48 @@
 import React from 'react';
-import { Clock, Plus } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
-const TeacherCalendarGrid = ({ days, exams }) => {
+const TeacherCalendarGrid = ({ viewDate, exams }) => {
+    const today = new Date();
+    const year = viewDate.getFullYear();
+    const month = viewDate.getMonth();
+
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDayIndex = new Date(year, month, 1).getDay();
+    const calendarDays = [...Array(firstDayIndex).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
+
     return (
         <div className="grid grid-cols-7 border-t border-l border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-inner">
-            {/* Header Days */}
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="p-4 text-center font-black text-xs uppercase tracking-[0.2em] text-examsy-muted border-r border-b border-zinc-100 dark:border-zinc-800 bg-examsy-bg/50">
-                    {day}
+            {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(d => (
+                <div key={d} className="p-3 md:p-4 text-center font-black text-[9px] md:text-[10px] tracking-widest text-examsy-muted bg-examsy-bg/50 border-r border-b border-zinc-100 dark:border-zinc-800">
+                    {d}
                 </div>
             ))}
+            {calendarDays.map((day, i) => {
+                const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
 
-            {/* Calendar Slots */}
-            {days.map(day => {
-                const dayExams = exams.filter(e => e.day === day);
+                // For demonstration, exams are only shown in the first month.
+                // In production, your filtering logic will use 'e.month === month && e.year === year'
+                const dayExams = exams.filter(e => e.day === day && month === 0);
+
                 return (
-                    <div key={day} className="min-h-[150px] p-3 border-r border-b border-zinc-100 dark:border-zinc-800 transition-colors hover:bg-examsy-bg/20 relative group">
-                        <div className="flex justify-between items-start">
-                            <span className={`font-black text-sm ${day === new Date().getDate() ? 'text-examsy-primary' : 'text-examsy-muted'}`}>
-                                {day.toString().padStart(2, '0')}
-                            </span>
-                            <button className="opacity-0 group-hover:opacity-100 p-1 bg-examsy-primary text-white rounded-lg transition-opacity">
-                                <Plus size={14} />
-                            </button>
-                        </div>
-
-                        <div className="mt-3 space-y-2">
-                            {dayExams.map((exam, idx) => (
-                                <div key={idx} className="p-2 bg-examsy-primary/90 dark:bg-examsy-primary/20 border-l-4 border-examsy-primary rounded-r-xl text-white dark:text-examsy-primary shadow-sm group/card cursor-pointer hover:scale-[1.02] transition-transform">
-                                    <p className="text-[10px] font-black leading-tight uppercase">{exam.title}</p>
-                                    <div className="flex items-center gap-1 mt-1 opacity-80 font-bold text-[9px]">
-                                        <Clock size={10} />
-                                        <span>{exam.time}</span>
-                                    </div>
+                    <div key={`cal-slot-${year}-${month}-${day || 'empty'}-${i}`} className="min-h-[90px] md:min-h-[130px] p-1.5 md:p-2.5 border-r border-b border-zinc-100 dark:border-zinc-800 hover:bg-examsy-bg/20 transition-colors group">
+                        {day && (
+                            <>
+                                <span className={`text-[10px] md:text-xs font-black ${isToday ? 'text-examsy-primary font-black' : 'text-examsy-muted'}`}>
+                                    {day.toString().padStart(2, '0')}
+                                </span>
+                                <div className="mt-1.5 space-y-1">
+                                    {dayExams.map((e, idx) => (
+                                        <div key={`${e.title}-${idx}`} className="bg-examsy-primary p-1.5 rounded-lg text-white shadow-md animate-in fade-in zoom-in-95 duration-300">
+                                            <p className="text-[8px] md:text-[9px] font-black truncate leading-none">{e.title}</p>
+                                            <div className="hidden md:flex items-center gap-1 mt-1 opacity-80 text-[8px] font-bold">
+                                                <Clock size={8}/> {e.time}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
+                            </>
+                        )}
                     </div>
                 );
             })}
