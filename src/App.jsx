@@ -12,6 +12,9 @@ import RegisterTeacher from './pages/teacher/RegisterTeacher.jsx';
 import TeacherDashboard from './pages/teacher/TeacherDashboard.jsx';
 import TeacherCalendar from './pages/teacher/TeacherCalendar.jsx';
 import TeacherSettings from './pages/teacher/TeacherSettings.jsx';
+// NEW: Import the Teaching Page
+import TeacherTeaching from './pages/teacher/TeacherTeaching.jsx';
+
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 
 function App() {
@@ -25,16 +28,20 @@ function App() {
                 <Route path="/register-teacher" element={<RegisterTeacher />} />
 
                 {/* --- TEACHER DASHBOARD ROUTES --- */}
-                {/* You enter http://localhost:5173/teacher/dashboard to see the home grid */}
+                {/* Home grid view */}
                 <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
 
-                {/* You enter http://localhost:5173/teacher/calendar to see the exam scheduler */}
+                {/* Exam scheduler and calendar */}
                 <Route path="/teacher/calendar" element={<TeacherCalendar />} />
 
-                {/* You enter http://localhost:5173/teacher/settings to see the profile management */}
+                {/* Profile and notification management */}
                 <Route path="/teacher/settings" element={<TeacherSettings />} />
 
-                {/* Optional: Add a 404 handler if you haven't yet */}
+                {/* NEW: Exam creation and classroom management */}
+                {/* Access via: http://localhost:5173/teacher/teaching */}
+                <Route path="/teacher/teaching" element={<TeacherTeaching />} />
+
+                {/* 404 handler (Must remain the last route) */}
                 <Route path="*" element={<NotFoundPage/>} />
             </Routes>
         </ThemeProvider>
