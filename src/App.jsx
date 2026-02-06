@@ -16,6 +16,7 @@ import TeacherSettings from './pages/teacher/TeacherSettings.jsx';
 import TeacherTeaching from './pages/teacher/TeacherTeaching.jsx';
 
 import NotFoundPage from "./pages/NotFoundPage.jsx";
+import TeacherGrading from "./pages/teacher/TeacherGrading.jsx";
 
 function App() {
     return (
@@ -40,6 +41,9 @@ function App() {
                 {/* NEW: Exam creation and classroom management */}
                 {/* Access via: http://localhost:5173/teacher/teaching */}
                 <Route path="/teacher/teaching" element={<TeacherTeaching />} />
+
+                {/*Grading page using gemini api*/}
+                <Route path="/teacher/grading" element={<TeacherGrading />} />
 
                 {/* 404 handler (Must remain the last route) */}
                 <Route path="*" element={<NotFoundPage/>} />
