@@ -3,6 +3,9 @@ import TeacherLayout from '../../layouts/TeacherLayout';
 import TeacherExamClassSelector from '../../components/teacher/teaching/TeacherExamClassSelector';
 import TeacherExamModeSelector from '../../components/teacher/teaching/TeacherExamModeSelector';
 import TeacherMCQBuilder from '../../components/teacher/teaching/TeacherMCQBuilder';
+import TeacherShortAnswerBuilder from '../../components/teacher/teaching/TeacherShortAnswerBuilder';
+import TeacherPDFUploader from '../../components/teacher/teaching/TeacherPDFUploader';
+
 import { ChevronRight, ChevronLeft, Send } from 'lucide-react';
 
 const TeacherTeaching = () => {
@@ -33,11 +36,15 @@ const TeacherTeaching = () => {
                             </button>
                         )}
                         {step < 3 ? (
-                            <button onClick={nextStep} className="bg-examsy-primary text-white px-6 py-3 rounded-2xl font-black flex items-center gap-2 shadow-lg">
+                            <button
+                                onClick={nextStep}
+                                // Optional: Disable 'Next' if current step data isn't filled
+                                className="bg-examsy-primary text-white px-6 py-3 rounded-2xl font-black flex items-center gap-2 shadow-lg hover:scale-[1.02] transition-transform"
+                            >
                                 Next Step <ChevronRight size={20} />
                             </button>
                         ) : (
-                            <button className="bg-emerald-600 text-white px-8 py-3 rounded-2xl font-black flex items-center gap-2 shadow-lg">
+                            <button className="bg-emerald-600 text-white px-8 py-3 rounded-2xl font-black flex items-center gap-2 shadow-lg hover:scale-[1.02] transition-transform">
                                 Publish Exam <Send size={20} />
                             </button>
                         )}
@@ -46,20 +53,30 @@ const TeacherTeaching = () => {
 
                 {/* Step Views */}
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    {/* Step 1: Select Classes */}
                     {step === 1 && (
                         <TeacherExamClassSelector
                             selected={examData.classes}
                             onChange={(classes) => setExamData({...examData, classes})}
                         />
                     )}
+
+                    {/* Step 2: Select Mode and Type */}
                     {step === 2 && (
                         <TeacherExamModeSelector
                             data={examData}
                             onChange={(mode, type) => setExamData({...examData, mode, type})}
                         />
                     )}
-                    {step === 3 && examData.type === 'mcq' && <TeacherMCQBuilder />}
-                    {/* Add logic for other builders similarly */}
+
+                    {/* Step 3: Content Builder (Dynamic based on Type) */}
+                    {step === 3 && (
+                        <>
+                            {examData.type === 'mcq' && <TeacherMCQBuilder />}
+                            {examData.type === 'short' && <TeacherShortAnswerBuilder />}
+                            {examData.type === 'pdf' && <TeacherPDFUploader />}
+                        </>
+                    )}
                 </div>
             </div>
         </TeacherLayout>
