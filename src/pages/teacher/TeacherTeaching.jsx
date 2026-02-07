@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import TeacherLayout from '../../layouts/TeacherLayout';
-import TeacherExamClassSelector from '../../components/teacher/teaching/TeacherExamClassSelector';
-import TeacherExamModeSelector from '../../components/teacher/teaching/TeacherExamModeSelector';
-import TeacherMCQBuilder from '../../components/teacher/teaching/TeacherMCQBuilder';
-import TeacherShortAnswerBuilder from '../../components/teacher/teaching/TeacherShortAnswerBuilder';
-import TeacherPDFUploader from '../../components/teacher/teaching/TeacherPDFUploader';
+import TeacherExamClassSelector from '../../components/teacher/exam-manage/TeacherExamClassSelector';
+import TeacherExamModeSelector from '../../components/teacher/exam-manage/TeacherExamModeSelector';
+import TeacherMCQBuilder from '../../components/teacher/exam-manage/TeacherMCQBuilder';
+import TeacherShortAnswerBuilder from '../../components/teacher/exam-manage/TeacherShortAnswerBuilder';
+import TeacherPDFUploader from '../../components/teacher/exam-manage/TeacherPDFUploader';
 
 import { ChevronRight, ChevronLeft, Send } from 'lucide-react';
 

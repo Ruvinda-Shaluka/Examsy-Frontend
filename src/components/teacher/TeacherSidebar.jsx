@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-// Added FileCheck icon for Grading
-import { Home, Calendar, BookOpen, FileCheck, Archive, Settings, ChevronLeft, Menu } from 'lucide-react';
+
+import {Home, Calendar, BookOpen, FileCheck, Archive, Settings, ChevronLeft, Menu, Clock} from 'lucide-react';
 import TextPressure from "../logo/TextPressure.jsx";
 import ToggleButton from '../landingPage/ToggleButton.jsx';
 import { MOCK_TEACHER } from '../../data/TeacherMockData';
@@ -11,10 +11,11 @@ const TeacherSidebar = ({ isOpen, toggle }) => {
 
     const navItems = [
         { icon: Home, label: 'Home', path: '/teacher/dashboard' },
+        { icon: BookOpen, label: 'Manage Exams', path: '/teacher/manage-exams' },
+        {icon: Clock, label: 'Ongoing Exams', path: '/teacher/ongoing-exams'},
+        { icon: FileCheck, label: 'Grading', path: '/teacher/grading' },
         { icon: Calendar, label: 'Calendar', path: '/teacher/calendar' },
-        { icon: BookOpen, label: 'Teaching', path: '/teacher/teaching' },
-        { icon: FileCheck, label: 'Grading', path: '/teacher/grading' }, // NEW SECTION
-        { icon: Archive, label: 'Archived classes', path: '/teacher/archived' },
+        { icon: Archive, label: 'Archived Classes', path: '/teacher/archived-classes' },
         { icon: Settings, label: 'Settings', path: '/teacher/settings' },
     ];
 

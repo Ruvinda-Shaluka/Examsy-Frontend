@@ -17,6 +17,8 @@ import TeacherTeaching from './pages/teacher/TeacherTeaching.jsx';
 
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 import TeacherGrading from "./pages/teacher/TeacherGrading.jsx";
+import TeacherOngoing from "./pages/teacher/ongoing-exams/TeacherOngoing.jsx";
+import TeacherLiveMonitor from "./pages/teacher/ongoing-exams/TeacherLiveMonitor.jsx";
 
 function App() {
     return (
@@ -40,7 +42,14 @@ function App() {
 
                 {/* NEW: Exam creation and classroom management */}
                 {/* Access via: http://localhost:5173/teacher/teaching */}
-                <Route path="/teacher/teaching" element={<TeacherTeaching />} />
+                <Route path="/teacher/manage-exams" element={<TeacherTeaching />} />
+
+                {/*Overview of ongoing-exams examination*/}
+                <Route path="/teacher/ongoing-exams" element={<TeacherOngoing />} />
+
+                {/*To track student live*/}
+                <Route path="/teacher/live-monitor/:examId" element={<TeacherLiveMonitor />} />
+
 
                 {/*Grading page using gemini api*/}
                 <Route path="/teacher/grading" element={<TeacherGrading />} />
