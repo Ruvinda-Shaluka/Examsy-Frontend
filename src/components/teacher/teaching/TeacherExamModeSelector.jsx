@@ -69,7 +69,7 @@ const TeacherExamModeSelector = ({ data, onChange }) => {
 
             {/* 3. Schedule & Duration Section */}
             {data.mode && (
-                <div >
+                <div className="space-y-6">
                     <h3 className="text-xl font-black text-examsy-text">3. Schedule & Duration</h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
