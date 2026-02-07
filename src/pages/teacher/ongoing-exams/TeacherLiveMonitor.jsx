@@ -64,7 +64,7 @@ const TeacherLiveMonitor = () => {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div className="space-y-2">
                         <button
-                            onClick={() => navigate('/teacher/ongoing')}
+                            onClick={() => navigate('/teacher/ongoing-exams')}
                             className="flex items-center gap-2 text-examsy-muted font-black text-xs uppercase tracking-widest hover:text-examsy-primary transition-colors"
                         >
                             <ChevronLeft size={16} /> Back to Ongoing Exams
