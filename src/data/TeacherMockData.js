@@ -71,3 +71,30 @@ export const MOCK_CLASS_DETAILS = {
         ]
     }
 };
+
+export const MOCK_EXAMS_RESULTS = [
+    { id: 'ex1', title: 'Physics Mid-Term', date: '2026-01-15' },
+    { id: 'ex2', title: 'Optics Quiz', date: '2026-02-01' }
+];
+
+export const MOCK_GRADE_ANALYTICS = {
+    'ex1': {
+        average: 72.5,
+        topScorer: "Alex Rivera",
+        topScore: 98,
+        totalStudents: 45,
+        distribution: {
+            'A (85+)': 12,
+            'B (70-84)': 18,
+            'C (55-69)': 8,
+            'D (40-54)': 4,
+            'F (<40)': 3
+        },
+        studentList: [
+            { id: 's1', name: "Alex Rivera", score: 98, status: "Pass", grade: "A" },
+            { id: 's2', name: "Sarah Chen", score: 84, status: "Pass", grade: "B" },
+            { id: 's3', name: "Jordan Smith", score: 62, status: "Pass", grade: "C" },
+            { id: 's4', name: "Emily Davis", score: 35, status: "Fail", grade: "F" },
+        ]
+    }
+};
