@@ -13,42 +13,48 @@ import TeacherLiveMonitor from "../pages/teacher/ongoing-exams/TeacherLiveMonito
 import TeacherGrading from "../pages/teacher/TeacherGrading.jsx";
 import NotFoundPage from "../pages/NotFoundPage.jsx";
 
+// NEW IMPORT: The Classroom Detail View
+import ClassDetailPage from "../pages/teacher/ClassDetailPage.jsx";
+
 const AppRoutes = () => {
-  return (
-      <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register-student" element={<RegisterStudent />} />
-          <Route path="/register-teacher" element={<RegisterTeacher />} />
+    return (
+        <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register-student" element={<RegisterStudent />} />
+            <Route path="/register-teacher" element={<RegisterTeacher />} />
 
-          {/* --- TEACHER DASHBOARD ROUTES --- */}
-          {/* Home grid view */}
-          <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+            {/* --- TEACHER DASHBOARD ROUTES --- */}
+            {/* Home grid view */}
+            <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
 
-          {/* Exam scheduler and calendar */}
-          <Route path="/teacher/calendar" element={<TeacherCalendar />} />
+            {/* NEW: Dynamic Route for Specific Class Management */}
+            {/* This captures the ID from TeacherClassCard and opens the classroom view */}
+            <Route path="/teacher/class/:classId" element={<ClassDetailPage />} />
 
-          {/* Profile and notification management */}
-          <Route path="/teacher/settings" element={<TeacherSettings />} />
+            {/* Exam scheduler and calendar */}
+            <Route path="/teacher/calendar" element={<TeacherCalendar />} />
 
-          {/* NEW: Exam creation and classroom management */}
-          <Route path="/teacher/manage-exams" element={<TeacherTeaching />} />
+            {/* Profile and notification management */}
+            <Route path="/teacher/settings" element={<TeacherSettings />} />
 
-          {/*Overview of ongoing-exams examination*/}
-          <Route path="/teacher/ongoing-exams" element={<TeacherOngoing />} />
+            {/* NEW: Exam creation and classroom management */}
+            <Route path="/teacher/manage-exams" element={<TeacherTeaching />} />
 
-          {/*To track student live*/}
-          <Route path="/teacher/live-monitor/:examId" element={<TeacherLiveMonitor />} />
+            {/*Overview of ongoing-exams examination*/}
+            <Route path="/teacher/ongoing-exams" element={<TeacherOngoing />} />
 
+            {/*To track student live*/}
+            <Route path="/teacher/live-monitor/:examId" element={<TeacherLiveMonitor />} />
 
-          {/*Grading page using gemini api*/}
-          <Route path="/teacher/grading" element={<TeacherGrading />} />
+            {/*Grading page using gemini api*/}
+            <Route path="/teacher/grading" element={<TeacherGrading />} />
 
-          {/* 404 handler (Must remain the last route) */}
-          <Route path="*" element={<NotFoundPage/>} />
-      </Routes>
-  );
+            {/* 404 handler (Must remain the last route) */}
+            <Route path="*" element={<NotFoundPage/>} />
+        </Routes>
+    );
 };
 
 export default AppRoutes;

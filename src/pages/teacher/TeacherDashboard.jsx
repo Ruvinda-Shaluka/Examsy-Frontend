@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import TeacherLayout from '../../layouts/TeacherLayout';
-import TeacherClassCard from '../../components/teacher/TeacherClassCard';
+import TeacherClassCard from '../../components/teacher/class-detail/TeacherClassCard.jsx';
 import TeacherCreateClassModal from '../../components/teacher/TeacherCreateClassModal';
 import { Plus } from 'lucide-react';
-import { MOCK_EXAMS } from '../../data/TeacherMockData';
+import {MOCK_CLASSES, MOCK_EXAMS} from '../../data/TeacherMockData';
 
 const TeacherDashboard = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,7 +27,7 @@ const TeacherDashboard = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                {MOCK_EXAMS.map((cls) => (
+                {MOCK_CLASSES.map((cls) => (
                     // Using cls.id as a unique key for React tracking
                     <TeacherClassCard key={cls.id} {...cls} />
                 ))}

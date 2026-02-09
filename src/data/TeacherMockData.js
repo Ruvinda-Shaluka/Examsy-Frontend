@@ -44,3 +44,30 @@ export const MOCK_LIVE_STUDENTS = [
     { id: 's3', name: 'Liam Smith', status: 'submitted', flagged: false, flags: 0, progress: 100, action: 'Finished' },
     { id: 's4', name: 'Chloe Chen', status: 'active', flagged: true, flags: 1, progress: 20, action: 'Viewing PDF' },
 ];
+
+// 6. New: Detailed Class Information for Stream and People List
+export const MOCK_CLASS_DETAILS = {
+    "1": { // Use strings for keys to match URL params easily
+        code: "phys-11b-2026",
+        announcements: [
+            { id: 'a1', author: 'Dr. Jane Smith', date: 'Oct 24', content: 'Welcome to the Physics Mid-Term prep stream.', comments: 2 },
+        ],
+        students: [
+            { id: 's1', name: 'Alex Rivera', email: 'alex@examsy.edu', initial: 'A' },
+        ]
+    },
+    "2": {
+        code: "db-cs-2026",
+        announcements: [{id: 'a2', author: 'Dr. Jane Smith', date: 'Oct 20', content: 'Database Systems class will cover SQL basics this week.', comments: 5 }],
+        students: [
+            {id: 's2', name: 'Maria Garcia', email: 'maria@examsy.edu', initial: 'M'}
+        ]
+    },
+    "3": {
+        code: "rt-cs-2026",
+        announcements: [{id: 'a3', author: 'Dr. Jane Smith', date: 'Oct 27', content: 'React classes will cover hooks in react.', comments: 5 }],
+        students: [
+            {id: 's2', name: 'P.P Yasas', email: 'yasas@examsy.edu', initial: 'P.P'}
+        ]
+    }
+};
