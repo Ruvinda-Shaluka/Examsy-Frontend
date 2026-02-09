@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Settings, Image as ImageIcon, ChevronLeft } from 'lucide-react';
+import { Settings, ChevronLeft } from 'lucide-react';
 import ClassStream from '../../components/teacher/class-detail/ClassStream';
 import ClassPeopleList from '../../components/teacher/class-detail/ClassPeopleList';
 import ClassAppearanceModal from '../../components/teacher/class-detail/ClassAppearanceModal';
+import StreamCoverView from '../../components/teacher/class-detail/StreamCoverView'; // New Import
 import { MOCK_CLASSES } from '../../data/TeacherMockData';
 
 const ClassDetailPage = () => {
@@ -12,8 +13,7 @@ const ClassDetailPage = () => {
     const [activeTab, setActiveTab] = useState('stream');
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Find the specific class basic info from MOCK_CLASSES using the ID from the URL
-    const classInfo = MOCK_CLASSES.find(c => c.id === parseInt(classId)) || MOCK_CLASSES[1];
+    const classInfo = MOCK_CLASSES.find(c => c.id === parseInt(classId)) || MOCK_CLASSES[0];
 
     return (
         <div className="min-h-screen bg-examsy-bg text-examsy-text p-4 md:p-8">
@@ -50,37 +50,24 @@ const ClassDetailPage = () => {
                 </button>
             </nav>
 
-            {/* --- Dynamic Class Banner --- */}
-            <div className={`relative h-64 w-full ${classInfo.bannerColor || 'bg-examsy-primary'} rounded-[2.5rem] overflow-hidden mb-8 shadow-2xl group transition-colors duration-500`}>
-                {/* Decorative Background Elements */}
-                <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl" />
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/10 rounded-full -ml-20 -mb-20 blur-2xl" />
-
-                <div className="absolute inset-0 p-10 flex flex-col justify-end relative z-10">
-                    <h1 className="text-4xl md:text-6xl font-black text-white mb-2 tracking-tight">
-                        {classInfo.title}
-                    </h1>
-                    <p className="text-white/80 text-lg font-bold">
-                        {classInfo.section}
-                    </p>
-                </div>
-
-                <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="absolute bottom-6 right-6 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white px-5 py-2.5 rounded-2xl flex items-center gap-2 font-bold transition-all border border-white/20 z-20"
-                >
-                    <ImageIcon size={18} /> Customize
-                </button>
-            </div>
-
             {/* --- Content Area Section --- */}
             <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-                {/* Pass the dynamic classId down to components to fetch correct detail data */}
-                {activeTab === 'stream' && <ClassStream classId={classId} />}
 
+                {/* 1. STREAM SECTION: Includes the extracted Banner component */}
+                {activeTab === 'stream' && (
+                    <>
+                        <StreamCoverView
+                            classInfo={classInfo}
+                            onCustomize={() => setIsModalOpen(true)}
+                        />
+                        <ClassStream classId={classId} />
+                    </>
+                )}
+
+                {/* 2. PEOPLE SECTION */}
                 {activeTab === 'people' && <ClassPeopleList classId={classId} />}
 
-                {/* Fallback for tabs not yet implemented */}
+                {/* 3. OTHER SECTIONS (Classwork & Grades) */}
                 {(activeTab === 'classwork' || activeTab === 'grades') && (
                     <div className="bg-examsy-surface rounded-[2.5rem] p-20 text-center border border-dashed border-zinc-200 dark:border-zinc-800">
                         <p className="text-examsy-muted font-bold text-xl capitalize">
