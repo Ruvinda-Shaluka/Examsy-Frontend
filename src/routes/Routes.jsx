@@ -12,9 +12,15 @@ import TeacherOngoing from "../pages/teacher/ongoing-exams/TeacherOngoing.jsx";
 import TeacherLiveMonitor from "../pages/teacher/ongoing-exams/TeacherLiveMonitor.jsx";
 import TeacherGrading from "../pages/teacher/TeacherGrading.jsx";
 import NotFoundPage from "../pages/NotFoundPage.jsx";
-
-// NEW IMPORT: The Classroom Detail View
 import ClassDetailPage from "../pages/teacher/ClassDetailPage.jsx";
+
+// --- NEW STUDENT IMPORTS ---
+import StudentDashboard from "../pages/student/StudentDashboard.jsx";
+import AcademicVault from "../pages/student/AcademicVault.jsx";
+import StudentCalendar from "../pages/student/StudentCalendar.jsx";
+import StudentSettings from "../pages/student/StudentSettings.jsx";
+import ExamInterface from "../pages/student/ExamInterface.jsx";
+import StudentLayout from "../layouts/StudentLayout.jsx";
 
 const AppRoutes = () => {
     return (
@@ -50,6 +56,23 @@ const AppRoutes = () => {
 
             {/*Grading page using gemini api*/}
             <Route path="/teacher/grading" element={<TeacherGrading />} />
+
+            {/* --- STUDENT DASHBOARD ROUTES --- */}
+
+            {/* Main Student Hub */}
+            <Route path="/student/dashboard" element={<StudentDashboard />} />
+
+            {/* List of available and past exams */}
+            <Route path="/student/exams" element={<AcademicVault />} />
+
+            {/* Academic schedule */}
+            <Route path="/student/calendar" element={<StudentCalendar />} />
+
+            {/* Profile and security management */}
+            <Route path="/student/settings" element={<StudentSettings />} />
+
+            {/* Full-screen Exam Mode (Standalone Route) */}
+            <Route path="/student/exam/:examId" element={<ExamInterface />} />
 
             {/* 404 handler (Must remain the last route) */}
             <Route path="*" element={<NotFoundPage/>} />
