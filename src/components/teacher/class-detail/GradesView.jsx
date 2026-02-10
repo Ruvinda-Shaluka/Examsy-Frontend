@@ -105,33 +105,7 @@ const GradesView = () => {
                     </div>
                 </div>
 
-                {/* --- Distribution Bar Graph --- */}
-                <div className="lg:col-span-2 bg-examsy-surface p-8 rounded-[40px] border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                    <h3 className="text-sm font-black uppercase tracking-widest text-examsy-muted mb-8">Grade Distribution</h3>
-                    <div className="flex items-end gap-2 sm:gap-4 h-64">
-                        {Object.entries(analytics.distribution).map(([grade, count]) => (
-                            <div key={grade} className="flex-1 flex flex-col items-center gap-3 group">
-                                <div className="relative w-full bg-examsy-bg rounded-xl flex flex-col justify-end overflow-hidden h-full">
-                                    <div
-                                        className="transition-all duration-1000 group-hover:opacity-80"
-                                        style={{
-                                            height: `${(count / analytics.totalStudents) * 100}%`,
-                                            backgroundColor: COLORS[grade]
-                                        }}
-                                    />
-                                    <span className="absolute inset-x-0 bottom-2 text-center text-[10px] font-black text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                        {count}
-                                    </span>
-                                </div>
-                                <span className="text-[10px] font-black text-examsy-muted uppercase text-center leading-tight whitespace-pre-wrap">{grade}</span>
-                            </div>
-                        ))}
-                    </div>
                 </div>
-            </div>
-
-            {/* --- Student Results Table (Remaining parts omitted for brevity, same as your original) --- */}
-            {/* ... Rest of your Student Table code ... */}
         </div>
     );
 };
