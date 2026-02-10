@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Timer, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Timer, CheckCircle2 } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { STUDENT_DATA } from '../../data/StudentMockData';
 
-const ExamInterface = ({ exam, onExit }) => {
+const ExamInterface = () => {
+    const { examId } = useParams();
+    const navigate = useNavigate();
+    const exam = STUDENT_DATA.availableExams.find(e => e.id === examId) || { title: 'Unknown Exam', class: '', timeLimit: 90 };
+
     const [currentQuestion, setCurrentQuestion] = useState(0);
-    const [timeLeft, setTimeLeft] = useState(5400); // 90 mins
+    const [timeLeft, setTimeLeft] = useState((exam.timeLimit || 90) * 60);
     const [answers, setAnswers] = useState({});
 
     useEffect(() => {
-        const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+        const timer = setInterval(() => setTimeLeft(prev => Math.max(0, prev - 1)), 1000);
         return () => clearInterval(timer);
     }, []);
 
@@ -22,7 +28,7 @@ const ExamInterface = ({ exam, onExit }) => {
             {/* Header */}
             <header className="h-20 bg-examsy-surface border-b border-zinc-200 dark:border-zinc-800 px-12 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-6">
-                    <button onClick={onExit} className="p-2 hover:bg-examsy-bg rounded-xl transition-colors text-examsy-muted hover:text-examsy-text">
+                    <button onClick={() => navigate(-1)} className="p-2 hover:bg-examsy-bg rounded-xl transition-colors text-examsy-muted hover:text-examsy-text">
                         <ArrowLeft size={20}/>
                     </button>
                     <div>

@@ -57,22 +57,15 @@ const AppRoutes = () => {
             {/*Grading page using gemini api*/}
             <Route path="/teacher/grading" element={<TeacherGrading />} />
 
-            {/* --- STUDENT DASHBOARD ROUTES --- */}
-
-            {/* Main Student Hub */}
-            <Route path="/student/dashboard" element={<StudentDashboard />} />
-
-            {/* List of available and past exams */}
-            <Route path="/student/exams" element={<AcademicVault />} />
-
-            {/* Academic schedule */}
-            <Route path="/student/calendar" element={<StudentCalendar />} />
-
-            {/* Profile and security management */}
-            <Route path="/student/settings" element={<StudentSettings />} />
-
-            {/* Full-screen Exam Mode (Standalone Route) */}
-            <Route path="/student/exam/:examId" element={<ExamInterface />} />
+            {/* --- STUDENT DASHBOARD ROUTES (nested under StudentLayout) --- */}
+            <Route path="/student" element={<StudentLayout />}>
+                <Route index element={<StudentDashboard />} />
+                <Route path="dashboard" element={<StudentDashboard />} />
+                <Route path="exams" element={<AcademicVault />} />
+                <Route path="calendar" element={<StudentCalendar />} />
+                <Route path="settings" element={<StudentSettings />} />
+                <Route path="exam/:examId" element={<ExamInterface />} />
+            </Route>
 
             {/* 404 handler (Must remain the last route) */}
             <Route path="*" element={<NotFoundPage/>} />
