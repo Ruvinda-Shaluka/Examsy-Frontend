@@ -4,6 +4,7 @@ import StudentLayout from "../../layouts/StudentLayout.jsx";
 import StudentClassCard from '../../components/student/StudentClassCard.jsx';
 // Assuming MOCK_CLASSES contains the student's joined classes
 import { MOCK_CLASSES } from '../../data/TeacherMockData';
+import {STUDENT_DATA} from "../../data/StudentMockData.js";
 
 const StudentDashboard = () => {
     const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
@@ -28,13 +29,14 @@ const StudentDashboard = () => {
 
             {/* Classroom Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 animate-fade-in">
-                {MOCK_CLASSES.map((cls) => (
+                {STUDENT_DATA.enrolledClasses.map((cls) => (
                     <StudentClassCard
                         key={cls.id}
                         id={cls.id}
-                        title={cls.name} // Adjust mapping if your data keys differ
-                        section={cls.grade}
+                        title={cls.title} // Adjust mapping if your data keys differ
+                        section={cls.section}
                         bannerColor={cls.bannerColor}
+                        teacher={cls.teacher}
                     />
                 ))}
 
