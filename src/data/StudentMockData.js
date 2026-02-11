@@ -6,8 +6,8 @@ export const STUDENT_DATA = {
     stats: { gpa: "3.8", examsTaken: 24, upcoming: 3 },
     // Original Exam Data
     upcomingExams: [
-        { id: 'e1', title: 'Data Structures', class: 'CS201', date: 'Today', time: '2:00 PM', duration: '90m' },
-        { id: 'e2', title: 'Calculus II', class: 'MATH102', date: 'Tomorrow', time: '10:00 AM', duration: '120m' }
+        { id: 'e1', title: 'Data Structures', class: 'CS201', date: 'Today', time: '2:00 PM', duration: '90' },
+        { id: 'e2', title: 'Calculus II', class: 'MATH102', date: 'Tomorrow', time: '10:00 AM', duration: '120' }
     ],
     availableExams: [
         { id: 'ex1', title: 'Intro to AI', class: 'CS301', status: 'Available', questions: 30, timeLimit: 60 },

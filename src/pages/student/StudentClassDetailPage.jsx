@@ -94,7 +94,7 @@ const StudentClassDetailPage = () => {
 
                     {/* Right Side: Toggle Button (Firmly Inside the Capsule) */}
                     <div className="flex items-center shrink-0">
-                        <div className="scale-[0.55] sm:scale-[0.7] md:scale-100 origin-right mr-1 md:mr-0">
+                        <div className="scale-[0.55] sm:scale-[0.7] md:scale-100">
                             <ToggleButton />
                         </div>
                     </div>
