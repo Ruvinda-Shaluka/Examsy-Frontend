@@ -1,13 +1,8 @@
-import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
 import StudentLayout from "../../layouts/StudentLayout.jsx";
 import StudentClassCard from '../../components/student/StudentClassCard.jsx';
-// Assuming MOCK_CLASSES contains the student's joined classes
-import { MOCK_CLASSES } from '../../data/TeacherMockData';
 import {STUDENT_DATA} from "../../data/StudentMockData.js";
 
 const StudentDashboard = () => {
-    // const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
 
     return (
         <StudentLayout>
@@ -25,7 +20,7 @@ const StudentDashboard = () => {
                     <StudentClassCard
                         key={cls.id}
                         id={cls.id}
-                        title={cls.title} // Adjust mapping if your data keys differ
+                        title={cls.title}
                         section={cls.section}
                         bannerColor={cls.bannerColor}
                         teacher={cls.teacher}
