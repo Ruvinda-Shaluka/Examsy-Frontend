@@ -1,26 +1,25 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
-import Sidebar from '../components/student/Sidebar';
+import React, {useState} from 'react';
+import StudentSidebar from '../components/student/StudentSidebar.jsx';
+import StudentNavbar from "../components/student/StudentNavbar.jsx";
 
-const StudentLayout = () => (
-    <div className="flex min-h-screen bg-examsy-bg text-examsy-text transition-colors duration-500">
-        <Sidebar />
-        <main className="ml-72 flex-1 p-8 overflow-y-auto">
-            <div className="max-w-6xl mx-auto">
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        {/* top area left intentionally minimal - page titles live in pages */}
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <input placeholder="Search exams or classes..." className="bg-examsy-surface/60 px-4 py-2 rounded-2xl text-sm outline-none border border-zinc-200 dark:border-zinc-800" />
-                        <button className="px-3 py-2 bg-examsy-surface rounded-2xl border border-zinc-200 dark:border-zinc-800">Notifications</button>
-                    </div>
-                </div>
+const StudentLayout = ({children}) => {
+    const [isSidebarOpen, setSidebarOpen] = useState(true);
+    return (<div className="min-h-screen bg-examsy-bg transition-colors duration-300 flex">
+            <StudentSidebar isOpen={isSidebarOpen} toggle={() => setSidebarOpen(!isSidebarOpen)}/>
 
-                <Outlet />
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+                {/* Fixed Navbar */}
+                <StudentNavbar toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}/>
+
+                {/* Scrollable Content Area */}
+                <main className="flex-1 overflow-y-auto p-6 lg:p-10 animate-fade-in">
+                    <div className="max-w-7xl mx-auto">
+                        {children}
+                    </div>
+                </main>
             </div>
-        </main>
-    </div>
-);
+
+        </div>);
+};
 
 export default StudentLayout;
