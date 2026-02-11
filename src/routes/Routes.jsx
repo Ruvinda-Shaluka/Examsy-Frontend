@@ -20,57 +20,52 @@ import AcademicVault from "../pages/student/AcademicVault.jsx";
 import StudentCalendar from "../pages/student/StudentCalendar.jsx";
 import StudentSettings from "../pages/student/StudentSettings.jsx";
 import ExamInterface from "../pages/student/ExamInterface.jsx";
-import StudentLayout from "../layouts/StudentLayout.jsx";
 
 const AppRoutes = () => {
-    return (
-        <Routes>
+    return (<Routes>
             {/* Public Routes */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register-student" element={<RegisterStudent />} />
-            <Route path="/register-teacher" element={<RegisterTeacher />} />
+            <Route path="/" element={<LandingPage/>}/>
+            <Route path="/login" element={<LoginPage/>}/>
+            <Route path="/register-student" element={<RegisterStudent/>}/>
+            <Route path="/register-teacher" element={<RegisterTeacher/>}/>
 
             {/* --- TEACHER DASHBOARD ROUTES --- */}
             {/* Home grid view */}
-            <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+            <Route path="/teacher/dashboard" element={<TeacherDashboard/>}/>
 
             {/* NEW: Dynamic Route for Specific Class Management */}
             {/* This captures the ID from TeacherClassCard and opens the classroom view */}
-            <Route path="/teacher/class/:classId" element={<ClassDetailPage />} />
+            <Route path="/teacher/class/:classId" element={<ClassDetailPage/>}/>
 
             {/* Exam scheduler and calendar */}
-            <Route path="/teacher/calendar" element={<TeacherCalendar />} />
+            <Route path="/teacher/calendar" element={<TeacherCalendar/>}/>
 
             {/* Profile and notification management */}
-            <Route path="/teacher/settings" element={<TeacherSettings />} />
+            <Route path="/teacher/settings" element={<TeacherSettings/>}/>
 
             {/* NEW: Exam creation and classroom management */}
-            <Route path="/teacher/manage-exams" element={<TeacherTeaching />} />
+            <Route path="/teacher/manage-exams" element={<TeacherTeaching/>}/>
 
             {/*Overview of ongoing-exams examination*/}
-            <Route path="/teacher/ongoing-exams" element={<TeacherOngoing />} />
+            <Route path="/teacher/ongoing-exams" element={<TeacherOngoing/>}/>
 
             {/*To track student live*/}
-            <Route path="/teacher/live-monitor/:examId" element={<TeacherLiveMonitor />} />
+            <Route path="/teacher/live-monitor/:examId" element={<TeacherLiveMonitor/>}/>
 
             {/*Grading page using gemini api*/}
-            <Route path="/teacher/grading" element={<TeacherGrading />} />
+            <Route path="/teacher/grading" element={<TeacherGrading/>}/>
 
-            {/* --- STUDENT DASHBOARD ROUTES (nested under StudentLayout) --- */}
-            <Route path="/student" element={<StudentLayout />}>
-                <Route index element={<StudentDashboard />} />
-                <Route path="dashboard" element={<StudentDashboard />} />
-                <Route path="exams" element={<AcademicVault />} />
-                <Route path="calendar" element={<StudentCalendar />} />
-                <Route path="settings" element={<StudentSettings />} />
-                <Route path="exam/:examId" element={<ExamInterface />} />
-            </Route>
+
+            <Route path="student/dashboard" element={<StudentDashboard/>}/>
+            <Route path="student/exams" element={<AcademicVault/>}/>
+            <Route path="student/calendar" element={<StudentCalendar/>}/>
+            <Route path="student/settings" element={<StudentSettings/>}/>
+            <Route path="student/exam/:examId" element={<ExamInterface/>}/>
+
 
             {/* 404 handler (Must remain the last route) */}
-            <Route path="*" element={<NotFoundPage/>} />
-        </Routes>
-    );
+            <Route path="*" element={<NotFoundPage/>}/>
+        </Routes>);
 };
 
 export default AppRoutes;

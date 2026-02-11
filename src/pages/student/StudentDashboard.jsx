@@ -3,9 +3,11 @@ import { Clock, ShieldCheck, Target } from 'lucide-react';
 import { STUDENT_DATA } from '../../data/StudentMockData';
 import MetricCard from '../../components/student/MetricCard';
 import ActiveExamCard from '../../components/student/ActiveExamCard';
+import StudentLayout from "../../layouts/StudentLayout.jsx";
 
 const StudentDashboard = ({ onStartExam }) => {
     return (
+        <StudentLayout>
         <div className="space-y-10 animate-fade-in p-12">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
@@ -49,6 +51,7 @@ const StudentDashboard = ({ onStartExam }) => {
                 </div>
             </div>
         </div>
+        </StudentLayout>
     );
 };
 
