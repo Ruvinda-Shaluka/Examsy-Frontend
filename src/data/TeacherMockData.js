@@ -14,9 +14,9 @@ export const MOCK_TEACHER = {
 
 // 2. FIXED: For TeacherCalendar and TeacherCalendarGrid
 export const MOCK_EXAMS = [
-    { day: 14, title: 'Physics Mid-Term', time: '10:00 AM' },
-    { day: 22, title: 'SQL Quiz', time: '02:00 PM' },
-    { day: 5, title: 'Lab Assessment', time: '09:00 AM' }
+    { day: '02/14/2026',title: 'Physics Mid-Term', time: '10:00 AM' },
+    { day: '02/22/2026', title: 'SQL Quiz', time: '02:00 PM' },
+    { day: '02/05/2026', title: 'Lab Assessment', time: '09:00 AM' }
 ];
 
 // 3. For TeacherDashboard (Home)

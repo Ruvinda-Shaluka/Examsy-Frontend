@@ -1,7 +1,8 @@
 import React from 'react';
 import { STUDENT_DATA } from '../../data/StudentMockData';
+import StudentLayout from "../../layouts/StudentLayout.jsx";
 
-const StudentCalendar = () => (
+const StudentCalendar = () => (<StudentLayout studentData={STUDENT_DATA} activePage="calendar">
     <div className="animate-fade-in space-y-8">
         <h1 className="text-3xl font-black uppercase tracking-tight text-examsy-text">Academic Schedule</h1>
         <div className="bg-examsy-surface p-8 rounded-[40px] border border-zinc-200 dark:border-zinc-800 shadow-sm">
@@ -24,6 +25,7 @@ const StudentCalendar = () => (
             </div>
         </div>
     </div>
+</StudentLayout>
 );
 
 export default StudentCalendar;
