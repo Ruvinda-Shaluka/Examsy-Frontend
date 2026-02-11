@@ -12,7 +12,7 @@ export const MOCK_TEACHER = {
     location: "Science Block A, Room 402"
 };
 
-// 2. FIXED: For TeacherCalendar and TeacherCalendarGrid
+// 2. FIXED: For TeacherCalendar and CalendarGrid
 export const MOCK_EXAMS = [
     { day: '02/14/2026',title: 'Physics Mid-Term', time: '10:00 AM' },
     { day: '02/22/2026', title: 'SQL Quiz', time: '02:00 PM' },

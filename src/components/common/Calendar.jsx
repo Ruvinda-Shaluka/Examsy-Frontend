@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import TeacherCalendarGrid from "../teacher/TeacherCalendarGrid.jsx";
+import CalendarGrid from "./CalendarGrid.jsx";
 import {CalendarIcon, ChevronLeft, ChevronRight} from "lucide-react";
 
 const CalendarView = ({exams}) => {
@@ -57,7 +57,7 @@ const CalendarView = ({exams}) => {
               </div>
           </div>
 
-          <TeacherCalendarGrid viewDate={viewDate} exams={exams} />
+          <CalendarGrid viewDate={viewDate} exams={exams} />
       </div>
   );
 };

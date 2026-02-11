@@ -1,7 +1,7 @@
 import React from 'react';
 import { Clock } from 'lucide-react';
 
-const TeacherCalendarGrid = ({ viewDate, exams }) => {
+const CalendarGrid = ({ viewDate, exams }) => {
     const today = new Date();
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth()+1;
@@ -67,4 +67,4 @@ const TeacherCalendarGrid = ({ viewDate, exams }) => {
     );
 };
 
-export default TeacherCalendarGrid;
+export default CalendarGrid;

@@ -1,56 +1,56 @@
-import React from 'react';
-import { Clock, ShieldCheck, Target } from 'lucide-react';
-import { STUDENT_DATA } from '../../data/StudentMockData';
-import MetricCard from '../../components/student/MetricCard';
-import ActiveExamCard from '../../components/student/ActiveExamCard';
+import React, { useState } from 'react';
+import { Plus } from 'lucide-react';
 import StudentLayout from "../../layouts/StudentLayout.jsx";
+import StudentClassCard from '../../components/student/StudentClassCard.jsx';
+// Assuming MOCK_CLASSES contains the student's joined classes
+import { MOCK_CLASSES } from '../../data/TeacherMockData';
 
-const StudentDashboard = ({ onStartExam }) => {
+const StudentDashboard = () => {
+    const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+
     return (
         <StudentLayout>
-        <div className="space-y-10 animate-fade-in p-12">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+            {/* Header Section */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10 animate-fade-in">
                 <div>
-                    <h1 className="text-4xl font-black tracking-tight text-examsy-text">
-                        Welcome back, <span className="text-examsy-primary">{STUDENT_DATA.name.split(' ')[0]}</span>
-                    </h1>
-                    <p className="text-examsy-muted font-bold mt-2">
-                        You have {STUDENT_DATA.stats.upcoming} exams scheduled for this week.
-                    </p>
-                </div>
-                <MetricCard
-                    icon={<Target size={20}/>}
-                    value={STUDENT_DATA.stats.gpa}
-                    label="Current GPA"
-                />
-            </header>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-6">
-                    <h2 className="text-xl font-black uppercase tracking-widest flex items-center gap-3 text-examsy-primary">
-                        <Clock size={20} /> Active & Upcoming
-                    </h2>
-                    <div className="grid gap-4">
-                        {STUDENT_DATA.upcomingExams.map(exam => (
-                            <ActiveExamCard key={exam.id} exam={exam} onStart={() => onStartExam(exam)} />
-                        ))}
-                    </div>
+                    <h2 className="text-2xl md:text-3xl font-black text-examsy-text">My Classrooms</h2>
+                    <p className="text-examsy-muted font-bold">Access your enrolled modules and assignments.</p>
                 </div>
 
-                <div className="space-y-6">
-                    <h2 className="text-xl font-black uppercase tracking-widest text-examsy-muted px-2">Integrity Status</h2>
-                    <div className="bg-examsy-surface p-8 rounded-[40px] border border-zinc-200 dark:border-zinc-800 flex flex-col items-center text-center space-y-4 shadow-sm transition-all hover:shadow-xl">
-                        <div className="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-3xl flex items-center justify-center animate-pulse">
-                            <ShieldCheck size={40} />
-                        </div>
-                        <p className="font-black text-lg text-examsy-text">Account Secure</p>
-                        <p className="text-sm font-bold text-examsy-muted leading-relaxed">
-                            No integrity violations detected in your last 10 assessments.
-                        </p>
-                    </div>
-                </div>
+                {/* Join Class Action */}
+                <button
+                    onClick={() => setIsJoinModalOpen(true)}
+                    className="w-full sm:w-auto bg-examsy-primary text-white px-6 py-3.5 rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg hover:scale-[1.02] transition-all"
+                >
+                    <Plus size={20} /> Join Class
+                </button>
             </div>
-        </div>
+
+            {/* Classroom Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 animate-fade-in">
+                {MOCK_CLASSES.map((cls) => (
+                    <StudentClassCard
+                        key={cls.id}
+                        id={cls.id}
+                        title={cls.name} // Adjust mapping if your data keys differ
+                        section={cls.grade}
+                        bannerColor={cls.bannerColor}
+                    />
+                ))}
+
+                {/* "Join New Class" Visual Placeholder */}
+                <button
+                    onClick={() => setIsJoinModalOpen(true)}
+                    className="border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-[32px] flex flex-col items-center justify-center p-10 group hover:border-examsy-primary transition-all min-h-[250px]"
+                >
+                    <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center text-zinc-400 group-hover:text-examsy-primary mb-3 transition-colors">
+                        <Plus size={24} />
+                    </div>
+                    <span className="font-bold text-zinc-400 group-hover:text-examsy-primary transition-colors">
+                        Join a New Class
+                    </span>
+                </button>
+            </div>
         </StudentLayout>
     );
 };
