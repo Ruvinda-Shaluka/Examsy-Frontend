@@ -7,7 +7,7 @@ import { MOCK_CLASSES } from '../../data/TeacherMockData';
 import {STUDENT_DATA} from "../../data/StudentMockData.js";
 
 const StudentDashboard = () => {
-    const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+    // const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
 
     return (
         <StudentLayout>
@@ -17,14 +17,6 @@ const StudentDashboard = () => {
                     <h2 className="text-2xl md:text-3xl font-black text-examsy-text">My Classrooms</h2>
                     <p className="text-examsy-muted font-bold">Access your enrolled modules and assignments.</p>
                 </div>
-
-                {/* Join Class Action */}
-                <button
-                    onClick={() => setIsJoinModalOpen(true)}
-                    className="w-full sm:w-auto bg-examsy-primary text-white px-6 py-3.5 rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg hover:scale-[1.02] transition-all"
-                >
-                    <Plus size={20} /> Join Class
-                </button>
             </div>
 
             {/* Classroom Grid */}
@@ -39,19 +31,6 @@ const StudentDashboard = () => {
                         teacher={cls.teacher}
                     />
                 ))}
-
-                {/* "Join New Class" Visual Placeholder */}
-                <button
-                    onClick={() => setIsJoinModalOpen(true)}
-                    className="border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-[32px] flex flex-col items-center justify-center p-10 group hover:border-examsy-primary transition-all min-h-[250px]"
-                >
-                    <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center text-zinc-400 group-hover:text-examsy-primary mb-3 transition-colors">
-                        <Plus size={24} />
-                    </div>
-                    <span className="font-bold text-zinc-400 group-hover:text-examsy-primary transition-colors">
-                        Join a New Class
-                    </span>
-                </button>
             </div>
         </StudentLayout>
     );
