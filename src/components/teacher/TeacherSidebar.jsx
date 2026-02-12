@@ -1,7 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-
-import {Home, Calendar, BookOpen, FileCheck, Archive, Settings, ChevronLeft, Menu, Clock} from 'lucide-react';
+import { Home, Calendar, BookOpen, FileCheck, Archive, Settings, ChevronLeft, Menu, Clock } from 'lucide-react';
 import TextPressure from "../logo/TextPressure.jsx";
 import ToggleButton from '../landingPage/ToggleButton.jsx';
 import { MOCK_TEACHER } from '../../data/TeacherMockData';
@@ -12,7 +11,7 @@ const TeacherSidebar = ({ isOpen, toggle }) => {
     const navItems = [
         { icon: Home, label: 'Home', path: '/teacher/dashboard' },
         { icon: BookOpen, label: 'Manage Exams', path: '/teacher/manage-exams' },
-        {icon: Clock, label: 'Ongoing Exams', path: '/teacher/ongoing-exams'},
+        { icon: Clock, label: 'Ongoing Exams', path: '/teacher/ongoing-exams' },
         { icon: FileCheck, label: 'Grading', path: '/teacher/grading' },
         { icon: Calendar, label: 'Calendar', path: '/teacher/calendar' },
         { icon: Archive, label: 'Archived Classes', path: '/teacher/archived-classes' },
@@ -20,8 +19,15 @@ const TeacherSidebar = ({ isOpen, toggle }) => {
     ];
 
     return (
-        <aside className={`${isOpen ? 'translate-x-0 w-72' : '-translate-x-full md:translate-x-0 w-0 md:w-20'} fixed md:sticky top-0 h-screen bg-examsy-surface border-r border-zinc-200 dark:border-zinc-800 transition-all duration-300 flex flex-col z-[100]`}>
-            <div className="h-20 flex items-center justify-between px-6">
+        /* Responsive Logic:
+           - Mobile Closed: w-0 and -translate-x-full (hidden)
+           - Laptop Closed: md:w-20 and md:translate-x-0 (mini icon bar)
+           - Open: w-72 and translate-x-0 (full bar)
+        */
+        <aside className={`${isOpen ? 'translate-x-0 w-72' : '-translate-x-full md:translate-x-0 w-0 md:w-20'} fixed md:sticky top-0 h-screen bg-examsy-surface border-r border-zinc-200 dark:border-zinc-800 transition-all duration-300 flex flex-col z-[100] overflow-hidden`}>
+
+            {/* Header: Centered icons when closed, space-between when open */}
+            <div className={`h-20 flex items-center px-6 shrink-0 ${isOpen ? 'justify-between' : 'justify-center'}`}>
                 {isOpen && (
                     <div className="w-32 shrink-0">
                         <TextPressure text="Examsy !" flex alpha={false} stroke={false} width weight={false} italic textColor="#465ed2" strokeColor="#5227FF" minFontSize={28} />
@@ -32,20 +38,36 @@ const TeacherSidebar = ({ isOpen, toggle }) => {
                 </button>
             </div>
 
+            {/* Navigation: Icons centered and labels hidden when closed */}
             <nav className="flex-1 px-3 mt-4 space-y-1">
                 {navItems.map((item) => (
-                    <NavLink key={item.label} to={item.path} onClick={() => window.innerWidth < 768 && toggle()} className={({ isActive }) => `flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold transition-all duration-200 ${isActive ? 'bg-examsy-primary/10 text-examsy-primary' : 'text-examsy-muted hover:bg-examsy-bg'}`}>
+                    <NavLink
+                        key={item.label}
+                        to={item.path}
+                        onClick={() => window.innerWidth < 768 && toggle()}
+                        className={({ isActive }) => `flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold transition-all duration-200 ${isActive ? 'bg-examsy-primary/10 text-examsy-primary' : 'text-examsy-muted hover:bg-examsy-bg'} ${!isOpen && 'justify-center px-0'}`}
+                    >
                         <item.icon size={22} className="shrink-0" />
-                        {isOpen && <span className="text-sm">{item.label}</span>}
+                        {isOpen && <span className="text-sm whitespace-nowrap">{item.label}</span>}
                     </NavLink>
                 ))}
             </nav>
 
-            <div className={`md:hidden p-6 mt-auto border-t border-zinc-200 dark:border-zinc-800 space-y-6 ${!isOpen && 'hidden'}`}>
-                <div className="flex justify-center"><ToggleButton /></div>
-                <button onClick={() => { navigate('/teacher/settings'); toggle(); }} className="flex items-center gap-3 w-full p-2 bg-examsy-bg rounded-2xl">
-                    <div className="w-10 h-10 rounded-xl bg-examsy-primary text-white flex items-center justify-center font-bold">{MOCK_TEACHER.avatar}</div>
-                    <div className="text-left"><p className="text-xs font-black text-examsy-text truncate">{MOCK_TEACHER.name}</p></div>
+            {/* Footer Section: Completely hidden when sidebar is retracted */}
+            <div className={`p-6 mt-auto border-t border-zinc-200 dark:border-zinc-800 space-y-6 ${!isOpen && 'hidden'}`}>
+                <div className="flex justify-center">
+                    <ToggleButton />
+                </div>
+                <button
+                    onClick={() => { navigate('/teacher/settings'); toggle(); }}
+                    className="flex items-center gap-3 w-full p-2 bg-examsy-bg rounded-2xl"
+                >
+                    <div className="w-10 h-10 rounded-xl bg-examsy-primary text-white flex items-center justify-center font-bold">
+                        {MOCK_TEACHER.avatar}
+                    </div>
+                    <div className="text-left">
+                        <p className="text-xs font-black text-examsy-text truncate">{MOCK_TEACHER.name}</p>
+                    </div>
                 </button>
             </div>
         </aside>
