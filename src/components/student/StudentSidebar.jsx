@@ -1,9 +1,9 @@
 import React from 'react';
-import { STUDENT_DATA } from '../../data/StudentMockData';
 import TextPressure from "../logo/TextPressure.jsx";
 import {Home, Calendar, FileCheck, Settings, ChevronLeft, Menu, ClipboardPenLine} from 'lucide-react';
-import ToggleButton from '../landingPage/ToggleButton.jsx';
 import {NavLink, useNavigate} from "react-router-dom";
+import {STUDENT_DATA} from "../../data/StudentMockData.js";
+import ToggleButton from "../landingPage/ToggleButton.jsx";
 
 const StudentSidebar = ({ isOpen, toggle }) => {
     const navigate = useNavigate();
@@ -50,12 +50,21 @@ const StudentSidebar = ({ isOpen, toggle }) => {
                 ))}
             </nav>
 
-            {/* Footer Profile: Hidden when closed */}
-            <div className={`p-6 mt-auto border-t border-zinc-200 dark:border-zinc-800 space-y-6 ${!isOpen && 'hidden'}`}>
-                <div className="flex justify-center"><ToggleButton /></div>
-                <button onClick={() => { navigate('/student/settings'); toggle(); }} className="flex items-center gap-3 w-full p-2 bg-examsy-bg rounded-2xl">
-                    <div className="w-10 h-10 rounded-xl bg-examsy-primary text-white flex items-center justify-center font-bold">{STUDENT_DATA.avatar}</div>
-                    <div className="text-left"><p className="text-xs font-black text-examsy-text truncate">{STUDENT_DATA.name}</p></div>
+            {/* Footer Profile: Visible ONLY on mobile (md:hidden), hidden when sidebar is closed */}
+            <div className={`p-6 mt-auto border-t border-zinc-200 dark:border-zinc-800 space-y-6 md:hidden ${!isOpen && 'hidden'}`}>
+                <div className="flex justify-center">
+                    <ToggleButton />
+                </div>
+                <button
+                    onClick={() => { navigate('/student/settings'); toggle(); }}
+                    className="flex items-center gap-3 w-full p-2 bg-examsy-bg rounded-2xl"
+                >
+                    <div className="w-10 h-10 rounded-xl bg-examsy-primary text-white flex items-center justify-center font-bold">
+                        {STUDENT_DATA.avatar}
+                    </div>
+                    <div className="text-left">
+                        <p className="text-xs font-black text-examsy-text truncate">{STUDENT_DATA.name}</p>
+                    </div>
                 </button>
             </div>
         </aside>

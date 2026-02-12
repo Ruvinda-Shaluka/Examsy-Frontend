@@ -54,7 +54,7 @@ const TeacherSidebar = ({ isOpen, toggle }) => {
             </nav>
 
             {/* Footer Section: Completely hidden when sidebar is retracted */}
-            <div className={`p-6 mt-auto border-t border-zinc-200 dark:border-zinc-800 space-y-6 ${!isOpen && 'hidden'}`}>
+            <div className={`p-6 mt-auto border-t border-zinc-200 dark:border-zinc-800 space-y-6 md:hidden ${!isOpen && 'hidden'}`}>
                 <div className="flex justify-center">
                     <ToggleButton />
                 </div>
