@@ -15,6 +15,7 @@ import ClassPeopleList from '../../components/teacher/class-detail/ClassPeopleLi
 import StudentGradesView from '../../components/student/class-detail/StudentGradesView';
 import AcademicVault from "./AcademicVault.jsx";
 import ToggleButton from '../../components/landingPage/ToggleButton';
+import ClassAppearanceModal from '../../components/teacher/class-detail/ClassAppearanceModal';
 
 // Data
 import { STUDENT_DATA } from '../../data/StudentMockData';
@@ -22,22 +23,44 @@ import { STUDENT_DATA } from '../../data/StudentMockData';
 const StudentClassDetailPage = () => {
     const { classId } = useParams();
     const navigate = useNavigate();
+
+    // UI States
     const [activeTab, setActiveTab] = useState('stream');
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Navbar scroll logic
     const [isVisible, setIsVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
 
-    // Safety check: Find class in enrolled data
+    /** * ✅ STEP 1: Derived Data
+     * Calculate class data directly during render.
+     * This prevents null pointer errors and cascading render warnings.
+     */
     const classInfo = STUDENT_DATA.enrolledClasses.find(c => c.id === classId) || STUDENT_DATA.enrolledClasses[0];
+
+    /** * ✅ STEP 2: Synchronous State Initialization
+     * We initialize banner states with the derived classInfo immediately.
+     */
+    const [bannerColor, setBannerColor] = useState(classInfo?.bannerColor || 'bg-examsy-primary');
+    const [bannerImage, setBannerImage] = useState(null);
+
+    /** * ✅ STEP 3: Context Synchronization
+     * Reset banner states only when the user switches classes via the URL.
+     */
+    useEffect(() => {
+        if (classInfo) {
+            setBannerColor(classInfo.bannerColor || 'bg-examsy-primary');
+            setBannerImage(null);
+        }
+    }, [classId]);
 
     // Handle Navbar visibility on scroll
     useEffect(() => {
         const controlNavbar = () => {
             if (window.scrollY > lastScrollY && window.scrollY > 100) {
-                setIsVisible(false); // Scrolling down
+                setIsVisible(false);
             } else {
-                setIsVisible(true); // Scrolling up
+                setIsVisible(true);
             }
             setLastScrollY(window.scrollY);
         };
@@ -45,7 +68,6 @@ const StudentClassDetailPage = () => {
         return () => window.removeEventListener('scroll', controlNavbar);
     }, [lastScrollY]);
 
-    // Consistent Tab Configuration
     const tabs = [
         { id: 'stream', label: 'Stream', icon: <Layout size={20} /> },
         { id: 'classwork', label: 'Classwork', icon: <ClipboardList size={20} /> },
@@ -56,7 +78,7 @@ const StudentClassDetailPage = () => {
     return (
         <div className="min-h-screen bg-examsy-bg text-examsy-text p-4 md:p-8 transition-colors duration-500">
 
-            {/* --- Header / Breadcrumb --- */}
+            {/* --- 1. Header / Breadcrumb --- */}
             <div className="flex items-center gap-4 mb-6">
                 <button
                     onClick={() => navigate('/student/dashboard')}
@@ -67,14 +89,13 @@ const StudentClassDetailPage = () => {
                 <h2 className="font-black text-xl tracking-tight">Classroom Hub</h2>
             </div>
 
-            {/* --- SHARED FIXED NAVBAR --- */}
+            {/* --- 2. Shared Fixed Navbar --- */}
             <nav className={`
                 sticky top-4 z-30 mb-8 transition-all duration-500 ease-in-out
                 ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-24 opacity-0 pointer-events-none'}
             `}>
                 <div className="bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-sm p-1.5 md:p-3 flex items-center justify-between overflow-hidden">
 
-                    {/* Left Side: Dynamic Tabs (Icon only on mobile, Text on laptop) */}
                     <div className="flex items-center gap-1 md:gap-1">
                         {tabs.map((tab) => (
                             <button
@@ -82,7 +103,7 @@ const StudentClassDetailPage = () => {
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center justify-center gap-2 p-2.5 md:px-6 md:py-2 rounded-2xl transition-all ${
                                     activeTab === tab.id
-                                        ? 'bg-examsy-primary text-white shadow-lg'
+                                        ? 'bg-examsy-primary text-white shadow-lg shadow-purple-500/20'
                                         : 'hover:bg-examsy-bg text-examsy-muted'
                                 }`}
                             >
@@ -92,16 +113,15 @@ const StudentClassDetailPage = () => {
                         ))}
                     </div>
 
-                    {/* Right Side: Toggle Button (Firmly Inside the Capsule) */}
                     <div className="flex items-center shrink-0">
-                        <div className="scale-[0.55] sm:scale-[0.7] md:scale-100">
+                        <div className="scale-[0.55] sm:scale-[0.7] md:scale-100 origin-right mr-1 md:mr-0">
                             <ToggleButton />
                         </div>
                     </div>
                 </div>
             </nav>
 
-            {/* --- Tab Content Area --- */}
+            {/* --- 3. Tab Content Area --- */}
             <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {activeTab === 'stream' && (
                     <div className="space-y-8">
@@ -109,8 +129,11 @@ const StudentClassDetailPage = () => {
                             classInfo={{
                                 title: classInfo.title,
                                 section: classInfo.section,
-                                bannerColor: classInfo.bannerColor
+                                bannerColor: bannerColor
                             }}
+                            bannerImage={bannerImage}
+                            // FIXED: Added trigger for customization
+                            onCustomize={() => setIsModalOpen(true)}
                         />
                         <ClassStream classId={classId} />
                     </div>
@@ -122,6 +145,16 @@ const StudentClassDetailPage = () => {
 
                 {activeTab === 'grades' && <StudentGradesView />}
             </div>
+
+            {/* --- 4. Appearance Customization Modal --- */}
+            {/* FIXED: Added the modal to allow students to change colors/images */}
+            <ClassAppearanceModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                currentColor={bannerColor}
+                onColorSelect={setBannerColor}
+                onImageSelect={setBannerImage}
+            />
         </div>
     );
 };

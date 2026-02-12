@@ -8,6 +8,7 @@ import {
     BarChart3
 } from 'lucide-react';
 
+// Detail View Components
 import ClassStream from '../../components/teacher/class-detail/ClassStream';
 import ClassPeopleList from '../../components/teacher/class-detail/ClassPeopleList';
 import ClassworkView from '../../components/teacher/class-detail/ClassworkView';
@@ -16,12 +17,14 @@ import StreamCoverView from '../../components/teacher/class-detail/StreamCoverVi
 import ClassAppearanceModal from '../../components/teacher/class-detail/ClassAppearanceModal';
 import ToggleButton from '../../components/landingPage/ToggleButton';
 
+// Data Imports
 import { MOCK_CLASSES } from '../../data/TeacherMockData';
 
 const ClassDetailPage = () => {
     const { classId } = useParams();
     const navigate = useNavigate();
 
+    // UI States
     const [activeTab, setActiveTab] = useState('stream');
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -29,16 +32,40 @@ const ClassDetailPage = () => {
     const [isVisible, setIsVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
 
+    /** * ✅ STEP 1: Derived Data
+     * We find the class data directly from the mock data during render.
+     * This ensures classInfo is NEVER null.
+     */
     const classInfo = MOCK_CLASSES.find(c => c.id === parseInt(classId)) || MOCK_CLASSES[0];
-    const [bannerColor, setBannerColor] = useState(classInfo.bannerColor || 'bg-examsy-primary');
-    const [bannerImage, setBannerImage] = useState(null);
 
+    /**
+     * ✅ STEP 2: Initial State Bootstrapping
+     * We initialize these states with the data we just found.
+     * This avoids the "cascading render" error because the state is
+     * correct from the very first frame.
+     */
+    const [bannerColor, setBannerColor] = useState(classInfo?.bannerColor || 'bg-examsy-primary');
+    const [bannerImage, setBannerImage] = useState(classInfo?.bannerImage || null);
+
+    /**
+     * ✅ STEP 3: Context Syncing
+     * This effect only runs if the user navigates between different class IDs.
+     * It resets the local customization states to match the new classroom's defaults.
+     */
+    useEffect(() => {
+        if (classInfo) {
+            setBannerColor(classInfo.bannerColor || 'bg-examsy-primary');
+            setBannerImage(classInfo.bannerImage || null);
+        }
+    }, [classId]);
+
+    // Effect: Handle Navbar visibility on scroll
     useEffect(() => {
         const controlNavbar = () => {
             if (window.scrollY > lastScrollY && window.scrollY > 100) {
-                setIsVisible(false);
+                setIsVisible(false); // Hide when scrolling down
             } else {
-                setIsVisible(true);
+                setIsVisible(true); // Show when scrolling up
             }
             setLastScrollY(window.scrollY);
         };
@@ -56,7 +83,7 @@ const ClassDetailPage = () => {
     return (
         <div className="min-h-screen bg-examsy-bg text-examsy-text p-4 md:p-8 transition-colors duration-500">
 
-            {/* --- Header --- */}
+            {/* --- 1. Top Header --- */}
             <div className="flex items-center gap-4 mb-6">
                 <button
                     onClick={() => navigate('/teacher/dashboard')}
@@ -67,7 +94,7 @@ const ClassDetailPage = () => {
                 <h2 className="font-black text-xl tracking-tight">Classroom Manager</h2>
             </div>
 
-            {/* --- FIXED NAVBAR --- */}
+            {/* --- 2. Integrated Sticky Navbar --- */}
             <nav className={`
                 sticky top-4 z-30 mb-8 transition-all duration-500 ease-in-out
                 ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-24 opacity-0 pointer-events-none'}
@@ -75,7 +102,7 @@ const ClassDetailPage = () => {
                 <div className="bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-sm p-1.5 md:p-3 flex items-center justify-between overflow-hidden">
 
                     {/* Left Side: Tabs */}
-                    <div className="flex items-center gap-1 md:gap-1">
+                    <div className="flex items-center gap-1">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.id}
@@ -92,19 +119,16 @@ const ClassDetailPage = () => {
                         ))}
                     </div>
 
-                    {/* Right Side: Toggle Button (Firmly Inside) */}
+                    {/* Right Side: Theme Toggle */}
                     <div className="flex items-center shrink-0">
-                        {/* We use a negative margin if necessary, but scaling at 0.6
-                           usually solves the 'odd' look by keeping it proportional to the icons.
-                        */}
-                        <div className="scale-[0.55] sm:scale-[0.7] md:scale-100 ">
+                        <div className="scale-[0.55] sm:scale-[0.7] md:scale-100 origin-right mr-1 md:mr-0">
                             <ToggleButton />
                         </div>
                     </div>
                 </div>
             </nav>
 
-            {/* --- Content Area --- */}
+            {/* --- 3. Content Area --- */}
             <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {activeTab === 'stream' && (
                     <div className="space-y-8">
@@ -122,6 +146,7 @@ const ClassDetailPage = () => {
                 {activeTab === 'grades' && <GradesView classId={classId} />}
             </div>
 
+            {/* --- 4. Customization Modal --- */}
             <ClassAppearanceModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
