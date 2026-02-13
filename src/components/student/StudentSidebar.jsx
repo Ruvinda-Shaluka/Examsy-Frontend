@@ -10,7 +10,6 @@ const StudentSidebar = ({ isOpen, toggle }) => {
 
     const navItems = [
         { icon: Home, label: 'Home', path: '/student/dashboard' },
-        { icon: FileCheck, label: 'Grades', path: '/student/grading' },
         { icon: ClipboardPenLine, label: 'Mock Exams', path: '/student/mock-exams' },
         { icon: Calendar, label: 'Calendar', path: '/student/calendar' },
         { icon: Settings, label: 'Settings', path: '/student/settings' }
