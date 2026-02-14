@@ -5,8 +5,8 @@ export const STUDENT_DATA = {
     avatar: "A",
     stats: { gpa: "3.8", examsTaken: 24, upcoming: 3 },
     upcomingExams: [
-        { id: 'e1', title: 'Data Structures', class: 'CS201', date: 'Today', time: '2:00 PM', duration: '90', type: 'mcq', questions: 20 },
-        { id: 'e2', title: 'Calculus II', class: 'MATH102', date: 'Tomorrow', time: '10:00 AM', duration: '120', type: 'short-answer', questions: 5 }
+        { id: 'e1', title: 'Data Structures', class: 'CS201', date: '20/02/2026', time: '2:00 PM', duration: '90', type: 'mcq', questions: 20 },
+        { id: 'e2', title: 'Calculus II', class: 'MATH102', date: '27/02/2026', time: '10:00 AM', duration: '120', type: 'short-answer', questions: 5 }
     ],
     availableExams: [
         {
@@ -16,6 +16,7 @@ export const STUDENT_DATA = {
             status: 'Available',
             questions: 20,
             timeLimit: 60,
+            date: '15/03/2026',
             questionsData: [
                 { id: 1, text: "Which data structure uses LIFO principle?", options: ["Queue", "Stack", "Linked List", "Binary Tree"] },
                 // ... add more questions here
@@ -28,6 +29,7 @@ export const STUDENT_DATA = {
             status: 'Available',
             questions: 5,
             timeLimit: 45,
+            date: '20/03/2026',
             questionsData: [
                 { id: 1, text: "Explain the difference between Symmetric and Asymmetric encryption." },
                 { id: 2, text: "What is a Man-in-the-Middle (MitM) attack?" }
@@ -40,6 +42,7 @@ export const STUDENT_DATA = {
             status: 'Available',
             questions: 1,
             timeLimit: 180,
+            date: '25/03/2026',
             pdfUrl: "/exams/physics-paper.pdf"
         },
     ],

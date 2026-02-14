@@ -14,9 +14,9 @@ export const MOCK_TEACHER = {
 
 // 2. FIXED: For TeacherCalendar and CalendarGrid
 export const MOCK_EXAMS = [
-    { day: '02/14/2026',title: 'Physics Mid-Term', time: '10:00 AM' },
-    { day: '02/22/2026', title: 'SQL Quiz', time: '02:00 PM' },
-    { day: '02/05/2026', title: 'Lab Assessment', time: '09:00 AM' }
+    { date: '02/02/2026',title: 'Physics Mid-Term', time: '10:00 AM' },
+    { date: '02/02/2026', title: 'SQL Quiz', time: '02:00 PM' },
+    { date: '02/02/2026', title: 'Lab Assessment', time: '09:00 AM' }
 ];
 
 // 3. For TeacherDashboard (Home)
@@ -30,8 +30,8 @@ export const MOCK_CLASSES = [
 // 4. For TeacherOngoing
 export const MOCK_ONGOING_EXAMS = {
     realTime: [
-        { id: 'rt1', title: 'Mid-Term Physics', class: 'Grade 11 - B', activeStudents: 28, totalStudents: 30, submissions: 12 },
-        { id: 'rt2', title: 'React Quiz', class: 'Advanced Web Dev', activeStudents: 15, totalStudents: 18, submissions: 5 }
+        { id: 'rt1', title: 'Mid-Term Physics', class: 'Grade 11 - B', activeStudents: 28, totalStudents: 30, submissions: 12, date: '2026-02-19' },
+        { id: 'rt2', title: 'React Quiz', class: 'Advanced Web Dev', activeStudents: 15, totalStudents: 18, submissions: 5, date: '2026-02-26' },
     ],
     deadline: [
         { id: 'dl1', title: 'Database Normalization', class: 'CS Dept - Year 2', deadline: '2026-02-15', submissions: 12, totalStudents: 45 }

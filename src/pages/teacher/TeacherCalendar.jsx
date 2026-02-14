@@ -4,7 +4,6 @@ import {MOCK_EXAMS} from "../../data/TeacherMockData.js";
 
 const TeacherCalendar = () => {
 
-
     return (
         <TeacherLayout>
                 <CalendarView exams={MOCK_EXAMS} />
