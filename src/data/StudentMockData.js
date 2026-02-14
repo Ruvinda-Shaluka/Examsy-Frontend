@@ -13,6 +13,7 @@ export const STUDENT_DATA = {
             id: 'ex1',
             title: 'Intro to AI',
             type: 'mcq',
+            status: 'Available',
             questions: 20,
             timeLimit: 60,
             questionsData: [
@@ -24,6 +25,7 @@ export const STUDENT_DATA = {
             id: 'ex2',
             title: 'Network Security',
             type: 'short-answer',
+            status: 'Available',
             questions: 5,
             timeLimit: 45,
             questionsData: [
@@ -35,6 +37,7 @@ export const STUDENT_DATA = {
             id: 'ex3',
             title: 'Advanced Physics',
             type: 'pdf-submission',
+            status: 'Available',
             questions: 1,
             timeLimit: 180,
             pdfUrl: "/exams/physics-paper.pdf"
