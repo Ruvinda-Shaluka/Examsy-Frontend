@@ -22,6 +22,7 @@ import StudentSettings from "../pages/student/StudentSettings.jsx";
 import ExamInterface from "../pages/student/ExamInterface.jsx";
 // NEW: Import the Student Class Detail Page
 import StudentClassDetailPage from "../pages/student/StudentClassDetailPage.jsx";
+import MockExams from "../pages/student/MockExams.jsx";
 
 const AppRoutes = () => {
     return (
@@ -59,6 +60,10 @@ const AppRoutes = () => {
 
             {/* Full-screen Exam Mode */}
             <Route path="/student/exam/:examId" element={<ExamInterface/>}/>
+
+            {/*Mock exam path*/}
+            <Route path="/student/mock-exams" element={<MockExams/>}/>
+
 
             {/* --- 404 handler --- */}
             <Route path="*" element={<NotFoundPage/>}/>
