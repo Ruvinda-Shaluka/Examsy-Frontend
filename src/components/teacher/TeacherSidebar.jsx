@@ -14,7 +14,6 @@ const TeacherSidebar = ({ isOpen, toggle }) => {
         { icon: Clock, label: 'Ongoing Exams', path: '/teacher/ongoing-exams' },
         { icon: FileCheck, label: 'Grading', path: '/teacher/grading' },
         { icon: Calendar, label: 'Calendar', path: '/teacher/calendar' },
-        { icon: Archive, label: 'Archived Classes', path: '/teacher/archived-classes' },
         { icon: Settings, label: 'Settings', path: '/teacher/settings' },
     ];
 
