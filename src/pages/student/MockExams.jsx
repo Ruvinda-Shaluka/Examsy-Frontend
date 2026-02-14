@@ -4,7 +4,6 @@ import StudentLayout from "../../layouts/StudentLayout.jsx";
 import { generateMockExamData } from '../../utils/mockGenerator';
 
 // Modular Component Imports
-import MockExamBreadcrumbs from '../../components/student/mock-exam/MockExamBreadcrumbs';
 import ExamSetup from '../../components/student/mock-exam/ExamSetup';
 import ExamGenerating from '../../components/student/mock-exam/ExamGenerating';
 import QuizInterface from '../../components/student/mock-exam/QuizInterface';
