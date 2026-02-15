@@ -2,8 +2,6 @@ import React from 'react';
 import { Timer, CalendarClock, ListChecks, Type, FileUp, Calendar, Clock, Hourglass } from 'lucide-react';
 import { EXAM_MODES, EXAM_TYPES } from '../../../data/TeacherTeachingData';
 
-// This is the component Vite couldn't find.
-// By keeping it here and removing the import, the error vanishes.
 const TeacherExamTypeCard = ({ type, isSelected, onClick }) => {
     const icons = { mcq: ListChecks, short: Type, pdf: FileUp };
     const Icon = icons[type.id];
@@ -24,6 +22,20 @@ const TeacherExamTypeCard = ({ type, isSelected, onClick }) => {
 };
 
 const TeacherExamModeSelector = ({ data, onChange }) => {
+
+    // --- HELPER: Formats YYYY-MM-DD to DD/MM/YYYY ---
+    const handleDateChange = (e) => {
+        const rawValue = e.target.value; // Browser gives YYYY-MM-DD
+        if (!rawValue) return;
+
+        const [year, month, day] = rawValue.split('-');
+        const formattedDate = `${day}/${month}/${year}`; // Result: DD/MM/YYYY
+
+        // Pass the FORMATTED date to your parent state/backend
+        // You might need to adjust the key 'date' depending on your data structure
+        onChange('date', formattedDate);
+    };
+
     return (
         <div className="space-y-12 animate-fade-in pb-10">
             {/* 1. Mode Selection */}
@@ -33,7 +45,7 @@ const TeacherExamModeSelector = ({ data, onChange }) => {
                     {EXAM_MODES.map(mode => (
                         <button
                             key={mode.id}
-                            onClick={() => onChange(mode.id, data.type)}
+                            onClick={() => onChange('mode', mode.id)} // Fixed: explicitly update 'mode'
                             className={`p-8 rounded-[32px] border-2 text-left transition-all flex items-start gap-5 ${
                                 data.mode === mode.id
                                     ? 'border-examsy-primary bg-examsy-primary/5 shadow-lg shadow-examsy-primary/5'
@@ -61,7 +73,7 @@ const TeacherExamModeSelector = ({ data, onChange }) => {
                             key={type.id}
                             type={type}
                             isSelected={data.type === type.id}
-                            onClick={(typeId) => onChange(data.mode, typeId)}
+                            onClick={(typeId) => onChange('type', typeId)} // Fixed: explicitly update 'type'
                         />
                     ))}
                 </div>
@@ -79,9 +91,12 @@ const TeacherExamModeSelector = ({ data, onChange }) => {
                             </label>
                             <div className="relative">
                                 <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-examsy-muted" size={18} />
+
+                                {/* --- UPDATED DATE INPUT --- */}
                                 <input
                                     type="date"
-                                    className="w-full bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-2xl py-3.5 pl-12 pr-4 font-bold text-examsy-text outline-none focus:border-examsy-primary transition-all"
+                                    onChange={handleDateChange} // Intercept change to format
+                                    className="w-full bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-2xl py-3.5 pl-12 pr-4 font-bold text-examsy-text outline-none focus:border-examsy-primary transition-all uppercase placeholder:text-examsy-muted/50"
                                 />
                             </div>
                         </div>
@@ -94,6 +109,7 @@ const TeacherExamModeSelector = ({ data, onChange }) => {
                                         <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-examsy-muted" size={18} />
                                         <input
                                             type="time"
+                                            onChange={(e) => onChange('startTime', e.target.value)}
                                             className="w-full bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-2xl py-3.5 pl-12 pr-4 font-bold text-examsy-text outline-none focus:border-examsy-primary transition-all"
                                         />
                                     </div>
@@ -104,6 +120,7 @@ const TeacherExamModeSelector = ({ data, onChange }) => {
                                         <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-examsy-muted" size={18} />
                                         <input
                                             type="time"
+                                            onChange={(e) => onChange('endTime', e.target.value)}
                                             className="w-full bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-2xl py-3.5 pl-12 pr-4 font-bold text-examsy-text outline-none focus:border-examsy-primary transition-all"
                                         />
                                     </div>
@@ -117,6 +134,7 @@ const TeacherExamModeSelector = ({ data, onChange }) => {
                                         <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-examsy-muted" size={18} />
                                         <input
                                             type="time"
+                                            onChange={(e) => onChange('deadlineTime', e.target.value)}
                                             className="w-full bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-2xl py-3.5 pl-12 pr-4 font-bold text-examsy-text outline-none focus:border-examsy-primary transition-all"
                                         />
                                     </div>
@@ -128,6 +146,7 @@ const TeacherExamModeSelector = ({ data, onChange }) => {
                                         <input
                                             type="number"
                                             placeholder="e.g. 60"
+                                            onChange={(e) => onChange('duration', e.target.value)}
                                             className="w-full bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-2xl py-3.5 pl-12 pr-4 font-bold text-examsy-text outline-none focus:border-examsy-primary transition-all"
                                         />
                                     </div>
