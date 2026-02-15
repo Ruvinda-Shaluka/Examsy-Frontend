@@ -37,8 +37,8 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher }) => {
             <div className="px-8 py-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-between items-center bg-examsy-bg/30">
                 <span className="text-[10px] font-black text-examsy-muted uppercase tracking-widest">Active Enrollment</span>
                 <div className="flex gap-2">
-                    <button className="p-2 hover:bg-examsy-primary/10 hover:text-examsy-primary rounded-xl transition-all"><User size={18} /></button>
-                    <button className="p-2 hover:bg-examsy-primary/10 hover:text-examsy-primary rounded-xl transition-all"><BookOpen size={18} /></button>
+                    <button onClick={() => navigate(`/student/class/${id}`, { state: { defaultTab: 'people' } })} className="p-2 hover:bg-examsy-primary/10 hover:text-examsy-primary rounded-xl transition-all"><User size={18} /></button>
+                    <button onClick={() => navigate(`/student/class/${id}`, { state: { defaultTab: 'classwork'} })} className="p-2 hover:bg-examsy-primary/10 hover:text-examsy-primary rounded-xl transition-all"><BookOpen size={18} /></button>
                 </div>
             </div>
         </div>

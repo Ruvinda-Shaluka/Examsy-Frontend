@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
     ChevronLeft,
     Layout,
@@ -23,36 +23,41 @@ import { STUDENT_DATA } from '../../data/StudentMockData';
 const StudentClassDetailPage = () => {
     const { classId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation(); // ✅ Access navigation state
 
-    // UI States
-    const [activeTab, setActiveTab] = useState('stream');
+    // --- 1. DERIVED DATA ---
+    // Calculate class data directly during render to prevent null errors
+    const classInfo = STUDENT_DATA.enrolledClasses.find(c => c.id === classId) || STUDENT_DATA.enrolledClasses[0];
+
+    // --- 2. INITIALIZE STATE ---
+
+    // ✅ Initialize activeTab: Check if 'defaultTab' was passed via router state, otherwise default to 'stream'
+    const [activeTab, setActiveTab] = useState(location.state?.defaultTab || 'stream');
+
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [bannerColor, setBannerColor] = useState(classInfo?.bannerColor || 'bg-examsy-primary');
+    const [bannerImage, setBannerImage] = useState(null);
 
     // Navbar scroll logic
     const [isVisible, setIsVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
 
-    /** * ✅ STEP 1: Derived Data
-     * Calculate class data directly during render.
-     * This prevents null pointer errors and cascading render warnings.
-     */
-    const classInfo = STUDENT_DATA.enrolledClasses.find(c => c.id === classId) || STUDENT_DATA.enrolledClasses[0];
+    // --- 3. EFFECTS ---
 
-    /** * ✅ STEP 2: Synchronous State Initialization
-     * We initialize banner states with the derived classInfo immediately.
-     */
-    const [bannerColor, setBannerColor] = useState(classInfo?.bannerColor || 'bg-examsy-primary');
-    const [bannerImage, setBannerImage] = useState(null);
-
-    /** * ✅ STEP 3: Context Synchronization
-     * Reset banner states only when the user switches classes via the URL.
-     */
+    // Sync banner state if user switches classes via URL
     useEffect(() => {
         if (classInfo) {
             setBannerColor(classInfo.bannerColor || 'bg-examsy-primary');
             setBannerImage(null);
         }
     }, [classId]);
+
+    // ✅ Sync activeTab if location state changes (e.g., clicking notification)
+    useEffect(() => {
+        if (location.state?.defaultTab) {
+            setActiveTab(location.state.defaultTab);
+        }
+    }, [location.state]);
 
     // Handle Navbar visibility on scroll
     useEffect(() => {
@@ -78,7 +83,7 @@ const StudentClassDetailPage = () => {
     return (
         <div className="min-h-screen bg-examsy-bg text-examsy-text p-4 md:p-8 transition-colors duration-500">
 
-            {/* --- 1. Header / Breadcrumb --- */}
+            {/* --- Header / Breadcrumb --- */}
             <div className="flex items-center gap-4 mb-6">
                 <button
                     onClick={() => navigate('/student/dashboard')}
@@ -89,7 +94,7 @@ const StudentClassDetailPage = () => {
                 <h2 className="font-black text-xl tracking-tight">Classroom Hub</h2>
             </div>
 
-            {/* --- 2. Shared Fixed Navbar --- */}
+            {/* --- Shared Fixed Navbar --- */}
             <nav className={`
                 sticky top-4 z-30 mb-8 transition-all duration-500 ease-in-out
                 ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-24 opacity-0 pointer-events-none'}
@@ -121,7 +126,7 @@ const StudentClassDetailPage = () => {
                 </div>
             </nav>
 
-            {/* --- 3. Tab Content Area --- */}
+            {/* --- Tab Content Area --- */}
             <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {activeTab === 'stream' && (
                     <div className="space-y-8">
@@ -132,7 +137,6 @@ const StudentClassDetailPage = () => {
                                 bannerColor: bannerColor
                             }}
                             bannerImage={bannerImage}
-                            // FIXED: Added trigger for customization
                             onCustomize={() => setIsModalOpen(true)}
                         />
                         <ClassStream classId={classId} />
@@ -146,8 +150,7 @@ const StudentClassDetailPage = () => {
                 {activeTab === 'grades' && <StudentGradesView />}
             </div>
 
-            {/* --- 4. Appearance Customization Modal --- */}
-            {/* FIXED: Added the modal to allow students to change colors/images */}
+            {/* --- Appearance Customization Modal --- */}
             <ClassAppearanceModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
