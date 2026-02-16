@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
+import CustomAlert from '../../../components/common/CustomAlert.jsx';
 
 const ClassAppearanceModal = ({ isOpen, onClose, currentColor, onColorSelect, onImageSelect }) => {
+    // 1. Add Alert State
+    const [alert, setAlert] = useState({ show: false, type: '', title: '', message: '' });
+
     if (!isOpen) return null;
 
     // Map your favorite Tailwind colors
@@ -24,6 +28,23 @@ const ClassAppearanceModal = ({ isOpen, onClose, currentColor, onColorSelect, on
             };
             reader.readAsDataURL(file);
         }
+    };
+
+    // 2. Handle Apply Logic
+    const handleApply = () => {
+        // Show Success Alert
+        setAlert({
+            show: true,
+            type: 'success',
+            title: 'Appearance Updated',
+            message: 'Your classroom theme has been saved successfully.'
+        });
+
+        // Delay closing slightly so user sees the alert
+        setTimeout(() => {
+            setAlert({ ...alert, show: false });
+            onClose();
+        }, 1500);
     };
 
     return (
@@ -64,12 +85,27 @@ const ClassAppearanceModal = ({ isOpen, onClose, currentColor, onColorSelect, on
                             Upload Image
                             <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*" />
                         </label>
-                        <button onClick={onClose} className="flex-1 py-4 bg-examsy-primary text-white rounded-2xl font-black shadow-lg">
+
+                        {/* 3. Updated Button to call handleApply */}
+                        <button
+                            onClick={handleApply}
+                            className="flex-1 py-4 bg-examsy-primary text-white rounded-2xl font-black shadow-lg hover:scale-[1.02] transition-transform"
+                        >
                             Apply Changes
                         </button>
                     </div>
                 </div>
             </div>
+
+            {/* 4. Render Alert */}
+            {alert.show && (
+                <CustomAlert
+                    type={alert.type}
+                    title={alert.title}
+                    message={alert.message}
+                    onClose={() => setAlert({ ...alert, show: true })}
+                />
+            )}
         </div>
     );
 };
