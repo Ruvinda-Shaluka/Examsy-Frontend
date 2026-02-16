@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import ToggleButton from './ToggleButton.jsx';
 import TextPressure from '../logo/TextPressure.jsx';
-import { useTheme } from '../../hooks/useTheme.jsx';
+import { useTheme } from '../../theme/useTheme.jsx';
 
 const LandingNavbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);

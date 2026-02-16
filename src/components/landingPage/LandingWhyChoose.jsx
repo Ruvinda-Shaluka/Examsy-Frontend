@@ -2,7 +2,7 @@ import React from 'react';
 import { BarChart3, MousePointer2, Zap } from 'lucide-react';
 import TextPressure from '../logo/TextPressure.jsx';
 import ScrollStack, { ScrollStackItem } from './ScrollStack.jsx';
-import { useTheme } from '../../hooks/useTheme.jsx';
+import { useTheme } from '../../theme/useTheme.jsx';
 
 const FeatureCard = ({ icon, title, desc }) => (
     <div className="h-[360px] w-full flex flex-col items-center justify-center text-center p-8 bg-examsy-bg rounded-[40px] border border-zinc-200 dark:border-zinc-800 shadow-xl transition-colors duration-500">

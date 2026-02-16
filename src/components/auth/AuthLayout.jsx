@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import TextPressure from '../logo/TextPressure.jsx';
-import { useTheme } from '../../hooks/useTheme.jsx';
+import { useTheme } from '../../theme/useTheme.jsx';
 
 const AuthLayout = ({ children, image, quote, author }) => {
     const { theme } = useTheme();

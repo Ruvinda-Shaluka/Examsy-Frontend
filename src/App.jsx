@@ -1,5 +1,5 @@
 import React from 'react';
-import { ThemeProvider } from './hooks/useTheme.jsx';
+import { ThemeProvider } from './theme/useTheme.jsx';
 
 import AppRoutes from "./routes/Routes.jsx";
 
