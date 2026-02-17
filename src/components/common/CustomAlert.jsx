@@ -13,7 +13,7 @@ const CustomAlert = ({ type, title, message, onClose }) => {
     const Icon = Style.icon;
 
     return (
-        <div className={`fixed top-4 right-4 z-[200] flex gap-4 p-4 rounded-2xl border ${Style.border} bg-white shadow-xl animate-in slide-in-from-right`}>
+        <div className={`fixed top-4 right-4 z-[200] flex gap-4 p-4 rounded-2xl border-4 ${Style.border} bg-white shadow-xl animate-in slide-in-from-right`}>
             <div className={`p-2 rounded-xl text-white ${Style.color}`}>
                 <Icon size={20} />
             </div>

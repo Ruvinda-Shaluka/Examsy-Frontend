@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MoreVertical, User, BookOpen, LogOut, Flag } from 'lucide-react';
 import ReportClassModal from './class-detail/ReportClassModal';
+import CustomAlert from '../common/CustomAlert'; // ✅ 1. Import the Alert Component
 
 const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll }) => {
     const navigate = useNavigate();
@@ -10,6 +11,9 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
     const [showMenu, setShowMenu] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
 
+    // ✅ Alert State
+    const [alert, setAlert] = useState({ show: false, type: '', title: '', message: '' });
+
     // Handle Dropdown Actions
     const handleMenuAction = (e, action) => {
         e.stopPropagation(); // Stop card click
@@ -17,7 +21,6 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
 
         if (action === 'unenroll') {
             if (window.confirm(`Are you sure you want to unenroll from "${title}"?`)) {
-                // Call parent unenroll function if provided
                 if (onUnenroll) onUnenroll(id);
             }
         } else if (action === 'report') {
@@ -26,14 +29,23 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
     };
 
     const handleReportSubmit = (reason) => {
-        // You would typically send this to your backend
-        console.log(`Report filed for class ${id}: ${reason}`);
-        alert(`Thank you. We have received your report for "${title}".`);
+        // ✅ 2. Trigger the Alert
+        setAlert({
+            show: true,
+            type: 'error',
+            title: 'Report Submitted',
+            message: `We've received your report regarding "${reason}". Admins will review it shortly.`,
+        });
+
+        // ✅ 3. Close alert after 3 seconds (Removed onUnenroll here)
+        setTimeout(() => {
+            setAlert(prev => ({ ...prev, show: false }));
+        }, 6000);
     };
 
     return (
         <>
-            {/* Main Card Container - Removed overflow-hidden from parent to allow dropdown to pop out */}
+            {/* Main Card Container */}
             <div className="bg-examsy-surface rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-2xl transition-all duration-500 group relative flex flex-col">
 
                 {/* --- HEADER SECTION --- */}
@@ -41,12 +53,12 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
                     onClick={() => navigate(`/student/class/${id}`)}
                     className="h-32 relative cursor-pointer rounded-t-[2.5rem]"
                 >
-                    {/* 1. Clipping Container for Background Only (Fixes dropdown cut-off issue) */}
+                    {/* Clipping Container */}
                     <div className={`absolute inset-0 overflow-hidden rounded-t-[2.5rem] ${bannerColor || 'bg-examsy-primary'}`}>
                         <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-10 -mt-10 blur-3xl" />
                     </div>
 
-                    {/* 2. Content Layer (Z-Index higher than background) */}
+                    {/* Content Layer */}
                     <div className="relative z-10 p-8 h-full flex flex-col justify-between">
                         <div className="flex justify-between items-start">
                             <h3 className="text-white text-2xl font-black hover:underline truncate pr-12">{title}</h3>
@@ -66,16 +78,12 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
                                 {/* Dropdown Menu */}
                                 {showMenu && (
                                     <>
-                                        {/* Transparent click mask to close menu */}
                                         <div
                                             className="fixed inset-0 z-40 cursor-default"
                                             onClick={(e) => { e.stopPropagation(); setShowMenu(false); }}
                                         />
 
-                                        {/* The Menu Itself */}
                                         <div className="absolute right-0 top-12 w-56 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 py-2 z-50 animate-in fade-in zoom-in-95 duration-100 origin-top-right">
-
-                                            {/* Option 1: Unenroll */}
                                             <button
                                                 onClick={(e) => handleMenuAction(e, 'unenroll')}
                                                 className="w-full text-left px-4 py-3 text-sm font-bold text-examsy-text hover:bg-examsy-bg transition-colors flex items-center gap-3"
@@ -84,10 +92,8 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
                                                 Unenroll
                                             </button>
 
-                                            {/* Divider Line */}
                                             <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-1 mx-2"></div>
 
-                                            {/* Option 2: Report */}
                                             <button
                                                 onClick={(e) => handleMenuAction(e, 'report')}
                                                 className="w-full text-left px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex items-center gap-3"
@@ -138,6 +144,16 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
                 classTitle={title}
                 onReportSubmit={handleReportSubmit}
             />
+
+            {/* ✅ 4. Render the Alert Component */}
+            {alert.show && (
+                <CustomAlert
+                    type={alert.type}
+                    title={alert.title}
+                    message={alert.message}
+                    onClose={() => setAlert({ ...alert, show: false })}
+                />
+            )}
         </>
     );
 };
