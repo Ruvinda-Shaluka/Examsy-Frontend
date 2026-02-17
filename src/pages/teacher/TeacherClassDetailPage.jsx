@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import {useParams, useNavigate, useLocation} from 'react-router-dom';
 import {
     ChevronLeft,
     Layout,
@@ -23,9 +23,10 @@ import { MOCK_CLASSES } from '../../data/TeacherMockData';
 const TeacherClassDetailPage = () => {
     const { classId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
 
     // UI States
-    const [activeTab, setActiveTab] = useState('stream');
+    const [activeTab, setActiveTab] = useState(location.state?.defaultTab || 'stream');
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Navbar scroll logic
@@ -58,6 +59,13 @@ const TeacherClassDetailPage = () => {
             setBannerImage(classInfo.bannerImage || null);
         }
     }, [classId]);
+
+    // useEffect tp sync the Active Tab if location state changes
+    useEffect(() => {
+        if (location.state?.defaultTab) {
+            setActiveTab(location.state?.defaultTab);
+        }
+    }, [location.state]);
 
     // Effect: Handle Navbar visibility on scroll
     useEffect(() => {

@@ -29,7 +29,9 @@ const TeacherClassCard = ({ id, title, section, bannerColor }) => {
             </div>
 
             <div className="px-6 py-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3 text-examsy-muted">
-                <button className="p-2 hover:bg-examsy-bg rounded-xl transition-colors"><TrendingUp size={18} /></button>
+                <button
+                    onClick={() => navigate(`/teacher/class/${id}` , {state: {defaultTab: 'grades'}})}
+                    className="p-2 hover:bg-examsy-bg rounded-xl transition-colors"><TrendingUp size={18} /></button>
                 <button className="p-2 hover:bg-examsy-bg rounded-xl transition-colors"><FolderOpen size={18} /></button>
             </div>
         </div>
