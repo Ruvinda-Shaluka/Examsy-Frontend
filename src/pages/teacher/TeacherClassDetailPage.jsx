@@ -20,7 +20,7 @@ import ToggleButton from '../../components/landingPage/ToggleButton';
 // Data Imports
 import { MOCK_CLASSES } from '../../data/TeacherMockData';
 
-const ClassDetailPage = () => {
+const TeacherClassDetailPage = () => {
     const { classId } = useParams();
     const navigate = useNavigate();
 
@@ -142,7 +142,7 @@ const ClassDetailPage = () => {
                 )}
 
                 {activeTab === 'classwork' && <ClassworkView classId={classId} />}
-                {activeTab === 'people' && <ClassPeopleList classId={classId} />}
+                {activeTab === 'people' && <ClassPeopleList classId={classId} isTeacher={true} />}
                 {activeTab === 'grades' && <GradesView classId={classId} />}
             </div>
 
@@ -158,4 +158,4 @@ const ClassDetailPage = () => {
     );
 };
 
-export default ClassDetailPage;
+export default TeacherClassDetailPage;

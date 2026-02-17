@@ -145,7 +145,7 @@ const StudentClassDetailPage = () => {
 
                 {activeTab === 'classwork' && <AcademicVault/>}
 
-                {activeTab === 'people' && <ClassPeopleList classId={classId} />}
+                {activeTab === 'people' && <ClassPeopleList classId={classId} isTeacher={false} />}
 
                 {activeTab === 'grades' && <StudentGradesView />}
             </div>

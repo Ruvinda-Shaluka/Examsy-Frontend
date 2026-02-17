@@ -12,7 +12,7 @@ import TeacherOngoing from "../pages/teacher/ongoing-exams/TeacherOngoing.jsx";
 import TeacherLiveMonitor from "../pages/teacher/ongoing-exams/TeacherLiveMonitor.jsx";
 import TeacherGrading from "../pages/teacher/TeacherGrading.jsx";
 import NotFoundPage from "../pages/NotFoundPage.jsx";
-import ClassDetailPage from "../pages/teacher/ClassDetailPage.jsx";
+import TeacherClassDetailPage from "../pages/teacher/TeacherClassDetailPage.jsx";
 
 // --- STUDENT IMPORTS ---
 import StudentDashboard from "../pages/student/StudentDashboard.jsx";
@@ -37,7 +37,7 @@ const AppRoutes = () => {
             <Route path="/teacher/dashboard" element={<TeacherDashboard/>}/>
 
             {/* Dynamic Route for Specific Class Management (Teacher) */}
-            <Route path="/teacher/class/:classId" element={<ClassDetailPage/>}/>
+            <Route path="/teacher/class/:classId" element={<TeacherClassDetailPage/>}/>
 
             <Route path="/teacher/calendar" element={<TeacherCalendar/>}/>
             <Route path="/teacher/settings" element={<TeacherSettings/>}/>
