@@ -4,6 +4,13 @@ import {STUDENT_DATA} from "../../data/StudentMockData.js";
 
 const StudentDashboard = () => {
 
+    // Example Parent Component (StudentDashboard.jsx)
+    const handleUnenroll = (classId) => {
+        // Logic to remove class from state/backend
+        setEnrolledClasses(prev => prev.filter(c => c.id !== classId));
+        // Optional: Show a toast notification
+    };
+
     return (
         <StudentLayout>
             {/* Header Section */}
@@ -24,6 +31,7 @@ const StudentDashboard = () => {
                         section={cls.section}
                         bannerColor={cls.bannerColor}
                         teacher={cls.teacher}
+                        onUnenroll={handleUnenroll}
                     />
                 ))}
             </div>

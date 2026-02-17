@@ -1,47 +1,144 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MoreVertical, User, BookOpen } from 'lucide-react';
+import { MoreVertical, User, BookOpen, LogOut, Flag } from 'lucide-react';
+import ReportClassModal from './class-detail/ReportClassModal';
 
-const StudentClassCard = ({ id, title, section, bannerColor, teacher }) => {
+const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll }) => {
     const navigate = useNavigate();
 
+    // UI States
+    const [showMenu, setShowMenu] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
+
+    // Handle Dropdown Actions
+    const handleMenuAction = (e, action) => {
+        e.stopPropagation(); // Stop card click
+        setShowMenu(false); // Close menu
+
+        if (action === 'unenroll') {
+            if (window.confirm(`Are you sure you want to unenroll from "${title}"?`)) {
+                // Call parent unenroll function if provided
+                if (onUnenroll) onUnenroll(id);
+            }
+        } else if (action === 'report') {
+            setShowReportModal(true); // Open Modal
+        }
+    };
+
+    const handleReportSubmit = (reason) => {
+        // You would typically send this to your backend
+        console.log(`Report filed for class ${id}: ${reason}`);
+        alert(`Thank you. We have received your report for "${title}".`);
+    };
+
     return (
-        <div className="bg-examsy-surface rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 group">
-            {/* Clickable Header */}
-            <div
-                onClick={() => navigate(`/student/class/${id}`)}
-                className={`h-32 p-8 flex flex-col justify-between relative overflow-hidden cursor-pointer ${bannerColor || 'bg-examsy-primary'}`}
-            >
-                <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-10 -mt-10 blur-3xl" />
-                <div className="flex justify-between items-start relative z-10">
-                    <h3 className="text-white text-2xl font-black hover:underline truncate pr-4">{title}</h3>
-                    <button onClick={(e) => e.stopPropagation()} className="text-white/80 hover:text-white p-2 hover:bg-white/10 rounded-xl transition-colors">
-                        <MoreVertical size={20} />
-                    </button>
+        <>
+            {/* Main Card Container - Removed overflow-hidden from parent to allow dropdown to pop out */}
+            <div className="bg-examsy-surface rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-2xl transition-all duration-500 group relative flex flex-col">
+
+                {/* --- HEADER SECTION --- */}
+                <div
+                    onClick={() => navigate(`/student/class/${id}`)}
+                    className="h-32 relative cursor-pointer rounded-t-[2.5rem]"
+                >
+                    {/* 1. Clipping Container for Background Only (Fixes dropdown cut-off issue) */}
+                    <div className={`absolute inset-0 overflow-hidden rounded-t-[2.5rem] ${bannerColor || 'bg-examsy-primary'}`}>
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-10 -mt-10 blur-3xl" />
+                    </div>
+
+                    {/* 2. Content Layer (Z-Index higher than background) */}
+                    <div className="relative z-10 p-8 h-full flex flex-col justify-between">
+                        <div className="flex justify-between items-start">
+                            <h3 className="text-white text-2xl font-black hover:underline truncate pr-12">{title}</h3>
+
+                            {/* --- MENU BUTTON & DROPDOWN --- */}
+                            <div className="absolute top-6 right-6">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowMenu(!showMenu);
+                                    }}
+                                    className={`text-white/80 hover:text-white p-2 hover:bg-white/10 rounded-xl transition-colors ${showMenu ? 'bg-white/20 text-white' : ''}`}
+                                >
+                                    <MoreVertical size={20} />
+                                </button>
+
+                                {/* Dropdown Menu */}
+                                {showMenu && (
+                                    <>
+                                        {/* Transparent click mask to close menu */}
+                                        <div
+                                            className="fixed inset-0 z-40 cursor-default"
+                                            onClick={(e) => { e.stopPropagation(); setShowMenu(false); }}
+                                        />
+
+                                        {/* The Menu Itself */}
+                                        <div className="absolute right-0 top-12 w-56 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 py-2 z-50 animate-in fade-in zoom-in-95 duration-100 origin-top-right">
+
+                                            {/* Option 1: Unenroll */}
+                                            <button
+                                                onClick={(e) => handleMenuAction(e, 'unenroll')}
+                                                className="w-full text-left px-4 py-3 text-sm font-bold text-examsy-text hover:bg-examsy-bg transition-colors flex items-center gap-3"
+                                            >
+                                                <LogOut size={16} className="text-examsy-muted" />
+                                                Unenroll
+                                            </button>
+
+                                            {/* Divider Line */}
+                                            <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-1 mx-2"></div>
+
+                                            {/* Option 2: Report */}
+                                            <button
+                                                onClick={(e) => handleMenuAction(e, 'report')}
+                                                className="w-full text-left px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex items-center gap-3"
+                                            >
+                                                <Flag size={16} />
+                                                Report abuse
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                        <p className="text-white/90 font-bold">{section}</p>
+                    </div>
                 </div>
-                <p className="text-white/90 font-bold relative z-10">{section}</p>
+
+                {/* --- BODY SECTION --- */}
+                <div className="p-8 pt-4 space-y-4 flex-1">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-examsy-bg border-2 border-zinc-100 dark:border-zinc-800 flex items-center justify-center font-black text-examsy-primary">
+                            {teacher?.charAt(0) || 'T'}
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black uppercase text-examsy-muted tracking-widest leading-none mb-1">Instructor</p>
+                            <p className="font-bold text-examsy-text">{teacher}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* --- FOOTER SECTION --- */}
+                <div className="px-8 py-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-between items-center bg-examsy-bg/30 rounded-b-[2.5rem]">
+                    <span className="text-[10px] font-black text-examsy-muted uppercase tracking-widest">Active Enrollment</span>
+                    <div className="flex gap-2">
+                        <button onClick={() => navigate(`/student/class/${id}`, { state: { defaultTab: 'people' } })} className="p-2 hover:bg-examsy-primary/10 hover:text-examsy-primary rounded-xl transition-all">
+                            <User size={18} />
+                        </button>
+                        <button onClick={() => navigate(`/student/class/${id}`, { state: { defaultTab: 'classwork'} })} className="p-2 hover:bg-examsy-primary/10 hover:text-examsy-primary rounded-xl transition-all">
+                            <BookOpen size={18} />
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div className="p-8 pt-4 space-y-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-examsy-bg border-2 border-zinc-100 dark:border-zinc-800 flex items-center justify-center font-black text-examsy-primary">
-                        {teacher?.charAt(0) || 'T'}
-                    </div>
-                    <div>
-                        <p className="text-[10px] font-black uppercase text-examsy-muted tracking-widest leading-none mb-1">Instructor</p>
-                        <p className="font-bold text-examsy-text">{teacher}</p>
-                    </div>
-                </div>
-            </div>
-
-            <div className="px-8 py-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-between items-center bg-examsy-bg/30">
-                <span className="text-[10px] font-black text-examsy-muted uppercase tracking-widest">Active Enrollment</span>
-                <div className="flex gap-2">
-                    <button onClick={() => navigate(`/student/class/${id}`, { state: { defaultTab: 'people' } })} className="p-2 hover:bg-examsy-primary/10 hover:text-examsy-primary rounded-xl transition-all"><User size={18} /></button>
-                    <button onClick={() => navigate(`/student/class/${id}`, { state: { defaultTab: 'classwork'} })} className="p-2 hover:bg-examsy-primary/10 hover:text-examsy-primary rounded-xl transition-all"><BookOpen size={18} /></button>
-                </div>
-            </div>
-        </div>
+            {/* Report Modal Component */}
+            <ReportClassModal
+                isOpen={showReportModal}
+                onClose={() => setShowReportModal(false)}
+                classTitle={title}
+                onReportSubmit={handleReportSubmit}
+            />
+        </>
     );
 };
 
