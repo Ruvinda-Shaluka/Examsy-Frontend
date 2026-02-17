@@ -1,8 +1,10 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { UserPlus, MoreVertical, ShieldCheck } from 'lucide-react';
 import { MOCK_CLASS_DETAILS } from '../../../data/TeacherMockData';
+import InviteStudentModal from "./InviteStudentModal.jsx";
 
 const ClassPeopleList = ({ classId = "1", isTeacher = false }) => {
+    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     // Retrieve data based on classId
     const data = MOCK_CLASS_DETAILS[String(classId)];
 
@@ -58,7 +60,9 @@ const ClassPeopleList = ({ classId = "1", isTeacher = false }) => {
 
                     {/* Only show "Invite" button if user is a Teacher */}
                     {isTeacher && (
-                        <button className="p-2 bg-examsy-primary/10 text-examsy-primary rounded-xl hover:bg-examsy-primary hover:text-white transition-all">
+                        <button
+                            onClick={() => setIsInviteModalOpen(!isInviteModalOpen)}
+                            className="p-2 bg-examsy-primary/10 text-examsy-primary rounded-xl hover:bg-examsy-primary hover:text-white transition-all">
                             <UserPlus size={20} />
                         </button>
                     )}
@@ -91,6 +95,13 @@ const ClassPeopleList = ({ classId = "1", isTeacher = false }) => {
                     )}
                 </div>
             </section>
+
+            {/* 5. Render Modal Component */}
+            <InviteStudentModal
+                classId={classId}
+                isOpen={isInviteModalOpen}
+                onClose={() => setIsInviteModalOpen(false)}
+            />
         </div>
     );
 };
