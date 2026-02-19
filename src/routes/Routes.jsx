@@ -24,6 +24,9 @@ import ExamInterface from "../pages/student/ExamInterface.jsx";
 import StudentClassDetailPage from "../pages/student/StudentClassDetailPage.jsx";
 import MockExams from "../pages/student/MockExams.jsx";
 import InviteStudentModal from "../components/teacher/class-detail/InviteStudentModal.jsx";
+import AdminLayout from "../layouts/AdminLayout.jsx";
+import AdminPortalPage from "../pages/admin/AdminPortalPage.jsx";
+import AdminSettings from "../pages/admin/AdminSettings.jsx";
 
 const AppRoutes = () => {
     return (
@@ -65,6 +68,12 @@ const AppRoutes = () => {
 
                 {/*Mock exam path*/}
             <Route path="/student/mock-exams" element={<MockExams/>}/>
+
+            {/*Admin Routing*/}
+            // Example Router Integration
+            <Route path="/admin/reports" element={<AdminPortalPage />} />
+            // You would also need a placeholder page for settings:
+            <Route path="/admin/settings" element={<AdminSettings/>} />
 
 
             {/* --- 404 handler --- */}
