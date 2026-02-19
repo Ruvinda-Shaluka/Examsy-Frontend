@@ -2,6 +2,7 @@ import React from 'react';
 import { Search, Bell, Sun, Moon, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ADMIN_PROFILE } from '../../data/AdminMockData';
+import ToggleButton from "../landingPage/ToggleButton.jsx";
 
 // Assuming you have a theme context, if not, this is a placeholder UI
 const ThemeTogglePlaceholder = () => (
@@ -31,13 +32,14 @@ const AdminTopBar = () => {
             {/* Right Side Actions */}
             <div className="flex items-center gap-6">
                 {/* Time Widget */}
-                <div className="hidden md:flex items-center gap-2 bg-examsy-surface px-4 py-2 rounded-full border border-zinc-200 dark:border-zinc-800 font-black text-sm tabular-nums text-examsy-text">
+{/*                <div className="hidden md:flex items-center gap-2 bg-examsy-surface px-4 py-2 rounded-full border border-zinc-200 dark:border-zinc-800 font-black text-sm tabular-nums text-examsy-text">
                     <Clock size={16} className="text-examsy-primary" />
                     {currentTime}
                 </div>
 
-                {/* Theme Toggle Placeholder */}
-                <ThemeTogglePlaceholder />
+                 Theme Toggle Placeholder
+                <ThemeTogglePlaceholder />*/}
+                <ToggleButton/>
 
                 {/* Notification - Redirects to Reports */}
                 <button
