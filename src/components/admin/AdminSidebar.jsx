@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { ShieldAlert, Settings, Hexagon } from 'lucide-react';
+import TextPressure from "../logo/TextPressure.jsx";
 
 const AdminSidebar = () => {
     const navItems = [
@@ -14,7 +15,9 @@ const AdminSidebar = () => {
             <div className="h-20 flex items-center justify-center md:justify-start md:px-8 border-b border-zinc-200 dark:border-zinc-800">
                 <div className="flex items-center gap-3 text-examsy-primary">
                     <Hexagon size={28} strokeWidth={2.5} />
-                    <span className="hidden md:block font-black text-2xl tracking-tight text-examsy-text">Examsy<span className="text-examsy-primary">.Admin</span></span>
+                    <span className="hidden md:block font-black text-2xl tracking-tight text-examsy-text">
+                    <TextPressure text="Examsy.Admin" flex alpha={false} stroke={false} width weight={false} italic textColor="#465ed2" strokeColor="#5227FF" minFontSize={32} />
+                    </span>
                 </div>
             </div>
 
