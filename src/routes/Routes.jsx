@@ -27,6 +27,7 @@ import InviteStudentModal from "../components/teacher/class-detail/InviteStudent
 import AdminLayout from "../layouts/AdminLayout.jsx";
 import AdminPortalPage from "../pages/admin/AdminPortalPage.jsx";
 import AdminSettings from "../pages/admin/AdminSettings.jsx";
+import AdminDashboardPage from "../pages/admin/AdminDashboardPage.jsx";
 
 const AppRoutes = () => {
     return (
@@ -71,6 +72,7 @@ const AppRoutes = () => {
 
             {/*Admin Routing*/}
             // Example Router Integration
+            <Route path="/admin/dashboard" element={<AdminDashboardPage />}/>
             <Route path="/admin/reports" element={<AdminPortalPage />} />
             // You would also need a placeholder page for settings:
             <Route path="/admin/settings" element={<AdminSettings/>} />
