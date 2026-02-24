@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MoreVertical, User, BookOpen, LogOut, Flag } from 'lucide-react';
 import ReportClassModal from './class-detail/ReportClassModal';
-import CustomAlert from '../common/CustomAlert'; // ✅ 1. Import the Alert Component
+import CustomAlert from '../common/CustomAlert';
+import ConfirmActionModal from '../common/ConfirmActionModal';
 
 const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll }) => {
     const navigate = useNavigate();
@@ -11,7 +12,10 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
     const [showMenu, setShowMenu] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
 
-    // ✅ Alert State
+    // ✅ 2. State for Confirmation Modal
+    const [showConfirmUnenroll, setShowConfirmUnenroll] = useState(false);
+
+    // Alert State
     const [alert, setAlert] = useState({ show: false, type: '', title: '', message: '' });
 
     // Handle Dropdown Actions
@@ -20,16 +24,19 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
         setShowMenu(false); // Close menu
 
         if (action === 'unenroll') {
-            if (window.confirm(`Are you sure you want to unenroll from "${title}"?`)) {
-                if (onUnenroll) onUnenroll(id);
-            }
+            // ✅ 3. Open Custom Modal instead of window.confirm
+            setShowConfirmUnenroll(true);
         } else if (action === 'report') {
-            setShowReportModal(true); // Open Modal
+            setShowReportModal(true);
         }
     };
 
+    // ✅ 4. Function to execute when unenroll is confirmed
+    const executeUnenroll = () => {
+        if (onUnenroll) onUnenroll(id);
+    };
+
     const handleReportSubmit = (reason) => {
-        // ✅ 2. Trigger the Alert
         setAlert({
             show: true,
             type: 'error',
@@ -37,7 +44,6 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
             message: `We've received your report regarding "${reason}". Admins will review it shortly.`,
         });
 
-        // ✅ 3. Close alert after 3 seconds (Removed onUnenroll here)
         setTimeout(() => {
             setAlert(prev => ({ ...prev, show: false }));
         }, 6000);
@@ -145,7 +151,7 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
                 onReportSubmit={handleReportSubmit}
             />
 
-            {/* ✅ 4. Render the Alert Component */}
+            {/* Render the Alert Component */}
             {alert.show && (
                 <CustomAlert
                     type={alert.type}
@@ -154,6 +160,18 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
                     onClose={() => setAlert({ ...alert, show: false })}
                 />
             )}
+
+            {/* ✅ 5. Render the Confirm Modal for Unenrollment */}
+            <ConfirmActionModal
+                isOpen={showConfirmUnenroll}
+                onClose={() => setShowConfirmUnenroll(false)}
+                onConfirm={executeUnenroll}
+                title="Unenroll from Class?"
+                message={`Are you sure you want to remove yourself from "${title}"? You will lose access to all materials and grades.`}
+                confirmText="Yes, Unenroll"
+                cancelText="Cancel"
+                isDanger={true}
+            />
         </>
     );
 };
