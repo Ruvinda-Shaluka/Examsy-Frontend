@@ -24,7 +24,7 @@ const TeacherClassCard = ({ id, title, section, bannerColor }) => {
 
             <div className="p-6 h-32 flex items-center">
                 <div className="w-16 h-16 rounded-full bg-examsy-bg border-4 border-examsy-surface -mt-16 shadow-lg flex items-center justify-center font-black text-examsy-primary">
-                    {title.charAt(0)}
+                    {title?.split(' ').map(word => word.charAt(0)).join('').substring(0, 2).toUpperCase()}
                 </div>
             </div>
 
