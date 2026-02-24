@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TeacherLayout from '../../../layouts/TeacherLayout.jsx';
 import { MOCK_LIVE_STUDENTS } from '../../../data/TeacherMockData.js';
-import { Search, ChevronLeft, CheckCircle2, ShieldAlert, Sparkles, MessageSquare, Send, Megaphone, X } from 'lucide-react';
+import { Search, ChevronLeft, CheckCircle2, ShieldAlert, Sparkles, MessageSquare, Send, Megaphone, X, Clock } from 'lucide-react';
+import StudentActionModal from '../../../components/teacher/live-monitor/StudentActionModal';
 
 const TeacherLiveMonitor = () => {
     const { examId } = useParams();
@@ -14,18 +15,27 @@ const TeacherLiveMonitor = () => {
     const [broadcastMessage, setBroadcastMessage] = useState("");
     const [isSending, setIsSending] = useState(false);
 
-    // Memoize the filtered list to prevent unnecessary expensive re-renders
+    // Student Action Modal State
+    const [selectedStudent, setSelectedStudent] = useState(null);
+
+    // Memoize the filtered list
     const filteredStudents = useMemo(() => {
         return MOCK_LIVE_STUDENTS.filter(s =>
             s.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [searchTerm]);
 
+    // Format seconds to mm:ss
+    const formatTime = (totalSeconds) => {
+        if (!totalSeconds) return "0s";
+        const m = Math.floor(totalSeconds / 60);
+        const s = totalSeconds % 60;
+        return m > 0 ? `${m}m ${s}s` : `${s}s`;
+    };
+
     const handleSendBroadcast = () => {
         if (!broadcastMessage.trim()) return;
         setIsSending(true);
-
-        // Simulate API call
         setTimeout(() => {
             setIsSending(false);
             setIsBroadcastOpen(false);
@@ -33,13 +43,21 @@ const TeacherLiveMonitor = () => {
         }, 1500);
     };
 
+    const handleWarnStudent = (studentId, message) => {
+        // Mock backend call
+        alert(`Warning sent to student ${studentId}: "${message}"`);
+    };
+
+    const handleTerminateStudent = (studentId) => {
+        if(window.confirm("Are you sure you want to forcibly terminate this student's exam? This action cannot be undone.")) {
+            alert(`Student ${studentId} has been terminated from the exam.`);
+            setSelectedStudent(null);
+            // Here you would also update your state to remove them or mark status as 'terminated'
+        }
+    };
+
     return (
         <TeacherLayout>
-            {/* SCROLLBAR & STABILITY LOGIC:
-                1. hide-scrollbar: Removes the visual bar.
-                2. scrollbar-gutter: stable: Reserves the space so the page doesn't jump
-                   left/right when the results list becomes shorter than the screen.
-            */}
             <style>
                 {`
                     .hide-scrollbar::-webkit-scrollbar {
@@ -50,10 +68,9 @@ const TeacherLiveMonitor = () => {
                         scrollbar-width: none;
                         scrollbar-gutter: stable !important;
                     }
-                    /* Force the table to respect fixed widths even if content is small */
                     .fixed-monitor-table {
                         table-layout: fixed !important;
-                        width: 1100px !important; /* Fixed total width to prevent any compression */
+                        width: 1100px !important; 
                     }
                 `}
             </style>
@@ -85,13 +102,12 @@ const TeacherLiveMonitor = () => {
 
                 {/* Table Container */}
                 <div className="bg-examsy-surface rounded-[40px] border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
-                    {/* Toolbar */}
                     <div className="p-8 border-b border-zinc-100 dark:border-zinc-800 flex flex-col md:flex-row justify-between items-center gap-6">
                         <div className="flex items-center gap-3">
                             <div className="p-2.5 bg-examsy-primary/10 text-examsy-primary rounded-xl">
                                 <Sparkles size={20} className="animate-pulse" />
                             </div>
-                            <h2 className="text-xl font-black text-examsy-text uppercase tracking-tight">AI Proctoring Stream</h2>
+                            <h2 className="text-xl font-black text-examsy-text uppercase tracking-tight">Proctoring Stream</h2>
                         </div>
 
                         <div className="relative w-full md:w-80">
@@ -106,14 +122,13 @@ const TeacherLiveMonitor = () => {
                         </div>
                     </div>
 
-                    {/* Standard HTML Table with Fixed Layout for absolute zero-shift */}
                     <div className="overflow-x-auto hide-scrollbar">
                         <table className="fixed-monitor-table text-left">
                             <colgroup>
                                 <col style={{ width: '320px' }} /> {/* Student */}
                                 <col style={{ width: '120px' }} /> {/* Status */}
                                 <col style={{ width: '250px' }} /> {/* AI Integrity */}
-                                <col style={{ width: '200px' }} /> {/* Progress */}
+                                <col style={{ width: '200px' }} /> {/* Total Away Time */}
                                 <col style={{ width: '210px' }} /> {/* Actions */}
                             </colgroup>
 
@@ -121,9 +136,9 @@ const TeacherLiveMonitor = () => {
                             <tr className="text-[10px] font-black uppercase text-examsy-muted tracking-widest">
                                 <th className="px-8 py-4">Student</th>
                                 <th className="px-8 py-4 text-center">Status</th>
-                                <th className="px-8 py-4">AI Integrity Check</th>
-                                <th className="px-8 py-4">Progress</th>
-                                <th className="px-8 py-4 text-right">Actions</th>
+                                <th className="px-8 py-4">Integrity Check</th>
+                                <th className="px-8 py-4">Total Away Time</th>
+                                <th className="px-8 py-4 text-right">Flag Student</th>
                             </tr>
                             </thead>
 
@@ -141,8 +156,8 @@ const TeacherLiveMonitor = () => {
                                                     {student.name.charAt(0)}
                                                 </div>
                                                 <span className="font-black text-examsy-text truncate">
-                                                        {student.name}
-                                                    </span>
+                                                    {student.name}
+                                                </span>
                                             </div>
                                         </td>
 
@@ -160,8 +175,8 @@ const TeacherLiveMonitor = () => {
                                                 <div className="flex items-center gap-2 text-red-500 bg-red-500/10 px-4 py-2 rounded-xl border border-red-500/20 inline-flex max-w-full overflow-hidden">
                                                     <ShieldAlert size={14} className="flex-shrink-0" />
                                                     <span className="text-[10px] font-black uppercase tracking-wider truncate">
-                                                            Suspicious ({student.flags}x)
-                                                        </span>
+                                                        Suspicious ({student.flags}x)
+                                                    </span>
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center gap-2 text-emerald-500 px-4 py-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20 inline-flex">
@@ -171,24 +186,24 @@ const TeacherLiveMonitor = () => {
                                             )}
                                         </td>
 
-                                        {/* Progress */}
+                                        {/* Total Away Time (UPDATED) */}
                                         <td className="px-8 py-6">
-                                            <div className="w-full h-1.5 bg-examsy-bg rounded-full overflow-hidden border border-zinc-100 dark:border-zinc-800">
-                                                <div
-                                                    className={`h-full transition-all duration-700 ${student.flagged ? 'bg-red-500' : 'bg-examsy-primary'}`}
-                                                    style={{ width: `${student.progress}%` }}
-                                                />
+                                            <div className="flex items-center gap-2 font-bold text-sm">
+                                                <Clock size={16} className={student.totalAwaySeconds > 90 ? 'text-red-500' : 'text-examsy-muted'} />
+                                                <span className={student.totalAwaySeconds > 90 ? 'text-red-500 animate-pulse' : 'text-examsy-text'}>
+                                                    {formatTime(student.totalAwaySeconds)}
+                                                </span>
                                             </div>
                                         </td>
 
                                         {/* Action Buttons */}
                                         <td className="px-8 py-6">
                                             <div className="flex items-center justify-end gap-2">
-                                                <button className="p-2.5 bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-xl text-examsy-muted hover:text-examsy-primary transition-all">
+                                                <button
+                                                    onClick={() => setSelectedStudent(student)}
+                                                    className="p-2.5 bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-xl text-examsy-muted hover:text-examsy-primary hover:border-examsy-primary/50 transition-all"
+                                                >
                                                     <MessageSquare size={16} />
-                                                </button>
-                                                <button className="px-4 py-2.5 bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-xl text-[10px] font-black uppercase tracking-widest text-examsy-text hover:bg-examsy-primary hover:text-white transition-all whitespace-nowrap">
-                                                    View Screen
                                                 </button>
                                             </div>
                                         </td>
@@ -270,6 +285,16 @@ const TeacherLiveMonitor = () => {
                     </div>
                 )}
             </div>
+
+            {/* NEW: Student Action Modal */}
+            <StudentActionModal
+                isOpen={!!selectedStudent}
+                student={selectedStudent}
+                onClose={() => setSelectedStudent(null)}
+                onWarn={handleWarnStudent}
+                onTerminate={handleTerminateStudent}
+            />
+
         </TeacherLayout>
     );
 };

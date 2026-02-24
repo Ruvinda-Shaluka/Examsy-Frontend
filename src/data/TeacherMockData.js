@@ -40,10 +40,14 @@ export const MOCK_ONGOING_EXAMS = {
 
 // 5. For TeacherLiveMonitor
 export const MOCK_LIVE_STUDENTS = [
-    { id: 's1', name: 'Alex Johnson', status: 'active', flagged: true, flags: 3, progress: 65, action: 'Answering MCQ 08' },
-    { id: 's2', name: 'Maria Garcia', status: 'active', flagged: false, flags: 0, progress: 40, action: 'Typing Short Answer' },
-    { id: 's3', name: 'Liam Smith', status: 'submitted', flagged: false, flags: 0, progress: 100, action: 'Finished' },
-    { id: 's4', name: 'Chloe Chen', status: 'active', flagged: true, flags: 1, progress: 20, action: 'Viewing PDF' },
+    // Exceeds 3 flags (Can be terminated)
+    { id: 's1', name: 'Alex Johnson', status: 'active', flagged: true, flags: 4, progress: 65, action: 'Answering MCQ 08', totalAwaySeconds: 45 },
+    // Safe
+    { id: 's2', name: 'Maria Garcia', status: 'active', flagged: false, flags: 0, progress: 40, action: 'Typing Short Answer', totalAwaySeconds: 15 },
+    // Safe (Finished)
+    { id: 's3', name: 'Liam Smith', status: 'submitted', flagged: false, flags: 0, progress: 100, action: 'Finished', totalAwaySeconds: 0 },
+    // Exceeds 1m 30s away time (Can be terminated)
+    { id: 's4', name: 'Chloe Chen', status: 'active', flagged: true, flags: 1, progress: 20, action: 'Viewing PDF', totalAwaySeconds: 110 },
 ];
 
 // 6. New: Detailed Class Information for Stream and People List
