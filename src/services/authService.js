@@ -3,10 +3,10 @@ import api from './api'; // Import the base station we just made
 export const authService = {
 
     // TASK 1: LOG IN
-    login: async (username, password) => {
+    login: async (identifier, password) => {
         // Send a POST request to http://localhost:8080/api/v1/auth/signin
         const response = await api.post('/auth/sign-in', {
-            username: username, password: password
+            username: identifier, password: password
         });
 
         // If Spring Boot says "OK" and gives us a token, save it in the browser!
