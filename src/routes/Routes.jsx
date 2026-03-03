@@ -67,11 +67,11 @@ const AppRoutes = () => {
 
 
             {/*Admin Routing*/}
-            // Example Router Integration
-            <Route path="/admin/dashboard" element={<AdminDashboardPage/>}/>
-            <Route path="/admin/reports" element={<AdminPortalPage/>}/>
-            // You would also need a placeholder page for settings:
-            <Route path="/admin/settings" element={<AdminSettings/>}/>
+            <Route element={<ProtectedRoute allowedRole="ADMIN"/>}>
+                <Route path="/admin/dashboard" element={<AdminDashboardPage/>}/>
+                <Route path="/admin/reports" element={<AdminPortalPage/>}/>
+                <Route path="/admin/settings" element={<AdminSettings/>}/>
+            </Route>
 
 
             {/* --- 404 handler --- */}
