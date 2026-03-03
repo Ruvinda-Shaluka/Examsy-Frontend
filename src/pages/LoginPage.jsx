@@ -31,36 +31,44 @@ const LoginPage = () => {
 
         try {
             await authService.login(identifier, password);
-            // Route based on role selection
-            if (role === 'admin') {
+
+            // Grab the role that authService just saved to localStorage
+            const userRole = localStorage.getItem('examsy_role');
+
+            if (userRole === 'ADMIN') {
                 setAlert({
                     type: 'success',
                     title: 'Login Successful',
                     message: `Welcome back, ${identifier}! Redirecting to your dashboard.`,
-                    onClose: () => setAlert(true)
+                    onClose: () => {
+                        setAlert(null); // MUST set to null to hide the alert!
+                        navigate('/admin/dashboard'); // Ensure this perfectly matches App.jsx
+                    }
                 });
-                navigate('/admin/dashboard');
             }
-            else if (role === 'teacher') {
+            else if (userRole === 'TEACHER') {
                 setAlert({
                     type: 'success',
                     title: 'Login Successful',
                     message: `Welcome back, ${identifier}! Redirecting to your dashboard.`,
-                    onClose: () => setAlert(true)
+                    onClose: () => {
+                        setAlert(null);
+                        navigate('/teacher/dashboard');
+                    }
                 });
-                navigate('/teacher/dashboard');
             } else {
                 setAlert({
                     type: 'success',
                     title: 'Login Successful',
                     message: `Welcome back, ${identifier}! Redirecting to your dashboard.`,
-                    onClose: () => setAlert(true)
+                    onClose: () => {
+                        setAlert(null);
+                        navigate('/student/dashboard');
+                    }
                 });
-                navigate('/student/dashboard');
             }
         } catch (err) {
             console.error("Login failed", err);
-            // Trigger Error Alert
             setAlert({
                 type: 'error',
                 title: 'Login Failed',
