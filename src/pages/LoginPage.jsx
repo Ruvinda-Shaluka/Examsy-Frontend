@@ -33,8 +33,20 @@ const LoginPage = () => {
             await authService.login(username, password);
             // Route based on role selection
             if (role === 'teacher') {
+                setAlert({
+                    type: 'success',
+                    title: 'Login Successful',
+                    message: `Welcome back, ${username}! Redirecting to your dashboard.`,
+                    onClose: () => setAlert(true)
+                });
                 navigate('/teacher/dashboard');
             } else {
+                setAlert({
+                    type: 'success',
+                    title: 'Login Successful',
+                    message: `Welcome back, ${username}! Redirecting to your dashboard.`,
+                    onClose: () => setAlert(true)
+                });
                 navigate('/student/dashboard');
             }
         } catch (err) {
