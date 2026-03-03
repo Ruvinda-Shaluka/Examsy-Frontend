@@ -12,6 +12,7 @@ export const authService = {
         // If Spring Boot says "OK" and gives us a token, save it in the browser!
         if (response.data && response.data.data.accessToken) {
             localStorage.setItem('examsy_token', response.data.data.accessToken);
+            localStorage.setItem('examsy_role', response.data.data.role);
         }
 
         return response.data;
