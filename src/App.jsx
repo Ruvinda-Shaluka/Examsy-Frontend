@@ -3,7 +3,6 @@ import { ThemeProvider } from './theme/useTheme.jsx';
 import AppRoutes from "./routes/Routes.jsx";
 import { LoadingProvider } from "./context/LoadingContext.jsx";
 
-// Import your GlobalLoader component (Adjust this path if you saved it somewhere else!)
 import GlobalLoader from "./components/common/GlobalLoader.jsx";
 
 function App() {
