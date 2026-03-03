@@ -13,7 +13,7 @@ const LoginPage = () => {
 
     // Form & UI State
     const [role, setRole] = useState('student');
-    const [username, setUsername] = useState('');
+    const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -30,13 +30,22 @@ const LoginPage = () => {
         setIsLoading(true);
 
         try {
-            await authService.login(username, password);
+            await authService.login(identifier, password);
             // Route based on role selection
-            if (role === 'teacher') {
+            if (role === 'admin') {
                 setAlert({
                     type: 'success',
                     title: 'Login Successful',
-                    message: `Welcome back, ${username}! Redirecting to your dashboard.`,
+                    message: `Welcome back, ${identifier}! Redirecting to your dashboard.`,
+                    onClose: () => setAlert(true)
+                });
+                navigate('/admin/dashboard');
+            }
+            else if (role === 'teacher') {
+                setAlert({
+                    type: 'success',
+                    title: 'Login Successful',
+                    message: `Welcome back, ${identifier}! Redirecting to your dashboard.`,
                     onClose: () => setAlert(true)
                 });
                 navigate('/teacher/dashboard');
@@ -44,7 +53,7 @@ const LoginPage = () => {
                 setAlert({
                     type: 'success',
                     title: 'Login Successful',
-                    message: `Welcome back, ${username}! Redirecting to your dashboard.`,
+                    message: `Welcome back, ${identifier}! Redirecting to your dashboard.`,
                     onClose: () => setAlert(true)
                 });
                 navigate('/student/dashboard');
@@ -134,8 +143,8 @@ const LoginPage = () => {
                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
                                 <input
                                     type="text"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
+                                    value={identifier}
+                                    onChange={(e) => setIdentifier(e.target.value)}
                                     required
                                     className="w-full pl-12 pr-4 h-12 bg-examsy-surface border border-zinc-200 dark:border-zinc-700 focus:border-examsy-primary focus:ring-4 focus:ring-examsy-primary/10 rounded-2xl outline-none transition-all text-examsy-text placeholder-examsy-muted/30 text-sm"
                                     placeholder="johndoe_1"

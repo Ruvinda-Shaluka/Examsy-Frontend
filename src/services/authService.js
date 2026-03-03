@@ -5,7 +5,7 @@ export const authService = {
     // TASK 1: LOG IN
     login: async (username, password) => {
         // Send a POST request to http://localhost:8080/api/v1/auth/signin
-        const response = await api.post('/auth/signin', {
+        const response = await api.post('/auth/sign-in', {
             username: username, password: password
         });
 
