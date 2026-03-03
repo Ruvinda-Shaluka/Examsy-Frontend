@@ -7,46 +7,50 @@ import { InputField, SelectField } from '../../components/forms/FormHelpers.jsx'
 import AuthLayout from '../../components/auth/AuthLayout.jsx';
 import AuthHeader from '../../components/auth/AuthHeader.jsx';
 import { authService } from '../../services/authService.js';
-import customAlert from "../../components/common/CustomAlert.jsx"; // Ensure this path is correct
+import CustomAlert from "../../components/common/CustomAlert.jsx";
 
 const RegisterStudent = () => {
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
+
+    // Alert State
+    const [alert, setAlert] = useState(null);
     const { login } = useExamsyAuth(() => setStep(2));
 
-    // 1. Memory Bank for the Form
     const [formData, setFormData] = useState({
         fullName: '', email: '', username: '', password: '',
         indexNumber: '', dateOfBirth: '', gender: 'Male', grade: 'Grade 10'
     });
 
-    // 2. Universal Change Handler
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
     };
 
-    // 3. Submission Logic
     const handleCompleteRegistration = async () => {
-        setError('');
+        setAlert(null); // Clear any existing alerts
         setIsLoading(true);
         try {
             await authService.registerStudent(formData);
-            // alert("Registration successful! Please log in.");
-            customAlert(
-                {
-                    type: 'success',
-                    title: 'Registration Successful',
-                    message: 'Your account has been created. Please log in to continue.',
-                    onClose: () => {
-                        navigate('/login');
-                    }
+            // Trigger Success Alert
+            setAlert({
+                type: 'success',
+                title: 'Registration Successful',
+                message: 'Your account has been created. Please log in to continue.',
+                onClose: () => {
+                    setAlert(null);
+                    navigate('/login'); // Navigate to login after they close the alert
                 }
-            )
+            });
         } catch (err) {
             console.error(err);
-            setError(err.response?.data?.message || "Registration failed. Please check your details.");
+            // Trigger Error Alert
+            setAlert({
+                type: 'error',
+                title: 'Registration Failed',
+                message: err.response?.data?.message || "Please check your details and try again.",
+                onClose: () => setAlert(null)
+            });
         } finally {
             setIsLoading(false);
         }
@@ -58,6 +62,16 @@ const RegisterStudent = () => {
             quote="The beautiful thing about learning is that no one can take it away from you."
             author="B.B. King"
         >
+            {/* Render the CustomAlert if the alert state is not null */}
+            {alert && (
+                <CustomAlert
+                    type={alert.type}
+                    title={alert.title}
+                    message={alert.message}
+                    onClose={alert.onClose}
+                />
+            )}
+
             <AuthHeader
                 badgeIcon={GraduationCap}
                 badgeText="Student Account"
@@ -66,13 +80,9 @@ const RegisterStudent = () => {
             />
 
             <div className="min-h-[330px]">
-                {/* Display Error Message if Registration Fails */}
-                {error && <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-sm font-bold text-center">{error}</div>}
-
                 {step === 1 ? (
                     <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4">
-                            {/* Notice the ids match the formData keys! */}
                             <InputField label="Full Name" icon={<User size={18} />} id="fullName" value={formData.fullName} onChange={handleChange} type="text" placeholder="John Doe" />
                             <InputField label="Email" icon={<Mail size={18} />} id="email" value={formData.email} onChange={handleChange} type="email" placeholder="john@example.com" />
                             <InputField label="Username" icon={<Hash size={18} />} id="username" value={formData.username} onChange={handleChange} type="text" placeholder="johndoe_1" />
