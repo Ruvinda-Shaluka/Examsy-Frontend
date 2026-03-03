@@ -6,8 +6,7 @@ export const authService = {
     login: async (username, password) => {
         // Send a POST request to http://localhost:8080/api/v1/auth/signin
         const response = await api.post('/auth/signin', {
-            username: username,
-            password: password
+            username: username, password: password
         });
 
         // If Spring Boot says "OK" and gives us a token, save it in the browser!
@@ -34,6 +33,20 @@ export const authService = {
 
         // Send it to the backend
         const response = await api.post('/auth/signup/student', payload);
+        return response.data;
+    },
+
+    // TASK 3: REGISTER A TEACHER (Add this missing block!)
+    registerTeacher: async (teacherData) => {
+        const payload = {
+            fullName: teacherData.fullName,
+            email: teacherData.workEmail, // Maps 'workEmail' from the UI to 'email' in the DB
+            username: teacherData.username,
+            password: teacherData.password,
+            instructorId: teacherData.instructorId,
+            specialization: teacherData.specialization
+        };
+        const response = await api.post('/auth/signup/teacher', payload);
         return response.data;
     }
 };

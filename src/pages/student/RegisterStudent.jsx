@@ -39,9 +39,11 @@ const RegisterStudent = () => {
                     type: 'success',
                     title: 'Registration Successful',
                     message: 'Your account has been created. Please log in to continue.',
+                    onClose: () => {
+                        navigate('/login');
+                    }
                 }
             )
-            navigate('/login'); // Redirect to login on success
         } catch (err) {
             console.error(err);
             setError(err.response?.data?.message || "Registration failed. Please check your details.");
