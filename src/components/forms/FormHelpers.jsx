@@ -1,6 +1,7 @@
 import React from 'react';
 
-export const InputField = ({ label, icon, id, type, placeholder }) => (
+// 1. Added value, onChange, and required to the props list here
+export const InputField = ({ label, icon, id, type, placeholder, value, onChange, required }) => (
     <div className="flex flex-col">
         <label className="font-bold text-[11px] text-examsy-muted uppercase tracking-widest pb-1.5 flex items-center gap-2" htmlFor={id}>
             {label}
@@ -14,12 +15,18 @@ export const InputField = ({ label, icon, id, type, placeholder }) => (
                 type={type}
                 id={id}
                 placeholder={placeholder}
+
+                // 2. Bound the React state to the HTML input here!
+                value={value}
+                onChange={onChange}
+                required={required}
             />
         </div>
     </div>
 );
 
-export const SelectField = ({ label, id, options }) => (
+// 1. Added value, onChange, and required here too
+export const SelectField = ({ label, id, options, value, onChange, required }) => (
     <div className="flex flex-col">
         <label className="font-bold text-[11px] text-examsy-muted uppercase tracking-widest pb-1.5" htmlFor={id}>
             {label}
@@ -27,9 +34,17 @@ export const SelectField = ({ label, id, options }) => (
         <select
             id={id}
             className="bg-examsy-bg border border-zinc-200 dark:border-zinc-700 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-examsy-primary/10 outline-none text-examsy-text transition-all duration-300 cursor-pointer"
+
+            // 2. Bound the React state to the HTML select here!
+            value={value}
+            onChange={onChange}
+            required={required}
         >
+            {/* Note: I removed .toLowerCase() from the value.
+                If the user selects "Grade 10", we want to send exactly "Grade 10" to Spring Boot,
+                not "grade 10", so it matches your backend perfectly. */}
             {options.map(opt => (
-                <option key={opt} value={opt.toLowerCase()}>{opt}</option>
+                <option key={opt} value={opt}>{opt}</option>
             ))}
         </select>
     </div>
