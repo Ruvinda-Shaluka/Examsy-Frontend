@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Mail, Lock, Briefcase, BookOpen, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useExamsyAuth } from '../../hooks/useExamsyAuth.js';
@@ -8,6 +8,13 @@ import AuthLayout from '../../components/auth/AuthLayout.jsx';
 import AuthHeader from '../../components/auth/AuthHeader.jsx';
 import { authService } from '../../services/authService.js';
 import CustomAlert from "../../components/common/CustomAlert.jsx";
+
+// Helper function to generate the Corporate Format ID
+const generateCorporateInstructorId = () => {
+    const year = new Date().getFullYear();
+    const uniqueHash = Date.now().toString(36).toUpperCase();
+    return `EMP-${year}-${uniqueHash}`;
+};
 
 const RegisterTeacher = () => {
     const navigate = useNavigate();
@@ -22,6 +29,14 @@ const RegisterTeacher = () => {
         fullName: '', workEmail: '', username: '', password: '',
         instructorId: '', specialization: ''
     });
+
+    // Automatically generate the ID the millisecond the component loads
+    useEffect(() => {
+        setFormData(prev => ({
+            ...prev,
+            instructorId: generateCorporateInstructorId()
+        }));
+    }, []);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -106,7 +121,7 @@ const RegisterTeacher = () => {
                         </div>
                         <p className="text-xs text-examsy-muted italic leading-relaxed bg-examsy-surface p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
                             <span className="font-black text-examsy-text block mb-1">Verification Note:</span>
-                            Your Instructor ID is required to verify your authority to manage exams.
+                            Your Instructor ID is automatically generated to verify your authority to manage exams.
                         </p>
                         <button onClick={handleCompleteRegistration} disabled={isLoading} className="w-full bg-examsy-primary text-white h-12 rounded-2xl font-bold text-base shadow-lg shadow-examsy-primary/20 transition-all hover:scale-[1.01] disabled:opacity-50">
                             {isLoading ? 'Verifying...' : 'Access Teacher Dashboard'}
