@@ -1,9 +1,10 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Calendar, BookOpen, FileCheck, Archive, Settings, ChevronLeft, Menu, Clock } from 'lucide-react';
+import { Home, Calendar, BookOpen, FileCheck, Settings, ChevronLeft, Menu, Clock } from 'lucide-react';
 import TextPressure from "../logo/TextPressure.jsx";
 import ToggleButton from '../landingPage/ToggleButton.jsx';
 import { MOCK_TEACHER } from '../../data/TeacherMockData';
+import SignOutButton from '../common/SignOutButton.jsx';
 
 const TeacherSidebar = ({ isOpen, toggle }) => {
     const navigate = useNavigate();
@@ -18,14 +19,8 @@ const TeacherSidebar = ({ isOpen, toggle }) => {
     ];
 
     return (
-        /* Responsive Logic:
-           - Mobile Closed: w-0 and -translate-x-full (hidden)
-           - Laptop Closed: md:w-20 and md:translate-x-0 (mini icon bar)
-           - Open: w-72 and translate-x-0 (full bar)
-        */
         <aside className={`${isOpen ? 'translate-x-0 w-72' : '-translate-x-full md:translate-x-0 w-0 md:w-20'} fixed md:sticky top-0 h-screen bg-examsy-surface border-r border-zinc-200 dark:border-zinc-800 transition-all duration-300 flex flex-col z-[100] overflow-hidden`}>
 
-            {/* Header: Centered icons when closed, space-between when open */}
             <div className={`h-20 flex items-center px-6 shrink-0 ${isOpen ? 'justify-between' : 'justify-center'}`}>
                 {isOpen && (
                     <div className="w-32 shrink-0">
@@ -37,7 +32,6 @@ const TeacherSidebar = ({ isOpen, toggle }) => {
                 </button>
             </div>
 
-            {/* Navigation: Icons centered and labels hidden when closed */}
             <nav className="flex-1 px-3 mt-4 space-y-1">
                 {navItems.map((item) => (
                     <NavLink
@@ -52,8 +46,7 @@ const TeacherSidebar = ({ isOpen, toggle }) => {
                 ))}
             </nav>
 
-            {/* Footer Section: Completely hidden when sidebar is retracted */}
-            <div className={`p-6 mt-auto border-t border-zinc-200 dark:border-zinc-800 space-y-6 md:hidden ${!isOpen && 'hidden'}`}>
+            <div className={`p-6 mt-auto border-t border-zinc-200 dark:border-zinc-800 space-y-4 md:hidden ${!isOpen && 'hidden'}`}>
                 <div className="flex justify-center">
                     <ToggleButton />
                 </div>
@@ -68,6 +61,14 @@ const TeacherSidebar = ({ isOpen, toggle }) => {
                         <p className="text-xs font-black text-examsy-text truncate">{MOCK_TEACHER.name}</p>
                     </div>
                 </button>
+
+                {/* New Sign Out Button */}
+                <SignOutButton isOpen={isOpen} />
+            </div>
+
+            {/* Desktop Sign Out (when sidebar is retracted) */}
+            <div className={`p-3 mt-auto border-t border-zinc-200 dark:border-zinc-800 hidden md:block`}>
+                <SignOutButton isOpen={isOpen} />
             </div>
         </aside>
     );

@@ -4,6 +4,7 @@ import {Home, Calendar, FileCheck, Settings, ChevronLeft, Menu, ClipboardPenLine
 import {NavLink, useNavigate} from "react-router-dom";
 import {STUDENT_DATA} from "../../data/StudentMockData.js";
 import ToggleButton from "../landingPage/ToggleButton.jsx";
+import SignOutButton from '../common/SignOutButton.jsx';
 
 const StudentSidebar = ({ isOpen, toggle }) => {
     const navigate = useNavigate();
@@ -16,13 +17,8 @@ const StudentSidebar = ({ isOpen, toggle }) => {
     ];
 
     return (
-        /* - Mobile Closed: -translate-x-full w-0 (Fully hidden)
-           - Laptop Closed: md:translate-x-0 md:w-20 (Narrow bar with icons)
-           - Open (Any): translate-x-0 w-72 (Full width)
-        */
         <aside className={`${isOpen ? 'translate-x-0 w-72' : '-translate-x-full md:translate-x-0 w-0 md:w-20'} fixed md:sticky top-0 h-screen bg-examsy-surface border-r border-zinc-200 dark:border-zinc-800 transition-all duration-300 flex flex-col z-[100] overflow-hidden`}>
 
-            {/* Header: Centered icons when closed, space-between when open */}
             <div className={`h-20 flex items-center px-6 shrink-0 ${isOpen ? 'justify-between' : 'justify-center'}`}>
                 {isOpen && (
                     <div className="w-32 shrink-0">
@@ -34,7 +30,6 @@ const StudentSidebar = ({ isOpen, toggle }) => {
                 </button>
             </div>
 
-            {/* Navigation: Labels hidden when closed, icons always visible on desktop */}
             <nav className="flex-1 px-3 mt-4 space-y-1">
                 {navItems.map((item) => (
                     <NavLink
@@ -49,8 +44,7 @@ const StudentSidebar = ({ isOpen, toggle }) => {
                 ))}
             </nav>
 
-            {/* Footer Profile: Visible ONLY on mobile (md:hidden), hidden when sidebar is closed */}
-            <div className={`p-6 mt-auto border-t border-zinc-200 dark:border-zinc-800 space-y-6 md:hidden ${!isOpen && 'hidden'}`}>
+            <div className={`p-6 mt-auto border-t border-zinc-200 dark:border-zinc-800 space-y-4 md:hidden ${!isOpen && 'hidden'}`}>
                 <div className="flex justify-center">
                     <ToggleButton />
                 </div>
@@ -65,6 +59,14 @@ const StudentSidebar = ({ isOpen, toggle }) => {
                         <p className="text-xs font-black text-examsy-text truncate">{STUDENT_DATA.name}</p>
                     </div>
                 </button>
+
+                {/* New Sign Out Button */}
+                <SignOutButton isOpen={isOpen} />
+            </div>
+
+            {/* Desktop Sign Out (when sidebar is retracted) */}
+            <div className={`p-3 mt-auto border-t border-zinc-200 dark:border-zinc-800 hidden md:block`}>
+                <SignOutButton isOpen={isOpen} />
             </div>
         </aside>
     );
