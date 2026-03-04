@@ -18,6 +18,11 @@ export const authService = {
         return response.data;
     },
 
+    logout: () => {
+        localStorage.removeItem('examsy_token');
+        localStorage.removeItem('examsy_role');
+    },
+
     // TASK 2: REGISTER A STUDENT
     registerStudent: async (studentData) => {
         // Package the data exactly how Spring Boot's StudentRegisterDTO expects it
