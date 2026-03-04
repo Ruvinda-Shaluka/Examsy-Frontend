@@ -4,7 +4,6 @@ import axios from 'axios';
 const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
 
 const api = axios.create({
-    // This is your Spring Boot address. Now you don't have to type it every time!
     baseURL: baseURL,
     headers: {
         'Content-Type': 'application/json',
@@ -19,7 +18,8 @@ api.interceptors.request.use(
 
         // If we found a token, attach it to the header of our request
         if (token) {
-            config.headers['Authorization'] = `Bearer ${token}`;
+            // Using dot notation for the Authorization header is the standard Axios convention
+            config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
     },
