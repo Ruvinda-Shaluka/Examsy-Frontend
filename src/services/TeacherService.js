@@ -8,5 +8,16 @@ export const teacherService = {
     updateProfile: async (profileData) => {
         const response = await api.put('/teachers/me', profileData);
         return response.data.data;
+    },
+
+    // Add these inside your existing teacherService object
+    getClasses: async () => {
+        const response = await api.get('/teacher/dashboard/classes');
+        return response.data.data;
+    },
+
+    deleteClass: async (classId) => {
+        const response = await api.delete(`/teacher/dashboard/classes/${classId}`);
+        return response.data;
     }
 }
