@@ -1,13 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import TextPressure from "../logo/TextPressure.jsx";
-import {Home, Calendar, FileCheck, Settings, ChevronLeft, Menu, ClipboardPenLine} from 'lucide-react';
-import {NavLink, useNavigate} from "react-router-dom";
-import {STUDENT_DATA} from "../../data/StudentMockData.js";
+import { Home, Calendar, Settings, ChevronLeft, Menu, ClipboardPenLine } from 'lucide-react';
+import { NavLink, useNavigate } from "react-router-dom";
 import ToggleButton from "../landingPage/ToggleButton.jsx";
 import SignOutButton from '../common/SignOutButton.jsx';
+import { studentService } from '../../services/studentService.js'; // 🟢 Import the real service
 
 const StudentSidebar = ({ isOpen, toggle }) => {
     const navigate = useNavigate();
+
+    // State to hold the real profile data
+    const [profile, setProfile] = useState({
+        name: 'Loading...',
+        avatar: 'S',
+        profilePictureUrl: null
+    });
+
+    // Fetch the profile data when the sidebar mounts
+    useEffect(() => {
+        const loadProfile = async () => {
+            try {
+                const data = await studentService.getProfile();
+                setProfile({
+                    name: data.fullName || 'Student',
+                    avatar: data.fullName ? data.fullName.charAt(0).toUpperCase() : 'S',
+                    profilePictureUrl: data.profilePictureUrl || null
+                });
+            } catch (error) {
+                console.error("Failed to load sidebar profile data", error);
+                // Fallback if the network fails
+                setProfile({ name: 'Student', avatar: 'S', profilePictureUrl: null });
+            }
+        };
+        loadProfile();
+    }, []);
 
     const navItems = [
         { icon: Home, label: 'Home', path: '/student/dashboard' },
@@ -44,23 +70,29 @@ const StudentSidebar = ({ isOpen, toggle }) => {
                 ))}
             </nav>
 
+            {/* Mobile Bottom Section */}
             <div className={`p-6 mt-auto border-t border-zinc-200 dark:border-zinc-800 space-y-4 md:hidden ${!isOpen && 'hidden'}`}>
                 <div className="flex justify-center">
                     <ToggleButton />
                 </div>
+
+                {/* Using real profile data for the mobile display */}
                 <button
                     onClick={() => { navigate('/student/settings'); toggle(); }}
-                    className="flex items-center gap-3 w-full p-2 bg-examsy-bg rounded-2xl"
+                    className="flex items-center gap-3 w-full p-2 bg-examsy-bg rounded-2xl border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700 transition-all"
                 >
-                    <div className="w-10 h-10 rounded-xl bg-examsy-primary text-white flex items-center justify-center font-bold">
-                        {STUDENT_DATA.avatar}
+                    <div className="w-10 h-10 rounded-xl bg-examsy-primary text-white flex items-center justify-center font-bold overflow-hidden">
+                        {profile.profilePictureUrl ? (
+                            <img src={profile.profilePictureUrl} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                            profile.avatar
+                        )}
                     </div>
                     <div className="text-left">
-                        <p className="text-xs font-black text-examsy-text truncate">{STUDENT_DATA.name}</p>
+                        <p className="text-xs font-black text-examsy-text truncate">{profile.name}</p>
                     </div>
                 </button>
 
-                {/* New Sign Out Button */}
                 <SignOutButton isOpen={isOpen} />
             </div>
 
