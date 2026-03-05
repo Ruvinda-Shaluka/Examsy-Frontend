@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import TextPressure from "../logo/TextPressure.jsx";
-import { Home, Calendar, Settings, ChevronLeft, Menu, ClipboardPenLine } from 'lucide-react';
+import {Home, Calendar, Settings, ChevronLeft, Menu, ClipboardPenLine, BellDot} from 'lucide-react';
 import { NavLink, useNavigate } from "react-router-dom";
 import ToggleButton from "../landingPage/ToggleButton.jsx";
 import SignOutButton from '../common/SignOutButton.jsx';
@@ -39,6 +39,7 @@ const StudentSidebar = ({ isOpen, toggle }) => {
         { icon: Home, label: 'Home', path: '/student/dashboard' },
         { icon: ClipboardPenLine, label: 'Mock Exams', path: '/student/mock-exams' },
         { icon: Calendar, label: 'Calendar', path: '/student/calendar' },
+        {icon: BellDot, label: 'Notification', path: '/student/notification' },
         { icon: Settings, label: 'Settings', path: '/student/settings' }
     ];
 

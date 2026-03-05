@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Calendar, BookOpen, FileCheck, Settings, ChevronLeft, Menu, Clock } from 'lucide-react';
+import {Home, Calendar, BookOpen, FileCheck, Settings, ChevronLeft, Menu, Clock, BellDot} from 'lucide-react';
 import TextPressure from "../logo/TextPressure.jsx";
 import ToggleButton from '../landingPage/ToggleButton.jsx';
 import { MOCK_TEACHER } from '../../data/TeacherMockData';
@@ -15,6 +15,7 @@ const TeacherSidebar = ({ isOpen, toggle }) => {
         { icon: Clock, label: 'Ongoing Exams', path: '/teacher/ongoing-exams' },
         { icon: FileCheck, label: 'Grading', path: '/teacher/grading' },
         { icon: Calendar, label: 'Calendar', path: '/teacher/calendar' },
+        {icon: BellDot, label: 'Notification', path: '/teacher/notification' },
         { icon: Settings, label: 'Settings', path: '/teacher/settings' },
     ];
 
