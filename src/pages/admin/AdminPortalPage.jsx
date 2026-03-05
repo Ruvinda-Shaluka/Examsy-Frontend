@@ -27,6 +27,32 @@ const AdminPortalPage = () => {
     };
 
     // --- Action Handlers ---
+
+    const handleWarnTeacher = async (reportId, teacherName) => {
+        if (window.confirm(`Are you sure you want to send an official warning to ${teacherName}?`)) {
+            try {
+                await adminService.warnTeacher(reportId);
+                // A warning resolves the report, so remove it from the active list
+                setReports(prev => prev.filter(r => r.id !== reportId));
+                setAlert({ type: 'success', title: 'Warning Sent', message: `An official warning email was sent to ${teacherName}.`, onClose: () => setAlert(null) });
+            } catch (err) {
+                setAlert({ type: 'error', title: 'Error', message: 'Failed to send warning.', onClose: () => setAlert(null) });
+            }
+        }
+    };
+
+    const handleReplyStudent = async (reportId, studentName) => {
+        const message = window.prompt(`Enter your message to ${studentName} regarding their report:`);
+        if (message && message.trim() !== '') {
+            try {
+                await adminService.replyToStudent(reportId, message);
+                setAlert({ type: 'success', title: 'Reply Sent', message: `Your message was sent to ${studentName}.`, onClose: () => setAlert(null) });
+            } catch (err) {
+                setAlert({ type: 'error', title: 'Error', message: 'Failed to send reply.', onClose: () => setAlert(null) });
+            }
+        }
+    };
+
     const handleTerminateClass = async (reportId, className) => {
         if (window.confirm(`DANGER ZONE: Are you sure you want to TERMINATE the class "${className}"? This will email the teacher and notify the student.`)) {
             try {
@@ -43,7 +69,6 @@ const AdminPortalPage = () => {
         if (window.confirm(`DANGER ZONE: Are you sure you want to TERMINATE the account for ${teacherName}? This action is irreversible.`)) {
             try {
                 await adminService.terminateTeacher(reportId);
-                // Remove all reports associated with this teacher from UI
                 setReports(prev => prev.filter(r => r.teacherName !== teacherName));
                 setAlert({ type: 'success', title: 'Teacher Terminated', message: 'The account was deleted and an email was sent.', onClose: () => setAlert(null) });
             } catch (err) {
@@ -115,6 +140,8 @@ const AdminPortalPage = () => {
                         <ReportActionCard
                             key={report.id}
                             report={report}
+                            onWarnTeacher={() => handleWarnTeacher(report.id, report.teacherName)}
+                            onReplyStudent={() => handleReplyStudent(report.id, report.reporterName)}
                             onTerminateClass={() => handleTerminateClass(report.id, report.className)}
                             onTerminateTeacher={() => handleTerminateTeacher(report.id, report.teacherName)}
                             onDismiss={() => handleDismissReport(report.id)}
