@@ -12,7 +12,7 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
     const [showMenu, setShowMenu] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
 
-    // ✅ 2. State for Confirmation Modal
+    // State for Confirmation Modal
     const [showConfirmUnenroll, setShowConfirmUnenroll] = useState(false);
 
     // Alert State
@@ -24,14 +24,13 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
         setShowMenu(false); // Close menu
 
         if (action === 'unenroll') {
-            // ✅ 3. Open Custom Modal instead of window.confirm
             setShowConfirmUnenroll(true);
         } else if (action === 'report') {
             setShowReportModal(true);
         }
     };
 
-    // ✅ 4. Function to execute when unenroll is confirmed
+    // Function to execute when unenroll is confirmed
     const executeUnenroll = () => {
         if (onUnenroll) onUnenroll(id);
     };
@@ -59,8 +58,11 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
                     onClick={() => navigate(`/student/class/${id}`)}
                     className="h-32 relative cursor-pointer rounded-t-[2.5rem]"
                 >
-                    {/* Clipping Container */}
-                    <div className={`absolute inset-0 overflow-hidden rounded-t-[2.5rem] ${bannerColor || 'bg-examsy-primary'}`}>
+                    {/* 🟢 THE FIX: Using inline style for the dynamic hex color */}
+                    <div
+                        className="absolute inset-0 overflow-hidden rounded-t-[2.5rem]"
+                        style={{ backgroundColor: bannerColor || '#4F46E5' }}
+                    >
                         <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-10 -mt-10 blur-3xl" />
                     </div>
 
@@ -119,7 +121,11 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
                 {/* --- BODY SECTION --- */}
                 <div className="p-8 pt-4 space-y-4 flex-1">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-examsy-bg border-2 border-zinc-100 dark:border-zinc-800 flex items-center justify-center font-black text-examsy-primary">
+                        {/* 🟢 BONUS: Applied the banner color to the teacher's avatar block too! */}
+                        <div
+                            className="w-12 h-12 rounded-2xl border-2 border-zinc-100 dark:border-zinc-800 flex items-center justify-center font-black text-white"
+                            style={{ backgroundColor: bannerColor || '#4F46E5' }}
+                        >
                             {teacher?.charAt(0) || 'T'}
                         </div>
                         <div>
@@ -161,7 +167,7 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
                 />
             )}
 
-            {/* ✅ 5. Render the Confirm Modal for Unenrollment */}
+            {/* Render the Confirm Modal for Unenrollment */}
             <ConfirmActionModal
                 isOpen={showConfirmUnenroll}
                 onClose={() => setShowConfirmUnenroll(false)}

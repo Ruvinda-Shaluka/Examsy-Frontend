@@ -4,72 +4,91 @@ import StudentLayout from "../../layouts/StudentLayout.jsx";
 import StudentClassCard from '../../components/student/StudentClassCard.jsx';
 import CustomAlert from '../../components/common/CustomAlert.jsx';
 import { studentService } from '../../services/studentService.js';
-import { STUDENT_DATA } from "../../data/StudentMockData.js"; // Keeping mock classes for now
 
 const StudentDashboard = () => {
     const navigate = useNavigate();
 
-    // 1. Alert & Profile State
+    // State Management
     const [alert, setAlert] = useState(null);
     const [studentProfile, setStudentProfile] = useState(null);
     const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
-    // 2. Class State (This fixes your handleUnenroll function!)
-    const [enrolledClasses, setEnrolledClasses] = useState(STUDENT_DATA.enrolledClasses);
+    // Real Class State
+    const [enrolledClasses, setEnrolledClasses] = useState([]);
+    const [isLoadingClasses, setIsLoadingClasses] = useState(true);
 
-    // 3. The Progressive Profiling Hook
     useEffect(() => {
-        const fetchProfile = async () => {
+        const loadDashboardData = async () => {
             try {
-                // Grab the real data from Spring Boot
-                const data = await studentService.getProfile();
-                setStudentProfile(data);
+                // Fetch profile and classes simultaneously for better performance
+                const [profileData, classesData] = await Promise.all([
+                    studentService.getProfile(),
+                    studentService.getEnrolledClasses()
+                ]);
 
-                // Check if they need to complete their profile
-                if (!data.major || !data.academicBio) {
+                setStudentProfile(profileData);
+                setEnrolledClasses(classesData);
+
+                // Progressive Profiling Check
+                if (!profileData.major || !profileData.academicBio) {
                     setAlert({
                         type: 'info',
                         title: 'Incomplete Profile',
                         message: 'Welcome! Please complete your academic profile in Settings to unlock all features.',
                         onClose: () => {
                             setAlert(null);
-                            // Teleport them to settings when they close the alert
                             navigate('/student/settings');
                         }
                     });
                 }
             } catch (error) {
-                console.error("Failed to fetch student profile", error);
+                console.error("Failed to load dashboard data", error);
             } finally {
                 setIsLoadingProfile(false);
+                setIsLoadingClasses(false);
             }
         };
 
-        fetchProfile();
-    }, [navigate]); // Empty dependency array ensures this runs only once on mount
+        loadDashboardData();
+    }, [navigate]);
 
-    const handleUnenroll = (classId) => {
-        // Logic to remove class from state
+    // Handle Real Database Unenrollment
+    const handleUnenroll = async (classId) => {
+        // Optimistically remove it from UI instantly
+        const previousClasses = [...enrolledClasses];
         setEnrolledClasses(prev => prev.filter(c => c.id !== classId));
+
+        try {
+            // Tell the database to delete the enrollment
+            await studentService.unenrollClass(classId);
+            setAlert({
+                type: 'success',
+                title: 'Unenrolled',
+                message: 'You have successfully unenrolled from the class.',
+                onClose: () => setAlert(null)
+            });
+        } catch (error) {
+            console.error("Unenroll failed", error);
+            // If the database fails, revert the UI back to how it was
+            setEnrolledClasses(previousClasses);
+            setAlert({
+                type: 'error',
+                title: 'Error',
+                message: 'Failed to unenroll. Please try again.',
+                onClose: () => setAlert(null)
+            });
+        }
     };
 
     return (
         <StudentLayout>
-
-            {/* Render the Alert securely at the top of the layout */}
             {alert && (
-                <CustomAlert
-                    type={alert.type}
-                    title={alert.title}
-                    message={alert.message}
-                    onClose={alert.onClose}
-                />
+                <CustomAlert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose} />
             )}
 
             {/* Header Section */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10 animate-fade-in">
                 <div>
-                    {/* Dynamically greet the student by their first name once loaded! */}
                     <h2 className="text-2xl md:text-3xl font-black text-examsy-text">
                         {isLoadingProfile ? 'My Classrooms' : `Welcome back, ${studentProfile?.fullName?.split(' ')[0] || 'Student'}! 👋`}
                     </h2>
@@ -78,19 +97,25 @@ const StudentDashboard = () => {
             </div>
 
             {/* Classroom Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 animate-fade-in">
-                {enrolledClasses.map((cls) => (
-                    <StudentClassCard
-                        key={cls.id}
-                        id={cls.id}
-                        title={cls.title}
-                        section={cls.section}
-                        bannerColor={cls.bannerColor}
-                        teacher={cls.teacher}
-                        onUnenroll={handleUnenroll}
-                    />
-                ))}
-            </div>
+            {isLoadingClasses ? (
+                <div className="text-center text-examsy-muted font-bold py-10">Loading your classes...</div>
+            ) : enrolledClasses.length === 0 ? (
+                <div className="text-center text-examsy-muted font-bold py-10">You are not enrolled in any classes yet.</div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 animate-fade-in">
+                    {enrolledClasses.map((cls) => (
+                        <StudentClassCard
+                            key={cls.id}
+                            id={cls.id}
+                            title={cls.title}
+                            section={cls.section}
+                            bannerColor={cls.bannerColor}
+                            teacher={cls.teacher}
+                            onUnenroll={handleUnenroll}
+                        />
+                    ))}
+                </div>
+            )}
         </StudentLayout>
     );
 };
