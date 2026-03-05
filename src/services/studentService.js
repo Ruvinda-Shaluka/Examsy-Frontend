@@ -25,5 +25,10 @@ export const studentService = {
     joinClass: async (joinData) => {
         const response = await api.post('/student/dashboard/classes/join', joinData);
         return response.data.data;
+    },
+
+    fileReport: async (reportData) => {
+        const response = await api.post('/student/dashboard/classes/report', reportData);
+        return response.data;
     }
 };
