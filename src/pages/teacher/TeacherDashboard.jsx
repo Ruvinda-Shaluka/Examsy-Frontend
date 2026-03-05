@@ -105,7 +105,7 @@ const TeacherDashboard = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
                 <div>
                     <h2 className="text-2xl md:text-3xl font-black text-examsy-text">
-                        {isLoadingProfile ? 'Active Classes' : `Welcome back, ${teacherProfile?.fullName?.split(' ')[0] || 'Instructor'}! 👋`}
+                        {isLoadingProfile ? 'Active Classes' : `Welcome back, ${teacherProfile?.fullName || 'Instructor'}! 👋`}
                     </h2>
                     <p className="text-examsy-muted font-bold">Manage your current teaching modules.</p>
                 </div>
