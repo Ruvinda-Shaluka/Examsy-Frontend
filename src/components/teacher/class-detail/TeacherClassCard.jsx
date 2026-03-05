@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MoreVertical, TrendingUp, FolderOpen, Link as LinkIcon, Trash2 } from 'lucide-react';
 import CustomAlert from '../../common/CustomAlert';
-import ConfirmActionModal from '../../common/ConfirmActionModal'; // ✅ 1. Import new Modal
+import ConfirmActionModal from '../../common/ConfirmActionModal';
 
 const TeacherClassCard = ({ id, title, section, bannerColor, onDelete }) => {
     const navigate = useNavigate();
@@ -11,7 +11,7 @@ const TeacherClassCard = ({ id, title, section, bannerColor, onDelete }) => {
     const [showMenu, setShowMenu] = useState(false);
     const [alert, setAlert] = useState({ show: false, type: '', title: '', message: '' });
 
-    // ✅ 2. State for Confirmation Modal
+    // State for Confirmation Modal
     const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
     // Handle Dropdown Actions
@@ -34,12 +34,12 @@ const TeacherClassCard = ({ id, title, section, bannerColor, onDelete }) => {
                 console.error("Failed to copy link: ", err);
             }
         } else if (action === 'delete') {
-            // ✅ 3. Open the Modal instead of window.confirm
+            // Open the Modal instead of a messy window.confirm
             setShowConfirmDelete(true);
         }
     };
 
-    // ✅ 4. Function to execute when confirmed
+    // Function to execute when confirmed in the modal
     const executeDelete = () => {
         if (onDelete) onDelete(id);
     };
@@ -53,8 +53,11 @@ const TeacherClassCard = ({ id, title, section, bannerColor, onDelete }) => {
                     onClick={() => navigate(`/teacher/class/${id}`)}
                     className="h-28 relative cursor-pointer rounded-t-[2rem]"
                 >
-                    {/* Clipping Container for Background Only */}
-                    <div className={`absolute inset-0 overflow-hidden rounded-t-[2rem] ${bannerColor || 'bg-examsy-primary'}`}>
+                    {/* 🟢 FIXED: Using inline style for the dynamic hex color to bypass Tailwind limitations */}
+                    <div
+                        className="absolute inset-0 overflow-hidden rounded-t-[2rem]"
+                        style={{ backgroundColor: bannerColor || '#4F46E5' }}
+                    >
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl" />
                     </div>
 
@@ -117,7 +120,11 @@ const TeacherClassCard = ({ id, title, section, bannerColor, onDelete }) => {
 
                 {/* --- BODY SECTION --- */}
                 <div className="p-6 h-32 flex items-center">
-                    <div className="w-16 h-16 rounded-[1.2rem] bg-examsy-bg border-4 border-examsy-surface -mt-16 shadow-lg flex items-center justify-center font-black text-examsy-primary">
+                    {/* 🟢 Applied the dynamic database color to the text of the class initials too! */}
+                    <div
+                        className="w-16 h-16 rounded-[1.2rem] bg-examsy-bg border-4 border-examsy-surface -mt-16 shadow-lg flex items-center justify-center font-black"
+                        style={{ color: bannerColor || '#4F46E5' }}
+                    >
                         {title?.split(' ').map(word => word.charAt(0)).join('').substring(0, 2).toUpperCase()}
                     </div>
                 </div>
@@ -136,7 +143,7 @@ const TeacherClassCard = ({ id, title, section, bannerColor, onDelete }) => {
                 </div>
             </div>
 
-            {/* Existing Custom Alert */}
+            {/* Custom Alert */}
             {alert.show && (
                 <CustomAlert
                     type={alert.type}
@@ -146,7 +153,7 @@ const TeacherClassCard = ({ id, title, section, bannerColor, onDelete }) => {
                 />
             )}
 
-            {/* ✅ 5. Render the Confirm Modal */}
+            {/* Render the Confirm Modal */}
             <ConfirmActionModal
                 isOpen={showConfirmDelete}
                 onClose={() => setShowConfirmDelete(false)}
