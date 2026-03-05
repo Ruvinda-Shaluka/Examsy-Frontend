@@ -10,16 +10,19 @@ const StudentSettings = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [alert, setAlert] = useState(null);
 
-    // Holds the actual File object before uploading
     const [selectedImageFile, setSelectedImageFile] = useState(null);
-    // Holds the preview URL so the user can see it before saving
     const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
 
-    // 1. Initialize with EMPTY data
+    // State to quietly hold the required database IDs
+    const [hiddenIds, setHiddenIds] = useState({
+        id: null,
+        userAccountId: null
+    });
+
     const [profile, setProfile] = useState({
         name: '',
         major: '',
-        id: '',
+        id: '', // This is the visible Student ID string, not the DB Primary Key
         bio: '',
         profileImage: null,
         avatar: 'S'
@@ -31,11 +34,17 @@ const StudentSettings = () => {
         identity: true
     });
 
-    // 2. Fetch real data on load
     useEffect(() => {
         const loadProfile = async () => {
             try {
                 const data = await studentService.getProfile();
+
+                // Save the strict DTO IDs so we can send them back later
+                setHiddenIds({
+                    id: data.id,
+                    userAccountId: data.userAccountId
+                });
+
                 setProfile({
                     name: data.fullName || '',
                     major: data.major || '',
@@ -59,54 +68,36 @@ const StudentSettings = () => {
         loadProfile();
     }, []);
 
-    // 3. Handle Image Selection (With Validation!)
     const handleImageSelect = (e) => {
         const file = e.target.files[0];
         if (file) {
-            // Check if file is larger than 5MB
             if (file.size > 5242880) {
-                setAlert({
-                    type: 'error',
-                    title: 'File Too Large',
-                    message: 'Please select an image smaller than 5MB.',
-                    onClose: () => setAlert(null)
-                });
-                fileInputRef.current.value = ""; // Clear input
+                setAlert({ type: 'error', title: 'File Too Large', message: 'Please select an image smaller than 5MB.', onClose: () => setAlert(null) });
+                fileInputRef.current.value = "";
                 return;
             }
 
-            // Check if it's actually an image
             if (!file.type.startsWith('image/')) {
-                setAlert({
-                    type: 'error',
-                    title: 'Invalid File',
-                    message: 'Please select a valid image file (JPG, PNG).',
-                    onClose: () => setAlert(null)
-                });
-                fileInputRef.current.value = ""; // Clear input
+                setAlert({ type: 'error', title: 'Invalid File', message: 'Please select a valid image file (JPG, PNG).', onClose: () => setAlert(null) });
+                fileInputRef.current.value = "";
                 return;
             }
 
-            setSelectedImageFile(file); // Save the file to upload later
+            setSelectedImageFile(file);
 
             const reader = new FileReader();
             reader.onloadend = () => {
-                setImagePreviewUrl(reader.result); // Show preview immediately
+                setImagePreviewUrl(reader.result);
             };
             reader.readAsDataURL(file);
         }
     };
 
-    // 4. Cloudinary Upload Helper (Using .env variables)
     const uploadToCloudinary = async (file) => {
         const formData = new FormData();
         formData.append('file', file);
-
-        // Grab keys from your .env file securely
-        const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+        formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
         const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-
-        formData.append('upload_preset', uploadPreset);
 
         const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
             method: 'POST',
@@ -121,7 +112,6 @@ const StudentSettings = () => {
         }
     };
 
-    // 5. The Master Save Function
     const handleSave = async () => {
         setIsSaving(true);
         setAlert(null);
@@ -129,17 +119,19 @@ const StudentSettings = () => {
         let finalImageUrl = profile.profileImage;
 
         try {
-            // Check if there is a new image to upload
             if (selectedImageFile) {
                 finalImageUrl = await uploadToCloudinary(selectedImageFile);
             }
 
-            // Package the payload for Spring Boot
+            // The payload now includes the exact IDs Spring Boot demands
             const payload = {
+                id: hiddenIds.id,
+                userAccountId: hiddenIds.userAccountId,
                 fullName: profile.name,
                 major: profile.major,
                 academicBio: profile.bio,
                 profilePictureUrl: finalImageUrl,
+                studentIdentificationNumber: profile.id, // Pass this back so it doesn't get wiped
                 notifyEmail: notifs.email,
                 notifyPush: notifs.push,
                 notifyIdentity: notifs.identity
@@ -147,9 +139,8 @@ const StudentSettings = () => {
 
             await studentService.updateProfile(payload);
 
-            // Update local state so it looks correct without a refresh
             setProfile(prev => ({ ...prev, profileImage: finalImageUrl }));
-            setSelectedImageFile(null); // Clear the selected file
+            setSelectedImageFile(null);
 
             setAlert({
                 type: 'success',
@@ -160,7 +151,11 @@ const StudentSettings = () => {
 
         } catch (error) {
             console.error("Failed to save:", error);
-            setAlert({ type: 'error', title: 'Save Failed', message: 'Could not update your settings.' });
+            setAlert({
+                type: 'error',
+                title: 'Save Failed',
+                message: error.response?.data?.message || 'Could not update your settings.'
+            });
         } finally {
             setIsSaving(false);
         }
@@ -168,12 +163,10 @@ const StudentSettings = () => {
 
     if (isLoading) return <StudentLayout><div className="p-10 text-center font-bold text-examsy-muted">Loading settings...</div></StudentLayout>;
 
-    // Determine which image to show in the circle
     const displayImage = imagePreviewUrl || profile.profileImage;
 
     return (
         <StudentLayout>
-            {/* The Custom Alert renders here if there is a message! */}
             {alert && <CustomAlert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose} />}
 
             <div className="max-w-4xl mx-auto space-y-8 pb-10 animate-fade-in">
@@ -234,7 +227,6 @@ const StudentSettings = () => {
                                 </div>
                             </div>
 
-                            {/* ID is Read Only */}
                             <div className="space-y-1.5 sm:col-span-2">
                                 <label className="text-[10px] font-black text-examsy-muted uppercase tracking-[0.2em] ml-1">Student Identification Number</label>
                                 <div className="relative">
