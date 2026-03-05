@@ -4,6 +4,7 @@ import { MoreVertical, User, BookOpen, LogOut, Flag } from 'lucide-react';
 import ReportClassModal from './class-detail/ReportClassModal';
 import CustomAlert from '../common/CustomAlert';
 import ConfirmActionModal from '../common/ConfirmActionModal';
+import {studentService} from "../../services/studentService.js";
 
 const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll }) => {
     const navigate = useNavigate();
@@ -35,17 +36,27 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
         if (onUnenroll) onUnenroll(id);
     };
 
-    const handleReportSubmit = (reason) => {
-        setAlert({
-            show: true,
-            type: 'error',
-            title: 'Report Submitted',
-            message: `We've received your report regarding "${reason}". Admins will review it shortly.`,
-        });
+    const handleReportSubmit = async (reportDetails) => {
+        try {
+            await studentService.fileReport({
+                targetCourseId: id,
+                ...reportDetails
+            });
 
-        setTimeout(() => {
-            setAlert(prev => ({ ...prev, show: false }));
-        }, 6000);
+            setAlert({
+                show: true,
+                type: 'success', // Changed to success
+                title: 'Report Filed',
+                message: `Thank you. Our administrative team has been notified and will review "${title}" shortly.`,
+            });
+        } catch (error) {
+            setAlert({
+                show: true,
+                type: 'error',
+                title: 'Submission Failed',
+                message: 'We could not process your report at this time. Please try again later.',
+            });
+        }
     };
 
     return (
