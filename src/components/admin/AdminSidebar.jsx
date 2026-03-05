@@ -6,6 +6,7 @@ import SignOutButton from '../common/SignOutButton.jsx';
 
 const AdminSidebar = () => {
     const navItems = [
+        {icon: Hexagon, label: "Dashboard", path: "/admin/dashboard" },
         { icon: ShieldAlert, label: "Reports Console", path: "/admin/reports" },
         { icon: Settings, label: "Admin Settings", path: "/admin/settings" },
     ];
