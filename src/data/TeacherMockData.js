@@ -25,6 +25,7 @@ export const MOCK_CLASSES = [
     { id: 2, title: 'Database Systems', section: 'CS Dept - Year 2', bannerColor: 'bg-purple-600' },
     { id: 3, title: 'React Masterclass', section: 'Section A', bannerColor: 'bg-emerald-600' },
     { id: 4, title: 'Python Masterclass', section: 'Section 4', bannerColor: 'bg-emerald-600' },
+
 ];
 
 // 4. For TeacherOngoing

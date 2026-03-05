@@ -26,14 +26,36 @@ const LoginPage = () => {
 
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
-        setAlert(null); // Clear previous alerts
+        setAlert(null);
         setIsLoading(true);
 
         try {
             await authService.login(identifier, password);
 
-            // Grab the role that authService just saved to localStorage
+            // Grab the actual role returned by the Spring Boot backend
             const userRole = localStorage.getItem('examsy_role');
+
+            // --- NEW LOGIC: STRICT ROLE VERIFICATION ---
+            // If the actual database role does not match the UI toggle, block the login!
+            if (
+                (userRole === 'STUDENT' && role !== 'student') ||
+                (userRole === 'TEACHER' && role !== 'teacher')
+            ) {
+                // Instantly remove the tokens so they aren't actually logged in
+                localStorage.removeItem('examsy_token');
+                localStorage.removeItem('examsy_role');
+
+                // Show the error alert
+                setAlert({
+                    type: 'error',
+                    title: 'Role Mismatch',
+                    message: `This account is registered as a ${userRole.toLowerCase()}. Please switch the role toggle at the top and try again.`,
+                    onClose: () => setAlert(null)
+                });
+                setIsLoading(false);
+                return; // Stop the login process right here
+            }
+            // --- END NEW LOGIC ---
 
             if (userRole === 'ADMIN') {
                 setAlert({
@@ -41,8 +63,8 @@ const LoginPage = () => {
                     title: 'Login Successful',
                     message: `Welcome back, ${identifier}! Redirecting to your dashboard.`,
                     onClose: () => {
-                        setAlert(null); // MUST set to null to hide the alert!
-                        navigate('/admin/dashboard'); // Ensure this perfectly matches App.jsx
+                        setAlert(null);
+                        navigate('/admin/dashboard');
                     }
                 });
             }
