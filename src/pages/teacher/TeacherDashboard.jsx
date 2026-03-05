@@ -11,19 +11,16 @@ const TeacherDashboard = () => {
     const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Alert & Profile State
     const [alert, setAlert] = useState(null);
     const [teacherProfile, setTeacherProfile] = useState(null);
     const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
-    // 🟢 NEW: Real Class State
     const [activeClasses, setActiveClasses] = useState([]);
     const [isLoadingClasses, setIsLoadingClasses] = useState(true);
 
     useEffect(() => {
         const loadDashboardData = async () => {
             try {
-                // Fetch profile and classes at the same time
                 const [profileData, classesData] = await Promise.all([
                     teacherService.getProfile(),
                     teacherService.getClasses()
@@ -32,7 +29,6 @@ const TeacherDashboard = () => {
                 setTeacherProfile(profileData);
                 setActiveClasses(classesData);
 
-                // Progressive Profiling Check
                 if (!profileData.professionalBio || !profileData.officeLocation) {
                     setAlert({
                         type: 'info',
@@ -55,28 +51,40 @@ const TeacherDashboard = () => {
         loadDashboardData();
     }, [navigate]);
 
-    // 🟢 NEW: Handle Class Deletion
     const handleDeleteClass = async (classId) => {
-        // Optimistically remove from UI
         const previousClasses = [...activeClasses];
         setActiveClasses(prev => prev.filter(c => c.id !== classId));
 
         try {
             await teacherService.deleteClass(classId);
+            setAlert({ type: 'success', title: 'Class Deleted', message: 'The class has been permanently deleted.', onClose: () => setAlert(null) });
+        } catch (error) {
+            console.error("Failed to delete class", error);
+            setActiveClasses(previousClasses);
+            setAlert({ type: 'error', title: 'Error', message: 'Failed to delete class. Please try again.', onClose: () => setAlert(null) });
+        }
+    };
+
+    const handleCreateClass = async (classData) => {
+        try {
+            const newClass = await teacherService.createClass(classData);
+
+            setActiveClasses(prev => [newClass, ...prev]);
+
+            setIsModalOpen(false);
+
             setAlert({
                 type: 'success',
-                title: 'Class Deleted',
-                message: 'The class has been permanently deleted.',
+                title: 'Class Created!',
+                message: `"${newClass.title}" has been created successfully.`,
                 onClose: () => setAlert(null)
             });
         } catch (error) {
-            console.error("Failed to delete class", error);
-            // Revert UI if backend fails
-            setActiveClasses(previousClasses);
+            console.error("Failed to create class", error);
             setAlert({
                 type: 'error',
-                title: 'Error',
-                message: 'Failed to delete class. Please try again.',
+                title: 'Creation Failed',
+                message: error.response?.data?.message || 'Could not create the class. Check your inputs.',
                 onClose: () => setAlert(null)
             });
         }
@@ -84,15 +92,14 @@ const TeacherDashboard = () => {
 
     return (
         <TeacherLayout>
-            <TeacherCreateClassModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+            <TeacherCreateClassModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onCreate={handleCreateClass}
+            />
 
             {alert && (
-                <CustomAlert
-                    type={alert.type}
-                    title={alert.title}
-                    message={alert.message}
-                    onClose={alert.onClose}
-                />
+                <CustomAlert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose} />
             )}
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
@@ -111,7 +118,6 @@ const TeacherDashboard = () => {
                 </button>
             </div>
 
-            {/* Classroom Grid */}
             {isLoadingClasses ? (
                 <div className="text-center text-examsy-muted font-bold py-10">Loading your classes...</div>
             ) : (
@@ -120,7 +126,7 @@ const TeacherDashboard = () => {
                         <TeacherClassCard
                             key={cls.id}
                             {...cls}
-                            onDelete={handleDeleteClass} // Pass down the delete handler
+                            onDelete={handleDeleteClass}
                         />
                     ))}
 
