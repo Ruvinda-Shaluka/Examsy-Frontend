@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../layouts/AdminLayout';
 import ReportActionCard from '../../components/admin/ReportActionCard';
+import ReplyStudentModal from '../../components/admin/ReplyStudentModal'; // Make sure this path is correct!
 import { ShieldAlert, Filter, AlertTriangle, AlertOctagon, Info } from 'lucide-react';
 import { adminService } from '../../services/adminService';
 import CustomAlert from '../../components/common/CustomAlert';
@@ -10,6 +11,13 @@ const AdminPortalPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [filterSeverity, setFilterSeverity] = useState('all');
     const [alert, setAlert] = useState(null);
+
+    // State for the Reply Modal
+    const [replyModalConfig, setReplyModalConfig] = useState({
+        isOpen: false,
+        reportId: null,
+        studentName: ''
+    });
 
     useEffect(() => {
         loadReports();
@@ -41,15 +49,27 @@ const AdminPortalPage = () => {
         }
     };
 
-    const handleReplyStudent = async (reportId, studentName) => {
-        const message = window.prompt(`Enter your message to ${studentName} regarding their report:`);
-        if (message && message.trim() !== '') {
-            try {
-                await adminService.replyToStudent(reportId, message);
-                setAlert({ type: 'success', title: 'Reply Sent', message: `Your message was sent to ${studentName}.`, onClose: () => setAlert(null) });
-            } catch (err) {
-                setAlert({ type: 'error', title: 'Error', message: 'Failed to send reply.', onClose: () => setAlert(null) });
-            }
+    // Opens the sleek Modal instead of a window.prompt
+    const openReplyModal = (reportId, studentName) => {
+        setReplyModalConfig({
+            isOpen: true,
+            reportId: reportId,
+            studentName: studentName
+        });
+    };
+
+    // Actually submits the data when the Modal's "Send Reply" button is clicked
+    const executeReplyStudent = async (message) => {
+        try {
+            await adminService.replyToStudent(replyModalConfig.reportId, message);
+            setAlert({
+                type: 'success',
+                title: 'Reply Sent',
+                message: `Your message was sent to ${replyModalConfig.studentName}.`,
+                onClose: () => setAlert(null)
+            });
+        } catch (err) {
+            setAlert({ type: 'error', title: 'Error', message: 'Failed to send reply.', onClose: () => setAlert(null) });
         }
     };
 
@@ -86,6 +106,8 @@ const AdminPortalPage = () => {
         }
     };
 
+    // --- Filter Logic ---
+
     const filteredReports = filterSeverity === 'all'
         ? reports
         : reports.filter(r => r.priorityLevel === filterSeverity.toUpperCase());
@@ -102,6 +124,14 @@ const AdminPortalPage = () => {
 
     return (
         <AdminLayout>
+            {/* Mount the Reply Modal */}
+            <ReplyStudentModal
+                isOpen={replyModalConfig.isOpen}
+                studentName={replyModalConfig.studentName}
+                onClose={() => setReplyModalConfig({ ...replyModalConfig, isOpen: false })}
+                onSubmit={executeReplyStudent}
+            />
+
             {alert && <CustomAlert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose} />}
 
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
@@ -141,7 +171,7 @@ const AdminPortalPage = () => {
                             key={report.id}
                             report={report}
                             onWarnTeacher={() => handleWarnTeacher(report.id, report.teacherName)}
-                            onReplyStudent={() => handleReplyStudent(report.id, report.reporterName)}
+                            onReplyStudent={() => openReplyModal(report.id, report.reporterName)}
                             onTerminateClass={() => handleTerminateClass(report.id, report.className)}
                             onTerminateTeacher={() => handleTerminateTeacher(report.id, report.teacherName)}
                             onDismiss={() => handleDismissReport(report.id)}
