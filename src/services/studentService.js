@@ -12,7 +12,6 @@ export const studentService = {
         return response.data.data;
     },
 
-    // Add this to your existing studentService object
     getEnrolledClasses: async () => {
         const response = await api.get('/student/dashboard/classes');
         return response.data.data;
@@ -21,5 +20,10 @@ export const studentService = {
     unenrollClass: async (courseId) => {
         const response = await api.delete(`/student/dashboard/classes/${courseId}/unenroll`);
         return response.data;
+    },
+
+    joinClass: async (joinData) => {
+        const response = await api.post('/student/dashboard/classes/join', joinData);
+        return response.data.data;
     }
 };
