@@ -67,7 +67,8 @@ const NotificationsView = ({ basePath }) => {
                 <div>
                     <button
                         onClick={() => navigate(basePath)}
-                        className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-examsy-muted hover:text-examsy-primary transition-colors mb-4"
+                        // 🟢 FIXED: Added md:hidden so it only appears on mobile screens
+                        className="md:hidden flex items-center gap-2 text-xs font-black uppercase tracking-widest text-examsy-muted hover:text-examsy-primary transition-colors mb-4"
                     >
                         <ArrowLeft size={16} /> Back to Dashboard
                     </button>
@@ -84,7 +85,8 @@ const NotificationsView = ({ basePath }) => {
                 {unreadCount > 0 && (
                     <button
                         onClick={handleMarkAllAsRead}
-                        className="px-6 py-3 bg-examsy-bg hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-2xl font-black text-sm transition-all flex items-center gap-2 border border-zinc-200 dark:border-zinc-800"
+                        // 🟢 FIXED: Added text-zinc-800 dark:text-zinc-200 to ensure perfect contrast in both modes
+                        className="px-6 py-3 bg-examsy-bg hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-2xl font-black text-sm transition-all flex items-center gap-2 border border-zinc-200 dark:border-zinc-800"
                     >
                         <Check size={18} /> Mark all as read
                     </button>
