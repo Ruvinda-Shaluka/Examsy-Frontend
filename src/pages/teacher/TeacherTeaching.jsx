@@ -18,13 +18,13 @@ const TeacherTeaching = () => {
 
     // MASTER STATE
     const [examData, setExamData] = useState({
-        title: '', // Replaced mock title with empty string to force input
+        title: '',
         classes: [],
         mode: '',
         type: '',
         date: '',
         startTime: '',
-        endTime:'',
+        endTime: '',
         deadlineTime: '',
         duration: '',
         questions: [],
@@ -36,14 +36,24 @@ const TeacherTeaching = () => {
         if (step === 1 && examData.classes.length === 0) {
             return setAlert({type:'error', title:'Error', message:'Please select at least one class to assign the exam.'});
         }
-        // Step 2 Validation (Checks if title, mode, type, date, and duration exist)
-        if (step === 2 && (!examData.title.trim() || !examData.mode || !examData.type || !examData.date || !examData.duration)) {
-            return setAlert({type:'error', title:'Incomplete Data', message:'Please fill out the Exam Title and all scheduling details.'});
+
+        // 🟢 FIXED: Smart Step 2 Validation
+        if (step === 2) {
+            if (!examData.title.trim() || !examData.mode || !examData.type || !examData.date) {
+                return setAlert({type:'error', title:'Incomplete Data', message:'Please fill out the Exam Title and select basic formats.'});
+            }
+            if (examData.mode === 'real-time' && (!examData.startTime || !examData.endTime)) {
+                return setAlert({type:'error', title:'Incomplete Data', message:'Please specify both Start Time and Submission Cut-off.'});
+            }
+            if (examData.mode === 'deadline' && (!examData.deadlineTime || !examData.duration)) {
+                return setAlert({type:'error', title:'Incomplete Data', message:'Please specify Deadline Time and Duration.'});
+            }
         }
+
+        setAlert(null); // Clear alerts if validation passes
         setStep(prev => prev + 1);
     };
 
-    // --- HELPER: Combines Date and Time into ISO-8601 for Spring Boot (YYYY-MM-DDTHH:MM:00) ---
     const combineDateTime = (dateStr, timeStr) => {
         if (!dateStr || !timeStr) return null;
         return `${dateStr}T${timeStr}:00`;
@@ -54,9 +64,22 @@ const TeacherTeaching = () => {
         setAlert(null);
 
         try {
+            // 🟢 NEW: Auto-calculate duration for Real-Time exams so the backend doesn't crash!
+            let finalDuration = parseInt(examData.duration);
+
+            if (examData.mode === 'real-time') {
+                const start = new Date(`1970-01-01T${examData.startTime}:00`);
+                const end = new Date(`1970-01-01T${examData.endTime}:00`);
+                finalDuration = Math.round((end - start) / 60000); // Converts milliseconds difference to minutes
+
+                if (finalDuration <= 0) {
+                    setIsPublishing(false);
+                    return setAlert({type: 'error', title: 'Invalid Schedule', message: 'The submission cut-off must be later than the start time!'});
+                }
+            }
+
             let finalPdfUrl = null;
 
-            // 1. Upload PDF to Cloudinary if applicable
             if (examData.type === 'pdf' && examData.pdfFile) {
                 const formData = new FormData();
                 formData.append('file', examData.pdfFile);
@@ -69,33 +92,21 @@ const TeacherTeaching = () => {
                 finalPdfUrl = data.secure_url;
             }
 
-            // 2. Build the exact Payload for Spring Boot (ExamPublishDTO)
             const payload = {
                 classIds: examData.classes,
                 title: examData.title,
-                examMode: examData.mode.toUpperCase(), // 'REAL-TIME' or 'DEADLINE'
-                examType: examData.type.toUpperCase(), // 'MCQ', 'SHORT', or 'PDF'
-                durationMinutes: parseInt(examData.duration),
-
-                scheduledStartTime: examData.mode === 'real-time'
-                    ? combineDateTime(examData.date, examData.startTime)
-                    : null,
-
-                // 🟢 FIXED: Properly grab either the deadlineTime or the endTime!
-                deadlineTime: examData.mode === 'deadline'
-                    ? combineDateTime(examData.date, examData.deadlineTime)
-                    : combineDateTime(examData.date, examData.endTime),
-
+                examMode: examData.mode.toUpperCase(),
+                examType: examData.type.toUpperCase(),
+                durationMinutes: finalDuration, // 🟢 Sends the auto-calculated duration!
+                scheduledStartTime: examData.mode === 'real-time' ? combineDateTime(examData.date, examData.startTime) : null,
+                deadlineTime: examData.mode === 'deadline' ? combineDateTime(examData.date, examData.deadlineTime) : combineDateTime(examData.date, examData.endTime),
                 pdfResourceUrl: finalPdfUrl,
                 questions: examData.questions
             };
 
-            // 3. Send to Backend via API Service
             await teacherService.publishExam(payload);
 
             setAlert({type: 'success', title: 'Success!', message: 'Exam published successfully.'});
-
-            // Wait slightly for the alert to be visible, then redirect
             setTimeout(() => navigate('/teacher/dashboard'), 2000);
 
         } catch (error) {
@@ -135,7 +146,6 @@ const TeacherTeaching = () => {
                 </div>
 
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    {/* Step 1: Classes */}
                     {step === 1 && (
                         <TeacherExamClassSelector
                             selected={examData.classes}
@@ -143,7 +153,6 @@ const TeacherTeaching = () => {
                         />
                     )}
 
-                    {/* Step 2: Details & Scheduling */}
                     {step === 2 && (
                         <TeacherExamModeSelector
                             data={examData}
@@ -151,7 +160,6 @@ const TeacherTeaching = () => {
                         />
                     )}
 
-                    {/* Step 3: Content Builders */}
                     {step === 3 && (
                         <>
                             {examData.type === 'mcq' && (
