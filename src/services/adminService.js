@@ -27,5 +27,15 @@ export const adminService = {
         // Send the message as a query parameter
         const response = await api.post(`/admin/reports/${reportId}/reply-student?message=${encodeURIComponent(message)}`);
         return response.data;
+    },
+
+    getProfile: async () => {
+        const response = await api.get('/admins/me');
+        return response.data.data;
+    },
+
+    updateProfile: async (profileData) => {
+        const response = await api.put('/admins/me', profileData);
+        return response.data.data;
     }
 };
