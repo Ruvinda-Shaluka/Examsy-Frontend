@@ -1,13 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import {Home, Calendar, BookOpen, FileCheck, Settings, ChevronLeft, Menu, Clock, BellDot} from 'lucide-react';
+import { Home, Calendar, BookOpen, FileCheck, Settings, ChevronLeft, Menu, Clock, BellDot } from 'lucide-react';
 import TextPressure from "../logo/TextPressure.jsx";
 import ToggleButton from '../landingPage/ToggleButton.jsx';
-import { MOCK_TEACHER } from '../../data/TeacherMockData';
 import SignOutButton from '../common/SignOutButton.jsx';
+import { teacherService } from '../../services/teacherService.js'; // 🟢 Import real service
 
 const TeacherSidebar = ({ isOpen, toggle }) => {
     const navigate = useNavigate();
+
+    // 🟢 NEW: State to hold real profile data
+    const [profile, setProfile] = useState({
+        name: 'Loading...',
+        avatar: 'T',
+        profilePictureUrl: null
+    });
+
+    useEffect(() => {
+        const loadProfile = async () => {
+            try {
+                const data = await teacherService.getProfile();
+                setProfile({
+                    name: data.fullName || 'Instructor',
+                    avatar: data.fullName ? data.fullName.charAt(0).toUpperCase() : 'T',
+                    profilePictureUrl: data.profilePictureUrl || null
+                });
+            } catch (error) {
+                console.error("Failed to load sidebar profile data", error);
+                setProfile({ name: 'Instructor', avatar: 'T', profilePictureUrl: null });
+            }
+        };
+        loadProfile();
+    }, []);
 
     const navItems = [
         { icon: Home, label: 'Home', path: '/teacher/dashboard' },
@@ -15,7 +39,7 @@ const TeacherSidebar = ({ isOpen, toggle }) => {
         { icon: Clock, label: 'Ongoing Exams', path: '/teacher/ongoing-exams' },
         { icon: FileCheck, label: 'Grading', path: '/teacher/grading' },
         { icon: Calendar, label: 'Calendar', path: '/teacher/calendar' },
-        {icon: BellDot, label: 'Notification', path: '/teacher/notification' },
+        { icon: BellDot, label: 'Notification', path: '/teacher/notification' },
         { icon: Settings, label: 'Settings', path: '/teacher/settings' },
     ];
 
@@ -51,23 +75,27 @@ const TeacherSidebar = ({ isOpen, toggle }) => {
                 <div className="flex justify-center">
                     <ToggleButton />
                 </div>
+
+                {/* 🟢 FIXED: Using Real Profile Data */}
                 <button
                     onClick={() => { navigate('/teacher/settings'); toggle(); }}
-                    className="flex items-center gap-3 w-full p-2 bg-examsy-bg rounded-2xl"
+                    className="flex items-center gap-3 w-full p-2 bg-examsy-bg rounded-2xl border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700 transition-all"
                 >
-                    <div className="w-10 h-10 rounded-xl bg-examsy-primary text-white flex items-center justify-center font-bold">
-                        {MOCK_TEACHER.avatar}
+                    <div className="w-10 h-10 rounded-xl bg-examsy-primary text-white flex items-center justify-center font-bold overflow-hidden">
+                        {profile.profilePictureUrl ? (
+                            <img src={profile.profilePictureUrl} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                            profile.avatar
+                        )}
                     </div>
                     <div className="text-left">
-                        <p className="text-xs font-black text-examsy-text truncate">{MOCK_TEACHER.name}</p>
+                        <p className="text-xs font-black text-examsy-text truncate">{profile.name}</p>
                     </div>
                 </button>
 
-                {/* New Sign Out Button */}
                 <SignOutButton isOpen={isOpen} />
             </div>
 
-            {/* Desktop Sign Out (when sidebar is retracted) */}
             <div className={`p-3 mt-auto border-t border-zinc-200 dark:border-zinc-800 hidden md:block`}>
                 <SignOutButton isOpen={isOpen} />
             </div>

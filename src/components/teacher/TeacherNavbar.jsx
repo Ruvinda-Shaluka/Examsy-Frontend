@@ -3,29 +3,36 @@ import { Search, Bell, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ToggleButton from '../landingPage/ToggleButton.jsx';
 import { teacherService } from '../../services/teacherService.js';
+import { notificationService } from '../../services/notificationService.js'; // 🟢 Import Notification Service
 
 const TeacherNavbar = ({ toggleSidebar }) => {
     const navigate = useNavigate();
 
-    // Initialize with a loading state instead of mock data
+    // 🟢 State for profile and the notification dot
     const [profile, setProfile] = useState({
         fullName: 'Loading...',
         specialization: '',
         profilePictureUrl: null
     });
+    const [unreadCount, setUnreadCount] = useState(0);
 
-    // Fetch the real data from your backend
+    // Fetch real data from your backend
     useEffect(() => {
-        const fetchNavProfile = async () => {
+        const fetchNavData = async () => {
             try {
-                const data = await teacherService.getProfile();
-                setProfile(data);
+                // Fetch profile and notification count simultaneously
+                const [profileData, countData] = await Promise.all([
+                    teacherService.getProfile(),
+                    notificationService.getUnreadCount()
+                ]);
+                setProfile(profileData);
+                setUnreadCount(countData);
             } catch (error) {
-                console.error("Failed to load nav profile", error);
+                console.error("Failed to load nav data", error);
                 setProfile({ fullName: 'Instructor', specialization: 'Faculty' });
             }
         };
-        fetchNavProfile();
+        fetchNavData();
     }, []);
 
     // Calculate the first initial dynamically
@@ -63,9 +70,15 @@ const TeacherNavbar = ({ toggleSidebar }) => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <button className="p-2.5 text-examsy-muted hover:bg-examsy-bg hover:text-examsy-primary rounded-xl relative transition-all">
+                    {/* 🟢 FIXED: Clicking the bell navigates to the notifications page */}
+                    <button
+                        onClick={() => navigate('/teacher/notification')}
+                        className="p-2.5 text-examsy-muted hover:bg-examsy-bg hover:text-examsy-primary rounded-xl relative transition-all"
+                    >
                         <Bell size={20} />
-                        <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-examsy-surface"></span>
+                        {unreadCount > 0 && (
+                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-examsy-surface animate-pulse"></span>
+                        )}
                     </button>
 
                     <button
@@ -73,7 +86,6 @@ const TeacherNavbar = ({ toggleSidebar }) => {
                         className="flex items-center gap-3 p-1.5 pl-4 hover:bg-examsy-bg rounded-2xl transition-all border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 group"
                     >
                         <div className="text-right">
-                            {/* Dynamically inserted fields */}
                             <p className="text-xs font-black text-examsy-text uppercase tracking-tight">{profile.fullName}</p>
                             <p className="text-[10px] font-bold text-examsy-muted">{profile.specialization || 'Set Specialization'}</p>
                         </div>
