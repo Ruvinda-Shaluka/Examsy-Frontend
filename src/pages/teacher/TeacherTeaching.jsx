@@ -24,6 +24,7 @@ const TeacherTeaching = () => {
         type: '',
         date: '',
         startTime: '',
+        endTime:'',
         deadlineTime: '',
         duration: '',
         questions: [],
