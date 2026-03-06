@@ -1,7 +1,6 @@
 import React from 'react';
 import { Timer, CalendarClock, ListChecks, Type, FileUp, Calendar, Clock, Hourglass } from 'lucide-react';
 
-// Define structural constants here instead of using mock data files
 const EXAM_MODES = [
     { id: 'real-time', title: 'Real-Time Exam', desc: 'Fixed start/end time for all students.' },
     { id: 'deadline', title: 'Deadline Based', desc: 'Students choose when to start before a deadline.' }
@@ -100,9 +99,10 @@ const TeacherExamModeSelector = ({ data, onChange }) => {
                             <label className="text-[10px] font-black uppercase text-examsy-muted tracking-widest ml-1">
                                 {data.mode === 'real-time' ? 'Exam Date' : 'Final Deadline Date'}
                             </label>
-                            <div className="relative">
-                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-examsy-muted" size={18} />
-                                {/* Standard YYYY-MM-DD input for proper backend parsing */}
+                            {/* 🟢 Added 'group' here for the focus-within effect */}
+                            <div className="relative group">
+                                {/* 🟢 Updated icon colors, added pointer-events-none and group-focus-within */}
+                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400 group-focus-within:text-examsy-primary transition-colors pointer-events-none" size={18} />
                                 <input
                                     type="date"
                                     value={data.date}
@@ -116,8 +116,8 @@ const TeacherExamModeSelector = ({ data, onChange }) => {
                             <>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase text-examsy-muted tracking-widest ml-1">Start Time</label>
-                                    <div className="relative">
-                                        <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-examsy-muted" size={18} />
+                                    <div className="relative group">
+                                        <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400 group-focus-within:text-examsy-primary transition-colors pointer-events-none" size={18} />
                                         <input
                                             type="time"
                                             value={data.startTime}
@@ -127,14 +127,13 @@ const TeacherExamModeSelector = ({ data, onChange }) => {
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-examsy-muted tracking-widest ml-1">Duration (Minutes)</label>
-                                    <div className="relative">
-                                        <Hourglass className="absolute left-4 top-1/2 -translate-y-1/2 text-examsy-muted" size={18} />
+                                    <label className="text-[10px] font-black uppercase text-examsy-muted tracking-widest ml-1">Submission Cut-off</label>
+                                    <div className="relative group">
+                                        <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400 group-focus-within:text-examsy-primary transition-colors pointer-events-none" size={18} />
                                         <input
-                                            type="number"
-                                            value={data.duration}
-                                            placeholder="e.g. 60"
-                                            onChange={(e) => onChange('duration', e.target.value)}
+                                            type="time"
+                                            value={data.endTime}
+                                            onChange={(e) => onChange('endTime', e.target.value)}
                                             className="w-full bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-2xl py-3.5 pl-12 pr-4 font-bold text-examsy-text outline-none focus:border-examsy-primary transition-all"
                                         />
                                     </div>
@@ -144,8 +143,8 @@ const TeacherExamModeSelector = ({ data, onChange }) => {
                             <>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase text-examsy-muted tracking-widest ml-1">Deadline Time</label>
-                                    <div className="relative">
-                                        <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-examsy-muted" size={18} />
+                                    <div className="relative group">
+                                        <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400 group-focus-within:text-examsy-primary transition-colors pointer-events-none" size={18} />
                                         <input
                                             type="time"
                                             value={data.deadlineTime}
@@ -156,8 +155,8 @@ const TeacherExamModeSelector = ({ data, onChange }) => {
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase text-examsy-muted tracking-widest ml-1">Duration (Minutes)</label>
-                                    <div className="relative">
-                                        <Hourglass className="absolute left-4 top-1/2 -translate-y-1/2 text-examsy-muted" size={18} />
+                                    <div className="relative group">
+                                        <Hourglass className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400 group-focus-within:text-examsy-primary transition-colors pointer-events-none" size={18} />
                                         <input
                                             type="number"
                                             value={data.duration}
