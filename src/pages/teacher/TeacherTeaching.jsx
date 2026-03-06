@@ -18,31 +18,36 @@ const TeacherTeaching = () => {
 
     // MASTER STATE
     const [examData, setExamData] = useState({
-        title: 'Midterm Examination', // You can add a title input field in Step 1 or 2!
+        title: '', // Replaced mock title with empty string to force input
         classes: [],
-        mode: '', // 'real-time' or 'deadline'
-        type: '', // 'mcq', 'short', 'pdf'
+        mode: '',
+        type: '',
         date: '',
         startTime: '',
         deadlineTime: '',
         duration: '',
-        questions: [], // Used for MCQ and Short Answer
-        pdfFile: null  // Used for PDF
+        questions: [],
+        pdfFile: null
     });
 
     const nextStep = () => {
-        if (step === 1 && examData.classes.length === 0) return setAlert({type:'error', title:'Error', message:'Select at least one class'});
-        if (step === 2 && (!examData.mode || !examData.type || !examData.duration)) return setAlert({type:'error', title:'Error', message:'Fill all mandatory scheduling fields'});
+        // Step 1 Validation
+        if (step === 1 && examData.classes.length === 0) {
+            return setAlert({type:'error', title:'Error', message:'Please select at least one class to assign the exam.'});
+        }
+        // Step 2 Validation (Checks if title, mode, type, date, and duration exist)
+        if (step === 2 && (!examData.title.trim() || !examData.mode || !examData.type || !examData.date || !examData.duration)) {
+            return setAlert({type:'error', title:'Incomplete Data', message:'Please fill out the Exam Title and all scheduling details.'});
+        }
         setStep(prev => prev + 1);
     };
 
-    // --- HELPER: Combine Date and Time to ISO-8601 for Spring Boot ---
+    // --- HELPER: Combines Date and Time into ISO-8601 for Spring Boot (YYYY-MM-DDTHH:MM:00) ---
     const combineDateTime = (dateStr, timeStr) => {
         if (!dateStr || !timeStr) return null;
         return `${dateStr}T${timeStr}:00`;
     };
 
-    // --- THE PUBLISH FUNCTION ---
     const handlePublish = async () => {
         setIsPublishing(true);
         setAlert(null);
@@ -63,27 +68,30 @@ const TeacherTeaching = () => {
                 finalPdfUrl = data.secure_url;
             }
 
-            // 2. Build the Payload for Spring Boot
+            // 2. Build the exact Payload for Spring Boot (ExamPublishDTO)
             const payload = {
                 classIds: examData.classes,
                 title: examData.title,
-                examMode: examData.mode.toUpperCase(),
-                examType: examData.type.toUpperCase(),
+                examMode: examData.mode.toUpperCase(), // 'REAL-TIME' or 'DEADLINE'
+                examType: examData.type.toUpperCase(), // 'MCQ', 'SHORT', or 'PDF'
                 durationMinutes: parseInt(examData.duration),
                 scheduledStartTime: examData.mode === 'real-time' ? combineDateTime(examData.date, examData.startTime) : null,
-                deadlineTime: combineDateTime(examData.date, examData.deadlineTime),
+                deadlineTime: examData.mode === 'deadline' ? combineDateTime(examData.date, examData.deadlineTime) : null,
                 pdfResourceUrl: finalPdfUrl,
-                questions: examData.questions // Directly matches QuestionDTO!
+                questions: examData.questions
             };
 
-            // 3. Send to Backend
+            // 3. Send to Backend via API Service
             await teacherService.publishExam(payload);
 
             setAlert({type: 'success', title: 'Success!', message: 'Exam published successfully.'});
+
+            // Wait slightly for the alert to be visible, then redirect
             setTimeout(() => navigate('/teacher/dashboard'), 2000);
 
         } catch (error) {
-            setAlert({type: 'error', title: 'Failed to Publish', message: 'Please check your inputs and try again.'});
+            console.error("Publish Error:", error);
+            setAlert({type: 'error', title: 'Failed to Publish', message: 'An error occurred while publishing the exam. Please try again.'});
         } finally {
             setIsPublishing(false);
         }
@@ -101,16 +109,16 @@ const TeacherTeaching = () => {
                     </div>
                     <div className="flex gap-3">
                         {step > 1 && (
-                            <button onClick={() => setStep(prev=>prev-1)} className="p-3 bg-examsy-bg text-examsy-text rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 transition-all">
+                            <button onClick={() => setStep(prev=>prev-1)} className="p-3 bg-examsy-bg text-examsy-text rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all">
                                 <ChevronLeft size={20} />
                             </button>
                         )}
                         {step < 3 ? (
-                            <button onClick={nextStep} className="bg-examsy-primary text-white px-6 py-3 rounded-2xl font-black flex items-center gap-2 shadow-lg">
+                            <button onClick={nextStep} className="bg-examsy-primary text-white px-6 py-3 rounded-2xl font-black flex items-center gap-2 shadow-lg hover:scale-[1.02] active:scale-95 transition-all">
                                 Next Step <ChevronRight size={20} />
                             </button>
                         ) : (
-                            <button onClick={handlePublish} disabled={isPublishing} className="bg-emerald-600 disabled:opacity-50 text-white px-8 py-3 rounded-2xl font-black flex items-center gap-2 shadow-lg">
+                            <button onClick={handlePublish} disabled={isPublishing} className="bg-emerald-600 disabled:opacity-50 text-white px-8 py-3 rounded-2xl font-black flex items-center gap-2 shadow-lg hover:scale-[1.02] active:scale-95 transition-all">
                                 {isPublishing ? <Loader2 className="animate-spin" size={20} /> : <><Send size={20} /> Publish Exam</>}
                             </button>
                         )}
@@ -118,15 +126,34 @@ const TeacherTeaching = () => {
                 </div>
 
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    {step === 1 && <TeacherExamClassSelector selected={examData.classes} onChange={(c) => setExamData({...examData, classes: c})} />}
+                    {/* Step 1: Classes */}
+                    {step === 1 && (
+                        <TeacherExamClassSelector
+                            selected={examData.classes}
+                            onChange={(c) => setExamData({...examData, classes: c})}
+                        />
+                    )}
 
-                    {step === 2 && <TeacherExamModeSelector data={examData} onChange={(key, val) => setExamData({...examData, [key]: val})} />}
+                    {/* Step 2: Details & Scheduling */}
+                    {step === 2 && (
+                        <TeacherExamModeSelector
+                            data={examData}
+                            onChange={(key, val) => setExamData({...examData, [key]: val})}
+                        />
+                    )}
 
+                    {/* Step 3: Content Builders */}
                     {step === 3 && (
                         <>
-                            {examData.type === 'mcq' && <TeacherMCQBuilder questions={examData.questions} onChange={(q) => setExamData({...examData, questions: q})} />}
-                            {examData.type === 'short' && <TeacherShortAnswerBuilder questions={examData.questions} onChange={(q) => setExamData({...examData, questions: q})} />}
-                            {examData.type === 'pdf' && <TeacherPDFUploader file={examData.pdfFile} onChange={(f) => setExamData({...examData, pdfFile: f})} />}
+                            {examData.type === 'mcq' && (
+                                <TeacherMCQBuilder questions={examData.questions} onChange={(q) => setExamData({...examData, questions: q})} />
+                            )}
+                            {examData.type === 'short' && (
+                                <TeacherShortAnswerBuilder questions={examData.questions} onChange={(q) => setExamData({...examData, questions: q})} />
+                            )}
+                            {examData.type === 'pdf' && (
+                                <TeacherPDFUploader file={examData.pdfFile} onChange={(f) => setExamData({...examData, pdfFile: f})} />
+                            )}
                         </>
                     )}
                 </div>
@@ -134,4 +161,5 @@ const TeacherTeaching = () => {
         </TeacherLayout>
     );
 };
+
 export default TeacherTeaching;
