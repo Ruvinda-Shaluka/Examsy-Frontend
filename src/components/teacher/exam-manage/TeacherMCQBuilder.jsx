@@ -1,40 +1,65 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { Plus, Trash2, ListChecks, CheckCircle2, XCircle } from 'lucide-react';
 
-const TeacherMCQBuilder = () => {
-    // State now tracks question text, multiple options, and the correct answer index
-    const [questions, setQuestions] = useState([
-        { id: 1, text: '', options: ['', '', '', ''], correctAnswer: null }
-    ]);
+const TeacherMCQBuilder = ({ questions, onChange }) => {
+
+    // Auto-initialize the first empty question if the parent passes an empty array
+    useEffect(() => {
+        if (!questions || questions.length === 0) {
+            onChange([{ id: Date.now(), questionText: '', points: 1, options: ['', '', '', ''], correctOptionIndex: null }]);
+        }
+    }, []);
+
+    const safeQuestions = questions || [];
+
+    const updateQuestionText = (qIdx, text) => {
+        const newQuestions = [...safeQuestions];
+        newQuestions[qIdx].questionText = text;
+        onChange(newQuestions);
+    };
 
     const addQuestion = () => {
-        setQuestions([...questions, { id: Date.now(), text: '', options: ['', '', '', ''], correctAnswer: null }]);
+        onChange([...safeQuestions, { id: Date.now(), questionText: '', points: 1, options: ['', '', '', ''], correctOptionIndex: null }]);
     };
 
     const removeQuestion = (id) => {
-        setQuestions(questions.filter(q => q.id !== id));
+        if (safeQuestions.length > 1) {
+            onChange(safeQuestions.filter(q => q.id !== id));
+        } else {
+            alert("You must have at least one question.");
+        }
+    };
+
+    const updateOption = (qIdx, oIdx, value) => {
+        const newQuestions = [...safeQuestions];
+        newQuestions[qIdx].options[oIdx] = value;
+        onChange(newQuestions);
     };
 
     const addOption = (qIdx) => {
-        const newQuestions = [...questions];
+        const newQuestions = [...safeQuestions];
         newQuestions[qIdx].options.push('');
-        setQuestions(newQuestions);
+        onChange(newQuestions);
     };
 
     const removeOption = (qIdx, oIdx) => {
-        const newQuestions = [...questions];
+        const newQuestions = [...safeQuestions];
         if (newQuestions[qIdx].options.length > 2) {
             newQuestions[qIdx].options.splice(oIdx, 1);
-            // Reset correct answer if the deleted option was the correct one
-            if (newQuestions[qIdx].correctAnswer === oIdx) newQuestions[qIdx].correctAnswer = null;
-            setQuestions(newQuestions);
+            // Re-adjust correct index if necessary
+            if (newQuestions[qIdx].correctOptionIndex === oIdx) {
+                newQuestions[qIdx].correctOptionIndex = null;
+            } else if (newQuestions[qIdx].correctOptionIndex > oIdx) {
+                newQuestions[qIdx].correctOptionIndex -= 1;
+            }
+            onChange(newQuestions);
         }
     };
 
     const setCorrectAnswer = (qIdx, oIdx) => {
-        const newQuestions = [...questions];
-        newQuestions[qIdx].correctAnswer = oIdx;
-        setQuestions(newQuestions);
+        const newQuestions = [...safeQuestions];
+        newQuestions[qIdx].correctOptionIndex = oIdx;
+        onChange(newQuestions);
     };
 
     return (
@@ -53,9 +78,8 @@ const TeacherMCQBuilder = () => {
                 </div>
 
                 <div className="space-y-10">
-                    {questions.map((q, qIdx) => (
-                        <div key={q.id} className="p-6 md:p-8 bg-examsy-bg rounded-[32px] border border-zinc-200 dark:border-zinc-800 relative group animate-in slide-in-from-bottom-2">
-                            {/* Remove Question Button */}
+                    {safeQuestions.map((q, qIdx) => (
+                        <div key={q.id || qIdx} className="p-6 md:p-8 bg-examsy-bg rounded-[32px] border border-zinc-200 dark:border-zinc-800 relative group animate-in slide-in-from-bottom-2">
                             <button
                                 onClick={() => removeQuestion(q.id)}
                                 className="absolute -top-3 -right-3 p-2.5 bg-red-500 text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:scale-110"
@@ -67,7 +91,9 @@ const TeacherMCQBuilder = () => {
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase text-examsy-muted tracking-[0.2em] ml-1">Question {qIdx + 1}</label>
                                     <input
-                                        placeholder="What is the laws of thermodynamics?"
+                                        value={q.questionText || ''}
+                                        onChange={(e) => updateQuestionText(qIdx, e.target.value)}
+                                        placeholder="What are the laws of thermodynamics?"
                                         className="w-full bg-transparent text-xl font-black text-examsy-text outline-none border-b-2 border-zinc-200 dark:border-zinc-800 focus:border-examsy-primary py-2 transition-all"
                                     />
                                 </div>
@@ -75,26 +101,26 @@ const TeacherMCQBuilder = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {q.options.map((opt, oIdx) => (
                                         <div key={oIdx} className="flex items-center gap-3 group/option">
-                                            {/* Correct Answer Toggle */}
                                             <button
                                                 onClick={() => setCorrectAnswer(qIdx, oIdx)}
                                                 className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${
-                                                    q.correctAnswer === oIdx
+                                                    q.correctOptionIndex === oIdx
                                                         ? 'border-examsy-primary bg-examsy-primary text-white'
                                                         : 'border-zinc-400 hover:border-examsy-primary'
                                                 }`}
                                             >
-                                                {q.correctAnswer === oIdx && <CheckCircle2 size={14} />}
+                                                {q.correctOptionIndex === oIdx && <CheckCircle2 size={14} />}
                                             </button>
 
                                             <div className="flex-1 relative">
                                                 <input
+                                                    value={opt || ''}
+                                                    onChange={(e) => updateOption(qIdx, oIdx, e.target.value)}
                                                     placeholder={`Option ${oIdx + 1}`}
                                                     className={`w-full bg-examsy-surface border rounded-2xl px-4 py-3 text-sm font-bold text-examsy-text outline-none transition-all ${
-                                                        q.correctAnswer === oIdx ? 'border-examsy-primary ring-2 ring-examsy-primary/10' : 'border-zinc-200 dark:border-zinc-800'
+                                                        q.correctOptionIndex === oIdx ? 'border-examsy-primary ring-2 ring-examsy-primary/10' : 'border-zinc-200 dark:border-zinc-800'
                                                     }`}
                                                 />
-                                                {/* Remove Option Button */}
                                                 {q.options.length > 2 && (
                                                     <button
                                                         onClick={() => removeOption(qIdx, oIdx)}
@@ -107,7 +133,6 @@ const TeacherMCQBuilder = () => {
                                         </div>
                                     ))}
 
-                                    {/* Add Option Button */}
                                     <button
                                         onClick={() => addOption(qIdx)}
                                         className="flex items-center gap-3 px-4 py-3 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl text-examsy-muted font-bold hover:border-examsy-primary hover:text-examsy-primary transition-all group/add"
