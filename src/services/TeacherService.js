@@ -24,5 +24,10 @@ export const teacherService = {
     deleteClass: async (classId) => {
         const response = await api.delete(`/teacher/dashboard/classes/${classId}`);
         return response.data;
+    },
+
+    publishExam: async (examPayload) => {
+        const response = await api.post('/teacher/exams/publish', examPayload);
+        return response.data;
     }
 }
