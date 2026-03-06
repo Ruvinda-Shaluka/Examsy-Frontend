@@ -75,8 +75,16 @@ const TeacherTeaching = () => {
                 examMode: examData.mode.toUpperCase(), // 'REAL-TIME' or 'DEADLINE'
                 examType: examData.type.toUpperCase(), // 'MCQ', 'SHORT', or 'PDF'
                 durationMinutes: parseInt(examData.duration),
-                scheduledStartTime: examData.mode === 'real-time' ? combineDateTime(examData.date, examData.startTime) : null,
-                deadlineTime: examData.mode === 'deadline' ? combineDateTime(examData.date, examData.deadlineTime) : null,
+
+                scheduledStartTime: examData.mode === 'real-time'
+                    ? combineDateTime(examData.date, examData.startTime)
+                    : null,
+
+                // 🟢 FIXED: Properly grab either the deadlineTime or the endTime!
+                deadlineTime: examData.mode === 'deadline'
+                    ? combineDateTime(examData.date, examData.deadlineTime)
+                    : combineDateTime(examData.date, examData.endTime),
+
                 pdfResourceUrl: finalPdfUrl,
                 questions: examData.questions
             };
