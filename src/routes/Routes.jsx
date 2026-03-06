@@ -24,6 +24,8 @@ import AdminPortalPage from "../pages/admin/AdminPortalPage.jsx";
 import AdminSettings from "../pages/admin/AdminSettings.jsx";
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage.jsx";
 import ProtectedRoute from "../components/auth/ProtectedRoute.jsx";
+import StudentNotificationPage from "../pages/student/StudentNotificationPage.jsx";
+import TeacherNotificationPage from "../pages/teacher/TeacherNotificationPage.jsx";
 
 const AppRoutes = () => {
     return (
@@ -46,6 +48,7 @@ const AppRoutes = () => {
                 <Route path="/teacher/ongoing-exams" element={<TeacherOngoing/>}/>
                 <Route path="/teacher/live-monitor/:examId" element={<TeacherLiveMonitor/>}/>
                 <Route path="/teacher/grading" element={<TeacherGrading/>}/>
+                <Route path="/teacher/notification" element={<TeacherNotificationPage/>}/>
             </Route>
 
 
@@ -63,6 +66,8 @@ const AppRoutes = () => {
                 <Route path="/student/exam/:examId" element={<ExamInterface/>}/>
                 {/*Mock exam path*/}
                 <Route path="/student/mock-exams" element={<MockExams/>}/>
+                <Route path="/student/notification" element={<StudentNotificationPage/>}/>
+
             </Route>
 
 
