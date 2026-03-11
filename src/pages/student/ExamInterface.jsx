@@ -1,20 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import {
-    ArrowLeft,
-    ShieldCheck,
-    ChevronLeft,
-    ChevronRight,
-    AlertTriangle,
-    Clock,
-    EyeOff
-} from 'lucide-react';
+import { ArrowLeft, ShieldCheck, ChevronLeft, ChevronRight, AlertTriangle, Clock, EyeOff, Loader2 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { STUDENT_DATA } from '../../data/StudentMockData';
-
-// Custom Hooks
 import useTabSecurity from '../../hooks/useTabSecurity';
+import { studentService } from '../../services/studentService';
 
-// Sub-components
 import MCQView from '../../components/student/exam/MCQView';
 import ShortAnswerView from '../../components/student/exam/ShortAnswerView';
 import PDFUploadView from '../../components/student/exam/PDFUploadView';
@@ -25,41 +14,61 @@ const ExamInterface = () => {
     const { examId } = useParams();
     const navigate = useNavigate();
 
-    // --- 1. DATA & STATE ---
-    const exam = STUDENT_DATA.availableExams.find(e => e.id === examId) ||
-        STUDENT_DATA.upcomingExams.find(e => e.id === examId) ||
-        { title: 'Examsy Assessment', type: 'mcq', timeLimit: 60, questions: 20 };
+    const [exam, setExam] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
+    const [timeLeft, setTimeLeft] = useState(0);
 
-    const [currentQuestion, setCurrentQuestion] = useState(0);
-    const [timeLeft, setTimeLeft] = useState((exam.timeLimit || 60) * 60);
+    // answers map looks like: { questionId: selectedOptionId OR text }
     const [answers, setAnswers] = useState({});
-    const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
 
-    // --- 2. SECURITY HOOK ---
+    const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+    const [resultData, setResultData] = useState(null); // Holds the auto-grade
+
+    // 🟢 SECURITY HOOK (Uses all these variables in the JSX below now!)
     const {
         tabWarnings,
         isTabActive,
         showReturnAlert,
         setShowReturnAlert,
         lastAwayDuration,
-        totalAwaySeconds, // <--- New Variable from Hook
+        totalAwaySeconds,
         formatDuration
     } = useTabSecurity(examId);
 
-    // --- 3. TIMER LOGIC ---
+    // FETCH REAL EXAM
     useEffect(() => {
+        const loadExam = async () => {
+            try {
+                const data = await studentService.getExam(examId);
+                setExam(data);
+                setTimeLeft(data.durationMinutes * 60);
+            } catch (error) {
+                console.error("Failed to load exam", error);
+                alert("Exam not found or already submitted.");
+                navigate('/student/dashboard');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadExam();
+    }, [examId, navigate]);
+
+    // TIMER LOGIC
+    useEffect(() => {
+        if (!exam) return;
         const timer = setInterval(() => {
             setTimeLeft(prev => {
                 if (prev <= 1) {
                     clearInterval(timer);
-                    // Optional: Auto-submit logic
+                    handleSubmit(); // Auto-submit when time is up!
                     return 0;
                 }
                 return prev - 1;
             });
         }, 1000);
         return () => clearInterval(timer);
-    }, []);
+    }, [exam]);
 
     const formatTime = (seconds) => {
         const h = Math.floor(seconds / 3600);
@@ -68,21 +77,22 @@ const ExamInterface = () => {
         return `${h > 0 ? h + ':' : ''}${m < 10 && h > 0 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
     };
 
-    // --- 4. NAVIGATION HANDLERS ---
+    // NAVIGATION HANDLERS
     const handleNext = () => {
-        if (currentQuestion < (exam.questions || 1) - 1) {
-            setCurrentQuestion(prev => prev + 1);
+        if (currentQuestionIdx < (exam?.questions?.length || 1) - 1) {
+            setCurrentQuestionIdx(prev => prev + 1);
         }
     };
 
     const handlePrev = () => {
-        if (currentQuestion > 0) {
-            setCurrentQuestion(prev => prev - 1);
+        if (currentQuestionIdx > 0) {
+            setCurrentQuestionIdx(prev => prev - 1);
         }
     };
 
     const handleSaveAnswer = (val) => {
-        setAnswers(prev => ({ ...prev, [currentQuestion]: val }));
+        const currentQ = exam.questions[currentQuestionIdx];
+        setAnswers(prev => ({ ...prev, [currentQ.id]: val }));
     };
 
     // Keyboard navigation
@@ -93,7 +103,50 @@ const ExamInterface = () => {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [currentQuestion]);
+    }, [currentQuestionIdx, exam]);
+
+    const handleSubmit = async () => {
+        try {
+            // Format the payload exactly how Spring Boot wants it
+            const formattedAnswers = exam.questions?.map(q => ({
+                questionId: q.id,
+                selectedOptionId: exam.examType === 'MCQ' ? answers[q.id] : null,
+                answerText: exam.examType === 'SHORT' ? answers[q.id] : null
+            })) || [];
+
+            // Handle PDF upload if applicable
+            let uploadedPdfUrl = null;
+            if (exam.examType === 'PDF' && answers['pdfFile']) {
+                const formData = new FormData();
+                formData.append('file', answers['pdfFile']);
+                formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+
+                const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                    method: 'POST', body: formData
+                });
+                const data = await uploadRes.json();
+                uploadedPdfUrl = data.secure_url;
+            }
+
+            const payload = {
+                pdfSubmissionUrl: uploadedPdfUrl,
+                answers: formattedAnswers
+            };
+
+            // Send to backend and get the auto-graded result!
+            const result = await studentService.submitExam(examId, payload);
+            setResultData(result);
+            setIsSubmitModalOpen(true);
+
+        } catch (error) {
+            console.error("Submission failed", error);
+            alert("Failed to submit exam. Please check your connection.");
+        }
+    };
+
+    if (isLoading) return <div className="fixed inset-0 flex items-center justify-center bg-examsy-bg"><Loader2 className="animate-spin text-examsy-primary" size={48} /></div>;
+
+    const currentQ = exam?.questions?.[currentQuestionIdx];
 
     return (
         <div className="fixed inset-0 bg-examsy-bg z-[100] flex flex-col text-examsy-text select-none">
@@ -113,8 +166,8 @@ const ExamInterface = () => {
             <SecurityAlertModal
                 isOpen={showReturnAlert}
                 onClose={() => setShowReturnAlert(false)}
-                lastAwayDuration={lastAwayDuration}  // Pass specific instance time
-                totalAwaySeconds={totalAwaySeconds}  // Pass total time
+                lastAwayDuration={lastAwayDuration}
+                totalAwaySeconds={totalAwaySeconds}
                 warningCount={tabWarnings}
                 formatDuration={formatDuration}
             />
@@ -156,7 +209,7 @@ const ExamInterface = () => {
                         </span>
                     </div>
                     <button
-                        onClick={() => setIsSubmitModalOpen(true)}
+                        onClick={handleSubmit}
                         className="bg-examsy-primary text-white px-6 md:px-10 py-3 rounded-2xl font-black shadow-lg shadow-purple-500/30 hover:scale-105 active:scale-95 transition-all text-sm md:text-base"
                     >
                         Submit Final Paper
@@ -172,16 +225,15 @@ const ExamInterface = () => {
                         <p className="text-[9px] font-black uppercase tracking-widest text-examsy-muted">Index</p>
                     </div>
 
-                    {/* Scrollable Area (Scrollbar Hidden) */}
                     <div className="flex-1 overflow-y-auto p-3 space-y-3" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                        {[...Array(exam.questions || 1)].map((_, i) => (
+                        {exam.questions?.map((q, i) => (
                             <button
-                                key={i}
-                                onClick={() => setCurrentQuestion(i)}
+                                key={q.id}
+                                onClick={() => setCurrentQuestionIdx(i)}
                                 className={`w-14 h-14 rounded-full flex items-center justify-center font-black text-xs transition-all border-2 shrink-0 mx-auto ${
-                                    currentQuestion === i
+                                    currentQuestionIdx === i
                                         ? 'bg-examsy-primary text-white border-examsy-primary shadow-lg shadow-purple-500/40 scale-105'
-                                        : answers[i]
+                                        : answers[q.id]
                                             ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
                                             : 'bg-examsy-bg border-zinc-200 dark:border-zinc-800 text-examsy-muted hover:border-examsy-primary/30'
                                 }`}
@@ -189,7 +241,7 @@ const ExamInterface = () => {
                                 {i + 1}
                             </button>
                         ))}
-                        <div className="h-20"></div> {/* Bottom spacer */}
+                        <div className="h-20"></div>
                     </div>
                 </aside>
 
@@ -197,20 +249,18 @@ const ExamInterface = () => {
                 <main className="flex-1 p-6 md:p-12 overflow-y-auto bg-examsy-bg">
                     <div className="max-w-4xl mx-auto h-full flex flex-col">
 
-                        {/* Question Header & Nav Buttons */}
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
                             <div>
                                 <span className="text-[10px] font-black uppercase text-examsy-primary tracking-widest bg-examsy-primary/10 px-4 py-2 rounded-full border border-examsy-primary/20">
-                                    {exam.type?.replace('-', ' ')} Mode
+                                    {exam.examType?.replace('-', ' ')} Mode
                                 </span>
-                                <h3 className="mt-4 text-3xl font-black text-examsy-text">Question {currentQuestion + 1}</h3>
+                                <h3 className="mt-4 text-3xl font-black text-examsy-text">Question {currentQuestionIdx + 1}</h3>
                             </div>
 
-                            {/* Top-Right Navigation */}
                             <div className="flex items-center gap-3 bg-examsy-surface p-1.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
                                 <button
                                     onClick={handlePrev}
-                                    disabled={currentQuestion === 0}
+                                    disabled={currentQuestionIdx === 0}
                                     className="p-3 hover:bg-examsy-bg rounded-xl text-examsy-muted hover:text-examsy-text disabled:opacity-30 disabled:hover:bg-transparent transition-all"
                                 >
                                     <ChevronLeft size={20} />
@@ -218,7 +268,7 @@ const ExamInterface = () => {
                                 <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800"></div>
                                 <button
                                     onClick={handleNext}
-                                    disabled={currentQuestion === (exam.questions || 1) - 1}
+                                    disabled={currentQuestionIdx === (exam?.questions?.length || 1) - 1}
                                     className="p-3 hover:bg-examsy-bg rounded-xl text-examsy-muted hover:text-examsy-text disabled:opacity-30 disabled:hover:bg-transparent transition-all"
                                 >
                                     <ChevronRight size={20} />
@@ -226,47 +276,44 @@ const ExamInterface = () => {
                             </div>
                         </div>
 
-                        {/* Question Content Area */}
                         <div className="flex-1 animate-in slide-in-from-right-4 duration-300">
-                            {exam.type === 'mcq' && (
+                            {exam.examType === 'MCQ' && (
                                 <MCQView
-                                    question={exam.questionsData?.[currentQuestion]}
-                                    selectedAnswer={answers[currentQuestion]}
+                                    question={currentQ}
+                                    selectedOptionId={answers[currentQ?.id]}
                                     onSelect={handleSaveAnswer}
                                 />
                             )}
 
-                            {exam.type === 'short-answer' && (
+                            {exam.examType === 'SHORT' && (
                                 <ShortAnswerView
-                                    question={exam.questionsData?.[currentQuestion]}
-                                    value={answers[currentQuestion]}
+                                    question={currentQ}
+                                    value={answers[currentQ?.id]}
                                     onChange={handleSaveAnswer}
                                 />
                             )}
 
-                            {exam.type === 'pdf-submission' && (
+                            {exam.examType === 'PDF' && (
                                 <PDFUploadView
-                                    pdfUrl={exam.pdfUrl}
-                                    file={answers[currentQuestion]}
-                                    onUpload={handleSaveAnswer}
+                                    pdfUrl={exam.pdfResourceUrl}
+                                    file={answers['pdfFile']}
+                                    onUpload={(file) => setAnswers(prev => ({ ...prev, pdfFile: file }))}
                                 />
                             )}
                         </div>
 
-                        {/* Bottom Navigation (Mobile Backup) */}
                         <div className="md:hidden flex justify-between mt-8 pt-8 border-t border-zinc-200 dark:border-zinc-800">
-                            <button onClick={handlePrev} disabled={currentQuestion === 0} className="px-6 py-3 bg-examsy-surface rounded-xl font-bold text-sm disabled:opacity-50">Previous</button>
-                            <button onClick={handleNext} disabled={currentQuestion === (exam.questions || 1) - 1} className="px-6 py-3 bg-examsy-primary text-white rounded-xl font-bold text-sm disabled:opacity-50">Next</button>
+                            <button onClick={handlePrev} disabled={currentQuestionIdx === 0} className="px-6 py-3 bg-examsy-surface rounded-xl font-bold text-sm disabled:opacity-50">Previous</button>
+                            <button onClick={handleNext} disabled={currentQuestionIdx === (exam?.questions?.length || 1) - 1} className="px-6 py-3 bg-examsy-primary text-white rounded-xl font-bold text-sm disabled:opacity-50">Next</button>
                         </div>
                     </div>
                 </main>
             </div>
 
-            {/* Submission Modal */}
             <SubmitModal
                 isOpen={isSubmitModalOpen}
                 examTitle={exam.title}
-                onDownload={() => alert("Downloading receipt...")}
+                resultData={resultData}
                 onDashboard={() => navigate('/student/dashboard')}
             />
         </div>
