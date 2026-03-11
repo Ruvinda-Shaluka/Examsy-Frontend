@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, ArrowLeft, Check, AlertTriangle, MessageSquare, Info, ShieldAlert } from 'lucide-react';
+import { Bell, ArrowLeft, Check, AlertTriangle, Info, ShieldAlert } from 'lucide-react';
 import { notificationService } from '../../services/notificationService';
 import CustomAlert from './CustomAlert';
 
@@ -13,14 +13,17 @@ const NotificationsView = ({ basePath }) => {
     useEffect(() => {
         const loadNotifs = async () => {
             try {
+                // 🟢 The backend automatically applies Push and Proctoring filters!
                 const data = await notificationService.getNotifications();
-                setNotifications(data);
+                setNotifications(data || []);
             } catch (error) {
+                console.error("Loading error:", error);
                 setAlert({ type: 'error', title: 'Error', message: 'Failed to load notifications.' });
             } finally {
                 setIsLoading(false);
             }
         };
+
         loadNotifs();
     }, []);
 
@@ -42,10 +45,10 @@ const NotificationsView = ({ basePath }) => {
         }
     };
 
-    // Helper to dynamically style the notification icons based on Admin actions
     const getIcon = (title) => {
         const t = title.toLowerCase();
-        if (t.includes('warning') || t.includes('terminated')) {
+        // Automatically assign the red triangle to proctoring/warning alerts
+        if (t.includes('warning') || t.includes('proctoring') || t.includes('security')) {
             return <div className="p-3 bg-red-500/10 text-red-500 rounded-2xl"><AlertTriangle size={24} /></div>;
         }
         if (t.includes('reply') || t.includes('update') || t.includes('reviewed')) {
@@ -59,15 +62,14 @@ const NotificationsView = ({ basePath }) => {
     const unreadCount = notifications.filter(n => !n.isRead).length;
 
     return (
-        <div className="max-w-4xl mx-auto pb-10 animate-fade-in">
+        <div className="max-w-4xl mx-auto pb-10 animate-fade-in px-4 md:px-0">
             {alert && <CustomAlert type={alert.type} title={alert.title} message={alert.message} onClose={() => setAlert(null)} />}
 
-            {/* Header Area with Back Button */}
+            {/* Header Area */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 mb-8">
                 <div>
                     <button
                         onClick={() => navigate(basePath)}
-                        // 🟢 FIXED: Added md:hidden so it only appears on mobile screens
                         className="md:hidden flex items-center gap-2 text-xs font-black uppercase tracking-widest text-examsy-muted hover:text-examsy-primary transition-colors mb-4"
                     >
                         <ArrowLeft size={16} /> Back to Dashboard
@@ -85,7 +87,6 @@ const NotificationsView = ({ basePath }) => {
                 {unreadCount > 0 && (
                     <button
                         onClick={handleMarkAllAsRead}
-                        // 🟢 FIXED: Added text-zinc-800 dark:text-zinc-200 to ensure perfect contrast in both modes
                         className="px-6 py-3 bg-examsy-bg hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-2xl font-black text-sm transition-all flex items-center gap-2 border border-zinc-200 dark:border-zinc-800"
                     >
                         <Check size={18} /> Mark all as read
@@ -118,7 +119,7 @@ const NotificationsView = ({ basePath }) => {
                                     <h3 className={`text-lg font-black ${notif.isRead ? 'text-examsy-text' : 'text-examsy-primary'}`}>
                                         {notif.title}
                                     </h3>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 shrink-0">
                                         {new Date(notif.createdAt).toLocaleDateString()} • {new Date(notif.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                     </span>
                                 </div>
