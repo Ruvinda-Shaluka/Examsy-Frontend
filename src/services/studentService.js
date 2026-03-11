@@ -30,5 +30,33 @@ export const studentService = {
     fileReport: async (reportData) => {
         const response = await api.post('/student/dashboard/classes/report', reportData);
         return response.data;
-    }
+    },
+
+    getExam: async (examId) => {
+        // 🟢 SAFETY NET: Prevent bad API calls
+        if (!examId || examId === 'undefined' || examId === 'null') {
+            throw new Error("Invalid Exam ID passed to service");
+        }
+        const response = await api.get(`/student/exams/${examId}`);
+        return response.data.data;
+    },
+
+    submitExam: async (examId, payload) => {
+        if (!examId || examId === 'undefined' || examId === 'null') {
+            throw new Error("Invalid Exam ID passed to service");
+        }
+        const response = await api.post(`/student/exams/${examId}/submit`, payload);
+        return response.data.data;
+    },
+
+    getVaultExams: async () => {
+        try {
+            // This URL must match your StudentExamController mapping exactly!
+            const response = await api.get('/student/exams/vault');
+            return response.data.data;
+        } catch (error) {
+            console.error("Failed to fetch vault exams from backend", error);
+            throw error;
+        }
+    },
 };
