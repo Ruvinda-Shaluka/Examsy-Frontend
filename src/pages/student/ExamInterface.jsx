@@ -44,7 +44,7 @@ const ExamInterface = () => {
         lastAwayDuration,
         totalAwaySeconds, // <--- New Variable from Hook
         formatDuration
-    } = useTabSecurity();
+    } = useTabSecurity(examId);
 
     // --- 3. TIMER LOGIC ---
     useEffect(() => {

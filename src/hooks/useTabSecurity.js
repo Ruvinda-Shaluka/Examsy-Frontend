@@ -1,66 +1,67 @@
 import { useState, useEffect, useRef } from 'react';
+import { studentService } from '../services/studentService'; // Assumes you add a logViolation method here
 
-const useTabSecurity = () => {
+const useTabSecurity = (examId) => {
     const [tabWarnings, setTabWarnings] = useState(0);
     const [isTabActive, setIsTabActive] = useState(true);
-
-    // Alert States
     const [showReturnAlert, setShowReturnAlert] = useState(false);
-    const [lastAwayDuration, setLastAwayDuration] = useState(0); // Duration of the *latest* incident
-    const [totalAwaySeconds, setTotalAwaySeconds] = useState(0); // Cumulative total time away
 
-    // Ref to store the timestamp when they left
-    const awayStartTimeRef = useRef(null);
+    const [lastAwayDuration, setLastAwayDuration] = useState(0);
+    const [totalAwaySeconds, setTotalAwaySeconds] = useState(0);
+
+    // Use refs to track timestamps without triggering re-renders
+    const leaveTimeRef = useRef(null);
 
     useEffect(() => {
-        const handleVisibilityChange = () => {
+        const handleVisibilityChange = async () => {
             if (document.hidden) {
-                // --- Student LEFT the tab ---
+                // STUDENT LEFT THE TAB!
                 setIsTabActive(false);
-                awayStartTimeRef.current = Date.now();
-                setTabWarnings(prev => prev + 1);
+                leaveTimeRef.current = Date.now();
+
             } else {
-                // --- Student RETURNED to the tab ---
+                // STUDENT RETURNED!
                 setIsTabActive(true);
 
-                if (awayStartTimeRef.current) {
-                    const timeAwayMs = Date.now() - awayStartTimeRef.current;
-                    const timeAwaySec = Math.floor(timeAwayMs / 1000);
+                if (leaveTimeRef.current) {
+                    const returnTime = Date.now();
+                    const secondsAway = Math.floor((returnTime - leaveTimeRef.current) / 1000);
 
-                    // Update latest duration
-                    setLastAwayDuration(timeAwaySec);
+                    if (secondsAway > 0) {
+                        setTabWarnings(prev => prev + 1);
+                        setLastAwayDuration(secondsAway);
+                        setTotalAwaySeconds(prev => prev + secondsAway);
+                        setShowReturnAlert(true);
 
-                    // Update cumulative total
-                    setTotalAwaySeconds(prev => prev + timeAwaySec);
-
-                    // Trigger the alert modal
-                    setShowReturnAlert(true);
-
-                    // Reset ref
-                    awayStartTimeRef.current = null;
+                        // 🟢 PING THE BACKEND SILENTLY TO LOG THE CHEATING
+                        try {
+                            await studentService.logSecurityViolation({
+                                examId: examId,
+                                eventType: 'TAB_SWITCHED',
+                                durationSeconds: secondsAway
+                            });
+                        } catch (error) {
+                            console.error("Failed to log proctoring event", error);
+                        }
+                    }
+                    leaveTimeRef.current = null;
                 }
             }
         };
 
+        // Attach browser event listener
         document.addEventListener("visibilitychange", handleVisibilityChange);
-
-        // Block right-click context menu for extra security
-        const handleContextMenu = (e) => e.preventDefault();
-        document.addEventListener("contextmenu", handleContextMenu);
 
         return () => {
             document.removeEventListener("visibilitychange", handleVisibilityChange);
-            document.removeEventListener("contextmenu", handleContextMenu);
         };
-    }, []);
+    }, [examId]);
 
-    // Helper to format seconds into readable text (e.g., "1m 5s")
     const formatDuration = (seconds) => {
-        if (!seconds) return "0s";
-        if (seconds < 60) return `${seconds}s`;
-        const m = Math.floor(seconds / 60);
-        const s = seconds % 60;
-        return `${m}m ${s}s`;
+        if (seconds < 60) return `${seconds} Secs`;
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}m ${secs}s`;
     };
 
     return {
@@ -68,8 +69,8 @@ const useTabSecurity = () => {
         isTabActive,
         showReturnAlert,
         setShowReturnAlert,
-        lastAwayDuration,     // Time away for the specific incident
-        totalAwaySeconds,     // Total time away for the whole exam
+        lastAwayDuration,
+        totalAwaySeconds,
         formatDuration
     };
 };
