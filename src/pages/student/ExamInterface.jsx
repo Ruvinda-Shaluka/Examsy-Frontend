@@ -9,7 +9,7 @@ import ShortAnswerView from '../../components/student/exam/ShortAnswerView';
 import PDFUploadView from '../../components/student/exam/PDFUploadView';
 import SubmitModal from '../../components/student/exam/SubmitModal';
 import SecurityAlertModal from '../../components/student/exam/SecurityAlertModal';
-import CustomAlert from '../../components/common/CustomAlert'; // 🟢 Custom Alert Imported
+import CustomAlert from '../../components/common/CustomAlert';
 
 const ExamInterface = () => {
     const { examId } = useParams();
@@ -25,7 +25,6 @@ const ExamInterface = () => {
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
     const [resultData, setResultData] = useState(null);
 
-    // 🟢 Alert State Restored
     const [alertData, setAlertData] = useState(null);
 
     const {
@@ -54,13 +53,13 @@ const ExamInterface = () => {
                 setIsLoading(false);
             } catch (error) {
                 console.error("Failed to load exam", error);
-                // 🟢 Triggers Custom Alert instead of browser default
                 setAlertData({
                     type: 'error',
                     title: 'Access Denied',
                     message: 'Exam not found or you have already submitted it.'
                 });
                 setTimeout(() => navigate('/student/dashboard'), 2500);
+                setIsLoading(false); // Make sure to stop loading even on error
             }
         };
         loadExam();
@@ -152,8 +151,8 @@ const ExamInterface = () => {
         }
     };
 
-    // 🟢 RENDER ALERT DURING LOADING STATE
-    if (isLoading) {
+    // 🟢 THE FIX: We added "|| !exam" here so React stops rendering if the exam is null
+    if (isLoading || !exam) {
         return (
             <div className="fixed inset-0 flex flex-col items-center justify-center bg-examsy-bg z-[100]">
                 {alertData && (
@@ -171,7 +170,7 @@ const ExamInterface = () => {
     return (
         <div className="fixed inset-0 bg-examsy-bg z-[100] flex flex-col text-examsy-text select-none">
 
-            {/* 🟢 FLOATING ALERT IN MAIN UI */}
+            {/* FLOATING ALERT IN MAIN UI */}
             {alertData && (
                 <div className="absolute top-24 left-1/2 -translate-x-1/2 w-full max-w-lg px-4 z-[300] animate-in slide-in-from-top-4">
                     <CustomAlert type={alertData.type} title={alertData.title} message={alertData.message} onClose={() => setAlertData(null)} />
@@ -222,7 +221,7 @@ const ExamInterface = () => {
                 </div>
 
                 <div className="flex items-center gap-4 md:gap-10 shrink-0">
-                    {/* 🟢 RESPONSIVE TIMER: Visible on mobile, hides text */}
+                    {/* RESPONSIVE TIMER: Visible on mobile, hides text */}
                     <div className="text-right flex flex-col items-end">
                         <div className="hidden md:flex items-center justify-end gap-2 text-examsy-muted mb-0.5">
                             <Clock size={12} />
@@ -244,7 +243,7 @@ const ExamInterface = () => {
                 </div>
             </header>
 
-            {/* 🟢 RESPONSIVE LAYOUT: Column on Mobile, Row on Desktop */}
+            {/* RESPONSIVE LAYOUT: Column on Mobile, Row on Desktop */}
             <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
 
                 {/* --- RESPONSIVE SIDEBAR/TOP NAV --- */}
@@ -332,7 +331,7 @@ const ExamInterface = () => {
                             )}
                         </div>
 
-                        {/* 🟢 BOTTOM NAVIGATION FOR MOBILE */}
+                        {/* BOTTOM NAVIGATION FOR MOBILE */}
                         <div className="md:hidden flex justify-between mt-8 pt-6 border-t border-zinc-200 dark:border-zinc-800 pb-4">
                             <button onClick={handlePrev} disabled={currentQuestionIdx === 0} className="px-6 py-3.5 bg-examsy-surface rounded-xl font-bold text-sm disabled:opacity-50 border border-zinc-200 dark:border-zinc-800 shadow-sm">Previous</button>
                             <button onClick={handleNext} disabled={currentQuestionIdx === (exam?.questions?.length || 1) - 1} className="px-8 py-3.5 bg-examsy-primary text-white rounded-xl font-black text-sm disabled:opacity-50 shadow-lg shadow-purple-500/20">Next</button>
@@ -343,7 +342,7 @@ const ExamInterface = () => {
 
             <SubmitModal
                 isOpen={isSubmitModalOpen}
-                examTitle={exam.title}
+                examTitle={exam?.title}
                 resultData={resultData}
                 onDashboard={() => navigate('/student/dashboard')}
             />
