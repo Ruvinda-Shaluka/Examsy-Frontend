@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // 🟢 Import useLocation
 import { Bell, ArrowLeft, Check, AlertTriangle, Info, ShieldAlert, Megaphone } from 'lucide-react';
 import { notificationService } from '../../services/notificationService';
 import CustomAlert from './CustomAlert';
 
 const NotificationsView = ({ basePath }) => {
     const navigate = useNavigate();
+    const location = useLocation(); // 🟢 Initialize useLocation
     const [notifications, setNotifications] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [alert, setAlert] = useState(null);
@@ -44,10 +45,21 @@ const NotificationsView = ({ basePath }) => {
         }
     };
 
+    // 🟢 NEW: Handle clicking the notification card
+    const handleNotificationClick = async (notif) => {
+        if (!notif.isRead) {
+            await handleMarkAsRead(notif.id);
+        }
+
+        if (notif.courseId) {
+            const role = location.pathname.includes('/teacher') ? 'teacher' : 'student';
+            navigate(`/${role}/class/${notif.courseId}`, { state: { defaultTab: 'stream' } });
+        }
+    };
+
     const getIcon = (title) => {
         const t = title.toLowerCase();
 
-        // 🟢 Catches Class Announcements
         if (t.includes('announcement')) {
             return <div className="p-3 bg-purple-500/10 text-purple-500 rounded-2xl"><Megaphone size={24} /></div>;
         }
@@ -107,11 +119,12 @@ const NotificationsView = ({ basePath }) => {
                     notifications.map(notif => (
                         <div
                             key={notif.id}
-                            onClick={() => !notif.isRead && handleMarkAsRead(notif.id)}
-                            className={`p-6 rounded-[2rem] border transition-all duration-300 flex flex-col sm:flex-row gap-6 ${
+                            // 🟢 Update the onClick handler here
+                            onClick={() => handleNotificationClick(notif)}
+                            className={`p-6 rounded-[2rem] border transition-all duration-300 flex flex-col sm:flex-row gap-6 hover:scale-[1.01] cursor-pointer ${
                                 notif.isRead
                                     ? 'bg-examsy-surface border-zinc-200 dark:border-zinc-800 opacity-70 hover:opacity-100'
-                                    : 'bg-examsy-surface border-examsy-primary shadow-xl cursor-pointer hover:scale-[1.01]'
+                                    : 'bg-examsy-surface border-examsy-primary shadow-xl'
                             }`}
                         >
                             <div className="shrink-0">{getIcon(notif.title)}</div>

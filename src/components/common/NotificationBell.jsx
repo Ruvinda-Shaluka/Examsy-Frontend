@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom'; // 🟢 Import Routers
 import { Bell, X, Check, AlertTriangle, MessageSquare, Info, Megaphone } from 'lucide-react';
 import { notificationService } from '../../services/notificationService';
 
@@ -6,6 +7,10 @@ const NotificationBell = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
+
+    // 🟢 Initialize routing
+    const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         loadData();
@@ -50,11 +55,27 @@ const NotificationBell = () => {
         }
     };
 
+    // 🟢 NEW: Handle clicking the notification card
+    const handleNotificationClick = async (notif) => {
+        // Mark as read instantly
+        if (!notif.isRead) {
+            await handleMarkAsRead(notif.id);
+        }
+
+        // If it has a course ID, route to the class!
+        if (notif.courseId) {
+            setIsOpen(false); // Close the bell drawer
+            // Dynamically check if the user is a teacher or student based on current URL
+            const role = location.pathname.includes('/teacher') ? 'teacher' : 'student';
+
+            // Redirect to the class stream
+            navigate(`/${role}/class/${notif.courseId}`, { state: { defaultTab: 'stream' } });
+        }
+    };
+
     const getIcon = (title) => {
         const t = title.toLowerCase();
-        // 🟢 Catches Class Announcements
         if (t.includes('announcement')) return <Megaphone size={20} className="text-purple-500" />;
-
         if (t.includes('warning') || t.includes('terminated')) return <AlertTriangle size={20} className="text-red-500" />;
         if (t.includes('reply') || t.includes('update')) return <MessageSquare size={20} className="text-blue-500" />;
         return <Info size={20} className="text-examsy-primary" />;
@@ -105,8 +126,9 @@ const NotificationBell = () => {
                                 notifications.map(notif => (
                                     <div
                                         key={notif.id}
-                                        onClick={() => !notif.isRead && handleMarkAsRead(notif.id)}
-                                        className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                                        // 🟢 Add the onClick event here
+                                        onClick={() => handleNotificationClick(notif)}
+                                        className={`p-4 rounded-2xl border transition-all cursor-pointer hover:scale-[1.02] ${
                                             notif.isRead
                                                 ? 'bg-transparent border-zinc-200 dark:border-zinc-800/50 opacity-70'
                                                 : 'bg-examsy-bg border-examsy-primary/20 shadow-sm shadow-examsy-primary/5'
