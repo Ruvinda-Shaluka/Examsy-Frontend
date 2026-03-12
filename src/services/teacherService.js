@@ -29,5 +29,15 @@ export const teacherService = {
     publishExam: async (examPayload) => {
         const response = await api.post('/teacher/exams/publish', examPayload);
         return response.data;
+    },
+
+    getClassStream: async (classId) => {
+        const response = await api.get(`/teacher/classes/${classId}/stream`);
+        return response.data.data;
+    },
+
+    postAnnouncement: async (classId, content) => {
+        const response = await api.post(`/teacher/classes/${classId}/announcements`, { content });
+        return response.data.data;
     }
 }
