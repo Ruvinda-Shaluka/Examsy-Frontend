@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StudentLayout from "../../layouts/StudentLayout.jsx";
 import StudentClassCard from '../../components/student/StudentClassCard.jsx';
-import StudentJoinClassModal from '../../components/student/StudentJoinClassModal.jsx'; // 🟢 Import Modal
+import StudentJoinClassModal from '../../components/student/StudentJoinClassModal.jsx';
 import CustomAlert from '../../components/common/CustomAlert.jsx';
-import { Plus } from 'lucide-react'; // 🟢 Import Plus Icon
+import { Plus } from 'lucide-react';
 import { studentService } from '../../services/studentService.js';
 
 const StudentDashboard = () => {
@@ -136,7 +136,9 @@ const StudentDashboard = () => {
                             id={cls.id}
                             title={cls.title}
                             section={cls.section}
-                            bannerColor={cls.bannerColor}
+                            // 🟢 FIXED: Map the two new backend fields to the Card component
+                            themeColorHex={cls.themeColorHex}
+                            bannerImageUrl={cls.bannerImageUrl}
                             teacher={cls.teacher}
                             onUnenroll={handleUnenroll}
                         />
