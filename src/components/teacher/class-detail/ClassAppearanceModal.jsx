@@ -1,50 +1,66 @@
 import React, { useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import CustomAlert from '../../../components/common/CustomAlert.jsx';
 
-const ClassAppearanceModal = ({ isOpen, onClose, currentColor, onColorSelect, onImageSelect }) => {
-    // 1. Add Alert State
+const ClassAppearanceModal = ({ isOpen, onClose, currentColor, onSave }) => {
     const [alert, setAlert] = useState({ show: false, type: '', title: '', message: '' });
+    const [selectedColor, setSelectedColor] = useState(currentColor || '#4f46e5');
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [previewImage, setPreviewImage] = useState(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     if (!isOpen) return null;
 
-    // Map your favorite Tailwind colors
-    const colorOptions = [
-        { hex: '#4f46e5', class: 'bg-indigo-600' },
-        { hex: '#9333ea', class: 'bg-purple-600' },
-        { hex: '#059669', class: 'bg-emerald-600' },
-        { hex: '#db2777', class: 'bg-pink-600' },
-        { hex: '#ea580c', class: 'bg-orange-600' },
-        { hex: '#2563eb', class: 'bg-blue-600' },
-    ];
+    const colorOptions = ['#4f46e5', '#9333ea', '#059669', '#db2777', '#ea580c', '#2563eb'];
 
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
+            setSelectedFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
-                onImageSelect(reader.result);
-                // Clear the hex color when an image is used
-                onColorSelect('');
+                setPreviewImage(reader.result);
             };
             reader.readAsDataURL(file);
         }
     };
 
-    // 2. Handle Apply Logic
-    const handleApply = () => {
-        // Show Success Alert
-        setAlert({
-            show: true,
-            type: 'success',
-            title: 'Appearance Updated',
-            message: 'Your classroom theme has been saved successfully.'
-        });
+    const handleApply = async () => {
+        setIsSaving(true);
+        try {
+            let uploadedImageUrl = null;
 
-        // Delay closing slightly so user sees the alert
-        setTimeout(() => {
-            setAlert({ ...alert, show: false });
-            onClose();
-        }, 1500);
+            // 1. Upload to Cloudinary if a file was selected
+            if (selectedFile) {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+
+                const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await uploadRes.json();
+                uploadedImageUrl = data.secure_url;
+            }
+
+            // 2. Call the parent function to save to Database
+            await onSave({
+                themeColorHex: uploadedImageUrl ? null : selectedColor,
+                bannerImageUrl: uploadedImageUrl
+            });
+
+            setAlert({ show: true, type: 'success', title: 'Appearance Updated', message: 'Classroom theme saved.' });
+            setTimeout(() => {
+                setAlert({ ...alert, show: false });
+                onClose();
+            }, 1500);
+
+        } catch (error) {
+            setAlert({ show: true, type: 'error', title: 'Upload Failed', message: 'Could not update appearance.' });
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -56,24 +72,34 @@ const ClassAppearanceModal = ({ isOpen, onClose, currentColor, onColorSelect, on
                         <button onClick={onClose} className="text-examsy-muted hover:text-examsy-text text-xl">✕</button>
                     </div>
 
-                    {/* Live Preview within Modal */}
-                    <div className={`h-32 w-full ${currentColor || 'bg-zinc-800'} rounded-3xl relative overflow-hidden transition-colors duration-300`}>
+                    {/* Live Preview */}
+                    <div
+                        className="h-32 w-full rounded-3xl relative overflow-hidden transition-all duration-300"
+                        style={{
+                            backgroundColor: previewImage ? 'transparent' : selectedColor,
+                            backgroundImage: previewImage ? `url(${previewImage})` : 'none',
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center'
+                        }}
+                    >
+                        {previewImage && <div className="absolute inset-0 bg-black/20" />}
                         <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl" />
                     </div>
 
                     <div>
                         <p className="font-bold mb-4">Select theme color</p>
                         <div className="flex gap-4 flex-wrap">
-                            {colorOptions.map((opt) => (
+                            {colorOptions.map((hex) => (
                                 <button
-                                    key={opt.hex}
+                                    key={hex}
                                     onClick={() => {
-                                        onColorSelect(opt.class);
-                                        onImageSelect(null); // Remove image if color is chosen
+                                        setSelectedColor(hex);
+                                        setPreviewImage(null);
+                                        setSelectedFile(null);
                                     }}
-                                    style={{ backgroundColor: opt.hex }}
+                                    style={{ backgroundColor: hex }}
                                     className={`w-10 h-10 rounded-full border-4 transition-all hover:scale-110 ${
-                                        currentColor === opt.class ? 'border-white shadow-xl scale-110' : 'border-examsy-surface'
+                                        selectedColor === hex && !previewImage ? 'border-white shadow-xl scale-110' : 'border-examsy-surface'
                                     }`}
                                 />
                             ))}
@@ -81,31 +107,22 @@ const ClassAppearanceModal = ({ isOpen, onClose, currentColor, onColorSelect, on
                     </div>
 
                     <div className="flex gap-4 pt-4">
-                        <label className="flex-1 py-4 bg-examsy-bg rounded-2xl font-bold hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors text-center cursor-pointer">
+                        <label className="flex-1 py-4 bg-examsy-bg rounded-2xl font-bold hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors text-center cursor-pointer flex items-center justify-center">
                             Upload Image
                             <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*" />
                         </label>
 
-                        {/* 3. Updated Button to call handleApply */}
                         <button
                             onClick={handleApply}
-                            className="flex-1 py-4 bg-examsy-primary text-white rounded-2xl font-black shadow-lg hover:scale-[1.02] transition-transform"
+                            disabled={isSaving}
+                            className="flex-1 py-4 bg-examsy-primary text-white rounded-2xl font-black shadow-lg hover:scale-[1.02] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                         >
-                            Apply Changes
+                            {isSaving ? <Loader2 size={18} className="animate-spin" /> : 'Apply Changes'}
                         </button>
                     </div>
                 </div>
             </div>
-
-            {/* 4. Render Alert */}
-            {alert.show && (
-                <CustomAlert
-                    type={alert.type}
-                    title={alert.title}
-                    message={alert.message}
-                    onClose={() => setAlert({ ...alert, show: true })}
-                />
-            )}
+            {alert.show && <CustomAlert type={alert.type} title={alert.title} message={alert.message} onClose={() => setAlert({ ...alert, show: false })} />}
         </div>
     );
 };

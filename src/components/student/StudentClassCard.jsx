@@ -4,19 +4,16 @@ import { MoreVertical, User, BookOpen, LogOut, Flag } from 'lucide-react';
 import ReportClassModal from './class-detail/ReportClassModal';
 import CustomAlert from '../common/CustomAlert';
 import ConfirmActionModal from '../common/ConfirmActionModal';
-import {studentService} from "../../services/studentService.js";
+import { studentService } from "../../services/studentService.js";
 
-const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll }) => {
+// 🟢 ADDED bannerImage TO PROPS
+const StudentClassCard = ({ id, title, section, bannerColor, bannerImage, teacher, onUnenroll }) => {
     const navigate = useNavigate();
 
     // UI States
     const [showMenu, setShowMenu] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
-
-    // State for Confirmation Modal
     const [showConfirmUnenroll, setShowConfirmUnenroll] = useState(false);
-
-    // Alert State
     const [alert, setAlert] = useState({ show: false, type: '', title: '', message: '' });
 
     // Handle Dropdown Actions
@@ -45,7 +42,7 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
 
             setAlert({
                 show: true,
-                type: 'success', // Changed to success
+                type: 'success',
                 title: 'Report Filed',
                 message: `Thank you. Our administrative team has been notified and will review "${title}" shortly.`,
             });
@@ -69,18 +66,26 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
                     onClick={() => navigate(`/student/class/${id}`)}
                     className="h-32 relative cursor-pointer rounded-t-[2.5rem]"
                 >
-                    {/* 🟢 THE FIX: Using inline style for the dynamic hex color */}
+                    {/* 🟢 DYNAMIC INLINE STYLE: Handles both solid colors and uploaded banner images */}
                     <div
                         className="absolute inset-0 overflow-hidden rounded-t-[2.5rem]"
-                        style={{ backgroundColor: bannerColor || '#4F46E5' }}
+                        style={{
+                            backgroundColor: bannerImage ? 'transparent' : (bannerColor || '#4F46E5'),
+                            backgroundImage: bannerImage ? `url(${bannerImage})` : 'none',
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center'
+                        }}
                     >
-                        <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-10 -mt-10 blur-3xl" />
+                        {/* Dark overlay specifically for images to keep text readable */}
+                        {bannerImage && <div className="absolute inset-0 bg-black/40 z-0" />}
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-10 -mt-10 blur-3xl z-0" />
                     </div>
 
                     {/* Content Layer */}
                     <div className="relative z-10 p-8 h-full flex flex-col justify-between">
                         <div className="flex justify-between items-start">
-                            <h3 className="text-white text-2xl font-black hover:underline truncate pr-12">{title}</h3>
+                            {/* Added drop-shadow to text to ensure it pops against any background */}
+                            <h3 className="text-white text-2xl font-black hover:underline truncate pr-12 drop-shadow-md">{title}</h3>
 
                             {/* --- MENU BUTTON & DROPDOWN --- */}
                             <div className="absolute top-6 right-6">
@@ -125,17 +130,16 @@ const StudentClassCard = ({ id, title, section, bannerColor, teacher, onUnenroll
                                 )}
                             </div>
                         </div>
-                        <p className="text-white/90 font-bold">{section}</p>
+                        <p className="text-white/90 font-bold drop-shadow-sm">{section}</p>
                     </div>
                 </div>
 
                 {/* --- BODY SECTION --- */}
                 <div className="p-8 pt-4 space-y-4 flex-1">
                     <div className="flex items-center gap-3">
-                        {/* 🟢 BONUS: Applied the banner color to the teacher's avatar block too! */}
                         <div
                             className="w-12 h-12 rounded-2xl border-2 border-zinc-100 dark:border-zinc-800 flex items-center justify-center font-black text-white"
-                            style={{ backgroundColor: bannerColor || '#4F46E5' }}
+                            style={{ backgroundColor: bannerColor || '#4F46E5' }} // Always fallback to color for the avatar
                         >
                             {teacher?.charAt(0) || 'T'}
                         </div>
