@@ -140,11 +140,6 @@ const TeacherClassDetailPage = () => {
             <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {activeTab === 'stream' && (
                     <div className="space-y-8">
-                        <StreamCoverView
-                            classInfo={{ ...classInfo, bannerColor }}
-                            bannerImage={bannerImage}
-                            onCustomize={() => setIsModalOpen(true)}
-                        />
                         <ClassStream classId={classId} />
                     </div>
                 )}
