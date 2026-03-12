@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Send, MoreVertical, AlertCircle, Loader2, MessageSquarePlus } from 'lucide-react';
+import { Send, MoreVertical, AlertCircle, Loader2, MessageSquarePlus, Edit2, Trash2, X, Check } from 'lucide-react';
 import { teacherService } from '../../../services/teacherService';
 
 const ClassStream = ({ classId }) => {
@@ -8,7 +8,13 @@ const ClassStream = ({ classId }) => {
     const [newPostContent, setNewPostContent] = useState('');
     const [isPosting, setIsPosting] = useState(false);
 
-    // Fetch Stream Data
+    // 🟢 State for Menus, Editing, and Deleting
+    const [activeMenuId, setActiveMenuId] = useState(null);
+    const [editingId, setEditingId] = useState(null);
+    const [editContent, setEditContent] = useState('');
+    const [postToDelete, setPostToDelete] = useState(null); // Tracks the ID of the post to delete
+    const [isActionLoading, setIsActionLoading] = useState(false);
+
     useEffect(() => {
         const fetchStream = async () => {
             try {
@@ -23,18 +29,16 @@ const ClassStream = ({ classId }) => {
         if (classId) fetchStream();
     }, [classId]);
 
-    // Handle Posting Announcement
     const handlePost = async () => {
         if (!newPostContent.trim()) return;
         setIsPosting(true);
         try {
             const newAnnouncement = await teacherService.postAnnouncement(classId, newPostContent);
-            // Prepend the new post instantly to the UI
             setStreamData(prev => ({
                 ...prev,
                 announcements: [newAnnouncement, ...prev.announcements]
             }));
-            setNewPostContent(''); // Clear input
+            setNewPostContent('');
         } catch (error) {
             console.error("Failed to post announcement", error);
         } finally {
@@ -42,7 +46,51 @@ const ClassStream = ({ classId }) => {
         }
     };
 
-    // Helper to get initials (e.g., "John Smith" -> "JS")
+    // 🟢 Execute the actual delete after custom confirmation
+    const confirmDelete = async () => {
+        if (!postToDelete) return;
+        setIsActionLoading(true);
+        try {
+            await teacherService.deleteAnnouncement(classId, postToDelete);
+            setStreamData(prev => ({
+                ...prev,
+                announcements: prev.announcements.filter(a => a.id !== postToDelete)
+            }));
+            setPostToDelete(null); // Close the modal on success
+        } catch (error) {
+            console.error("Failed to delete", error);
+            alert("Failed to delete announcement."); // Can replace with your CustomAlert toast later
+        } finally {
+            setIsActionLoading(false);
+        }
+    };
+
+    // 🟢 Initiate Edit Mode
+    const startEditing = (post) => {
+        setEditingId(post.id);
+        setEditContent(post.content);
+        setActiveMenuId(null);
+    };
+
+    // 🟢 Save Edit Logic
+    const handleSaveEdit = async (announcementId) => {
+        if (!editContent.trim()) return;
+        setIsActionLoading(true);
+        try {
+            const updatedPost = await teacherService.updateAnnouncement(classId, announcementId, editContent);
+            setStreamData(prev => ({
+                ...prev,
+                announcements: prev.announcements.map(a => a.id === announcementId ? updatedPost : a)
+            }));
+            setEditingId(null);
+        } catch (error) {
+            console.error("Failed to update", error);
+            alert("Failed to update announcement.");
+        } finally {
+            setIsActionLoading(false);
+        }
+    };
+
     const getInitials = (name) => {
         if (!name) return "U";
         const parts = name.split(' ');
@@ -50,7 +98,6 @@ const ClassStream = ({ classId }) => {
         return name.substring(0, 2).toUpperCase();
     };
 
-    // LOADING STATE
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center p-20 text-examsy-primary">
@@ -60,7 +107,6 @@ const ClassStream = ({ classId }) => {
         );
     }
 
-    // ERROR STATE (If class isn't found)
     if (!streamData) {
         return (
             <div className="flex flex-col items-center justify-center p-12 bg-examsy-surface rounded-3xl border border-dashed border-zinc-800">
@@ -71,9 +117,44 @@ const ClassStream = ({ classId }) => {
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 animate-in fade-in slide-in-from-bottom-4">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 animate-in fade-in slide-in-from-bottom-4 relative">
 
-            {/* Sidebar: Class Code */}
+            {/* 🟢 Custom Delete Confirmation Modal */}
+            {postToDelete && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-examsy-surface w-full max-w-sm rounded-[32px] border border-zinc-200 dark:border-zinc-800 p-8 text-center shadow-2xl animate-in zoom-in-95 duration-200">
+                        <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <Trash2 size={32} />
+                        </div>
+                        <h3 className="text-2xl font-black text-examsy-text mb-2">Delete Post?</h3>
+                        <p className="text-sm font-bold text-examsy-muted mb-8">
+                            This action cannot be undone. Are you sure you want to permanently remove this announcement?
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setPostToDelete(null)}
+                                disabled={isActionLoading}
+                                className="flex-1 py-3.5 rounded-xl bg-examsy-bg border border-zinc-200 dark:border-zinc-800 font-bold text-examsy-muted hover:text-examsy-text transition-colors disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                disabled={isActionLoading}
+                                className="flex-1 py-3.5 rounded-xl bg-red-500 text-white font-black hover:bg-red-600 transition-colors flex justify-center items-center gap-2 shadow-lg shadow-red-500/20 disabled:opacity-50 disabled:shadow-none"
+                            >
+                                {isActionLoading ? <Loader2 size={18} className="animate-spin" /> : 'Delete'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Invisible overlay to close dropdowns when clicking outside */}
+            {activeMenuId && (
+                <div className="fixed inset-0 z-10" onClick={() => setActiveMenuId(null)} />
+            )}
+
             <div className="lg:col-span-1">
                 <div className="bg-examsy-surface p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm sticky top-4">
                     <p className="text-xs font-black uppercase tracking-wider text-examsy-muted mb-3">Class Code</p>
@@ -84,10 +165,7 @@ const ClassStream = ({ classId }) => {
                 </div>
             </div>
 
-            {/* Main Stream Area */}
             <div className="lg:col-span-3 space-y-6">
-
-                {/* 🟢 Post Input Area */}
                 <div className="bg-examsy-surface p-4 rounded-3xl border border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center gap-4 shadow-sm transition-all focus-within:border-examsy-primary focus-within:shadow-md">
                     <div className="w-10 h-10 rounded-full bg-examsy-primary flex items-center justify-center text-white font-black text-sm shrink-0">
                         ME
@@ -108,7 +186,6 @@ const ClassStream = ({ classId }) => {
                     </button>
                 </div>
 
-                {/* 🟢 Announcements Feed or Empty State */}
                 {streamData.announcements.length === 0 ? (
                     <div className="py-20 flex flex-col items-center justify-center bg-examsy-surface/50 rounded-3xl border-2 border-dashed border-zinc-200 dark:border-zinc-800 text-center">
                         <MessageSquarePlus size={48} className="text-zinc-300 dark:text-zinc-700 mb-4" />
@@ -118,7 +195,7 @@ const ClassStream = ({ classId }) => {
                 ) : (
                     <div className="space-y-6">
                         {streamData.announcements.map((post) => (
-                            <div key={post.id} className="bg-examsy-surface rounded-3xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-sm hover:shadow-md transition-shadow">
+                            <div key={post.id} className="bg-examsy-surface rounded-3xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-sm hover:shadow-md transition-shadow relative z-20">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-xl bg-examsy-bg flex items-center justify-center font-black text-examsy-primary">
@@ -129,11 +206,70 @@ const ClassStream = ({ classId }) => {
                                             <p className="text-[10px] font-black uppercase tracking-widest text-examsy-muted">{post.formattedDate}</p>
                                         </div>
                                     </div>
-                                    <button className="text-examsy-muted hover:text-examsy-text p-2 rounded-lg hover:bg-examsy-bg transition-colors">
-                                        <MoreVertical size={18} />
-                                    </button>
+
+                                    {/* Context Menu Button */}
+                                    <div className="relative">
+                                        <button
+                                            onClick={() => setActiveMenuId(activeMenuId === post.id ? null : post.id)}
+                                            className="text-examsy-muted hover:text-examsy-text p-2 rounded-lg hover:bg-examsy-bg transition-colors"
+                                        >
+                                            <MoreVertical size={18} />
+                                        </button>
+
+                                        {/* Dropdown Menu */}
+                                        {activeMenuId === post.id && (
+                                            <div className="absolute right-0 mt-2 w-36 bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl overflow-hidden z-30 animate-in fade-in zoom-in-95 duration-100">
+                                                <button
+                                                    onClick={() => startEditing(post)}
+                                                    className="w-full flex items-center gap-2 px-4 py-3 text-sm font-bold text-examsy-text hover:bg-examsy-surface transition-colors"
+                                                >
+                                                    <Edit2 size={14} /> Edit
+                                                </button>
+                                                <div className="h-px w-full bg-zinc-200 dark:bg-zinc-800" />
+                                                <button
+                                                    onClick={() => {
+                                                        setPostToDelete(post.id); // 🟢 Triggers the custom modal instead of window.confirm
+                                                        setActiveMenuId(null);
+                                                    }}
+                                                    className="w-full flex items-center gap-2 px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-500/10 transition-colors"
+                                                >
+                                                    <Trash2 size={14} /> Delete
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                                <p className="text-examsy-text font-medium leading-relaxed whitespace-pre-wrap">{post.content}</p>
+
+                                {/* Editing View vs Normal View */}
+                                {editingId === post.id ? (
+                                    <div className="mt-2 animate-in fade-in">
+                                        <textarea
+                                            value={editContent}
+                                            onChange={(e) => setEditContent(e.target.value)}
+                                            className="w-full bg-examsy-bg border border-zinc-200 dark:border-zinc-700 rounded-2xl p-4 text-examsy-text font-medium outline-none focus:border-examsy-primary resize-none min-h-[100px]"
+                                            autoFocus
+                                        />
+                                        <div className="flex justify-end gap-2 mt-3">
+                                            <button
+                                                onClick={() => setEditingId(null)}
+                                                className="px-4 py-2 rounded-xl text-sm font-bold text-examsy-muted hover:bg-examsy-bg transition-colors"
+                                                disabled={isActionLoading}
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={() => handleSaveEdit(post.id)}
+                                                disabled={isActionLoading || !editContent.trim()}
+                                                className="px-4 py-2 bg-examsy-primary text-white rounded-xl text-sm font-black hover:scale-105 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-2"
+                                            >
+                                                {isActionLoading ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                                                Save
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-examsy-text font-medium leading-relaxed whitespace-pre-wrap">{post.content}</p>
+                                )}
                             </div>
                         ))}
                     </div>

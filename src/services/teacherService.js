@@ -39,5 +39,15 @@ export const teacherService = {
     postAnnouncement: async (classId, content) => {
         const response = await api.post(`/teacher/classes/${classId}/announcements`, { content });
         return response.data.data;
+    },
+
+    updateAnnouncement: async (classId, announcementId, content) => {
+        const response = await api.put(`/teacher/classes/${classId}/announcements/${announcementId}`, { content });
+        return response.data.data;
+    },
+
+    deleteAnnouncement: async (classId, announcementId) => {
+        const response = await api.delete(`/teacher/classes/${classId}/announcements/${announcementId}`);
+        return response.data;
     }
 }

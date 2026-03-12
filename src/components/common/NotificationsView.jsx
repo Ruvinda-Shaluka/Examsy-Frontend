@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, ArrowLeft, Check, AlertTriangle, Info, ShieldAlert } from 'lucide-react';
+import { Bell, ArrowLeft, Check, AlertTriangle, Info, ShieldAlert, Megaphone } from 'lucide-react';
 import { notificationService } from '../../services/notificationService';
 import CustomAlert from './CustomAlert';
 
@@ -13,7 +13,6 @@ const NotificationsView = ({ basePath }) => {
     useEffect(() => {
         const loadNotifs = async () => {
             try {
-                // 🟢 The backend automatically applies Push and Proctoring filters!
                 const data = await notificationService.getNotifications();
                 setNotifications(data || []);
             } catch (error) {
@@ -47,7 +46,11 @@ const NotificationsView = ({ basePath }) => {
 
     const getIcon = (title) => {
         const t = title.toLowerCase();
-        // Automatically assign the red triangle to proctoring/warning alerts
+
+        // 🟢 Catches Class Announcements
+        if (t.includes('announcement')) {
+            return <div className="p-3 bg-purple-500/10 text-purple-500 rounded-2xl"><Megaphone size={24} /></div>;
+        }
         if (t.includes('warning') || t.includes('proctoring') || t.includes('security')) {
             return <div className="p-3 bg-red-500/10 text-red-500 rounded-2xl"><AlertTriangle size={24} /></div>;
         }
@@ -65,7 +68,6 @@ const NotificationsView = ({ basePath }) => {
         <div className="max-w-4xl mx-auto pb-10 animate-fade-in px-4 md:px-0">
             {alert && <CustomAlert type={alert.type} title={alert.title} message={alert.message} onClose={() => setAlert(null)} />}
 
-            {/* Header Area */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 mb-8">
                 <div>
                     <button
@@ -94,7 +96,6 @@ const NotificationsView = ({ basePath }) => {
                 )}
             </div>
 
-            {/* Notifications List */}
             <div className="space-y-4">
                 {notifications.length === 0 ? (
                     <div className="py-20 text-center bg-examsy-surface rounded-[2rem] border border-zinc-200 dark:border-zinc-800 border-dashed">

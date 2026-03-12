@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, X, Check, AlertTriangle, MessageSquare, Info } from 'lucide-react';
+import { Bell, X, Check, AlertTriangle, MessageSquare, Info, Megaphone } from 'lucide-react';
 import { notificationService } from '../../services/notificationService';
 
 const NotificationBell = () => {
@@ -7,7 +7,6 @@ const NotificationBell = () => {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
 
-    // Fetch data on mount
     useEffect(() => {
         loadData();
     }, []);
@@ -25,7 +24,7 @@ const NotificationBell = () => {
         setIsOpen(true);
         try {
             const data = await notificationService.getNotifications();
-            setNotifications(data);
+            setNotifications(data || []);
         } catch (error) {
             console.error("Failed to load notifications", error);
         }
@@ -51,16 +50,18 @@ const NotificationBell = () => {
         }
     };
 
-    // Helper to pick dynamic icons based on title
     const getIcon = (title) => {
-        if (title.toLowerCase().includes('warning') || title.toLowerCase().includes('terminated')) return <AlertTriangle size={20} className="text-red-500" />;
-        if (title.toLowerCase().includes('reply') || title.toLowerCase().includes('update')) return <MessageSquare size={20} className="text-blue-500" />;
+        const t = title.toLowerCase();
+        // 🟢 Catches Class Announcements
+        if (t.includes('announcement')) return <Megaphone size={20} className="text-purple-500" />;
+
+        if (t.includes('warning') || t.includes('terminated')) return <AlertTriangle size={20} className="text-red-500" />;
+        if (t.includes('reply') || t.includes('update')) return <MessageSquare size={20} className="text-blue-500" />;
         return <Info size={20} className="text-examsy-primary" />;
     };
 
     return (
         <>
-            {/* The Bell Icon for your Navbar */}
             <button
                 onClick={handleOpen}
                 className="relative p-2 rounded-xl text-zinc-500 hover:text-examsy-text hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
@@ -71,16 +72,11 @@ const NotificationBell = () => {
                 )}
             </button>
 
-            {/* The Slide-Over Panel */}
             {isOpen && (
                 <div className="fixed inset-0 z-[999] flex justify-end">
-                    {/* Dark Backdrop */}
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in" onClick={() => setIsOpen(false)} />
 
-                    {/* Side Panel */}
                     <div className="relative w-full max-w-sm h-full bg-examsy-surface border-l border-zinc-200 dark:border-zinc-800 shadow-2xl animate-in slide-in-from-right duration-300 flex flex-col">
-
-                        {/* Header */}
                         <div className="p-6 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-examsy-bg/50">
                             <div>
                                 <h2 className="text-xl font-black text-examsy-text">Notifications</h2>
@@ -91,7 +87,6 @@ const NotificationBell = () => {
                             </button>
                         </div>
 
-                        {/* Mark All Read Action */}
                         {unreadCount > 0 && (
                             <div className="px-6 py-3 border-b border-zinc-100 dark:border-zinc-800/50">
                                 <button onClick={handleMarkAllAsRead} className="text-xs font-black uppercase text-examsy-primary hover:text-blue-600 tracking-widest flex items-center gap-2">
@@ -100,7 +95,6 @@ const NotificationBell = () => {
                             </div>
                         )}
 
-                        {/* Notification List */}
                         <div className="flex-1 overflow-y-auto p-4 space-y-3">
                             {notifications.length === 0 ? (
                                 <div className="text-center mt-20 text-examsy-muted">
@@ -139,7 +133,6 @@ const NotificationBell = () => {
                                 ))
                             )}
                         </div>
-
                     </div>
                 </div>
             )}
