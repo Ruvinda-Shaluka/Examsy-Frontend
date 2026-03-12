@@ -4,8 +4,8 @@ import { MoreVertical, TrendingUp, FolderOpen, Link as LinkIcon, Trash2 } from '
 import CustomAlert from '../../common/CustomAlert';
 import ConfirmActionModal from '../../common/ConfirmActionModal';
 
-// 🟢 ADDED bannerImage TO DESTRUCTURED PROPS
-const TeacherClassCard = ({ id, title, section, bannerColor, bannerImage, onDelete }) => {
+// 🟢 FIX: Renamed props to match backend DTO exactly!
+const TeacherClassCard = ({ id, title, section, themeColorHex, bannerImageUrl, onDelete }) => {
     const navigate = useNavigate();
 
     const [showMenu, setShowMenu] = useState(false);
@@ -48,17 +48,17 @@ const TeacherClassCard = ({ id, title, section, bannerColor, bannerImage, onDele
                     onClick={() => navigate(`/teacher/class/${id}`)}
                     className="h-28 relative cursor-pointer rounded-t-[2rem]"
                 >
-                    {/* 🟢 DYNAMIC INLINE STYLE TO HANDLE BOTH COLOR AND IMAGE */}
+                    {/* 🟢 FIX: Used the updated prop names here */}
                     <div
                         className="absolute inset-0 overflow-hidden rounded-t-[2rem]"
                         style={{
-                            backgroundColor: bannerImage ? 'transparent' : (bannerColor || '#4F46E5'),
-                            backgroundImage: bannerImage ? `url(${bannerImage})` : 'none',
+                            backgroundColor: bannerImageUrl ? 'transparent' : (themeColorHex || '#4F46E5'),
+                            backgroundImage: bannerImageUrl ? `url(${bannerImageUrl})` : 'none',
                             backgroundSize: 'cover',
                             backgroundPosition: 'center'
                         }}
                     >
-                        {bannerImage && <div className="absolute inset-0 bg-black/40 z-0" />}
+                        {bannerImageUrl && <div className="absolute inset-0 bg-black/40 z-0" />}
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl z-0" />
                     </div>
 
@@ -113,7 +113,7 @@ const TeacherClassCard = ({ id, title, section, bannerColor, bannerImage, onDele
                 <div className="p-6 h-32 flex items-center">
                     <div
                         className="w-16 h-16 rounded-[1.2rem] bg-examsy-bg border-4 border-examsy-surface -mt-16 shadow-lg flex items-center justify-center font-black z-20 relative"
-                        style={{ color: bannerColor || '#4F46E5' }}
+                        style={{ color: themeColorHex || '#4F46E5' }} // 🟢 FIX: Updated here too
                     >
                         {title?.split(' ').map(word => word.charAt(0)).join('').substring(0, 2).toUpperCase()}
                     </div>

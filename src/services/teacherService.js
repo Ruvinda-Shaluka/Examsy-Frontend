@@ -52,7 +52,7 @@ export const teacherService = {
     },
 
     updateClassAppearance: async (classId, appearanceData) => {
-        const response = await api.patch(`/teacher/classes/${classId}/appearance`, appearanceData);
+        const response = await api.put(`/teacher/classes/${classId}/appearance`, appearanceData);
         return response.data;
     }
 }

@@ -6,8 +6,8 @@ import CustomAlert from '../common/CustomAlert';
 import ConfirmActionModal from '../common/ConfirmActionModal';
 import { studentService } from "../../services/studentService.js";
 
-// 🟢 ADDED bannerImage TO PROPS
-const StudentClassCard = ({ id, title, section, bannerColor, bannerImage, teacher, onUnenroll }) => {
+// 🟢 FIX: Renamed props here as well
+const StudentClassCard = ({ id, title, section, themeColorHex, bannerImageUrl, teacher, onUnenroll }) => {
     const navigate = useNavigate();
 
     // UI States
@@ -16,10 +16,9 @@ const StudentClassCard = ({ id, title, section, bannerColor, bannerImage, teache
     const [showConfirmUnenroll, setShowConfirmUnenroll] = useState(false);
     const [alert, setAlert] = useState({ show: false, type: '', title: '', message: '' });
 
-    // Handle Dropdown Actions
     const handleMenuAction = (e, action) => {
-        e.stopPropagation(); // Stop card click
-        setShowMenu(false); // Close menu
+        e.stopPropagation();
+        setShowMenu(false);
 
         if (action === 'unenroll') {
             setShowConfirmUnenroll(true);
@@ -28,7 +27,6 @@ const StudentClassCard = ({ id, title, section, bannerColor, bannerImage, teache
         }
     };
 
-    // Function to execute when unenroll is confirmed
     const executeUnenroll = () => {
         if (onUnenroll) onUnenroll(id);
     };
@@ -58,7 +56,6 @@ const StudentClassCard = ({ id, title, section, bannerColor, bannerImage, teache
 
     return (
         <>
-            {/* Main Card Container */}
             <div className="bg-examsy-surface rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-2xl transition-all duration-500 group relative flex flex-col">
 
                 {/* --- HEADER SECTION --- */}
@@ -66,28 +63,24 @@ const StudentClassCard = ({ id, title, section, bannerColor, bannerImage, teache
                     onClick={() => navigate(`/student/class/${id}`)}
                     className="h-32 relative cursor-pointer rounded-t-[2.5rem]"
                 >
-                    {/* 🟢 DYNAMIC INLINE STYLE: Handles both solid colors and uploaded banner images */}
+                    {/* 🟢 FIX: Used the updated prop names */}
                     <div
                         className="absolute inset-0 overflow-hidden rounded-t-[2.5rem]"
                         style={{
-                            backgroundColor: bannerImage ? 'transparent' : (bannerColor || '#4F46E5'),
-                            backgroundImage: bannerImage ? `url(${bannerImage})` : 'none',
+                            backgroundColor: bannerImageUrl ? 'transparent' : (themeColorHex || '#4F46E5'),
+                            backgroundImage: bannerImageUrl ? `url(${bannerImageUrl})` : 'none',
                             backgroundSize: 'cover',
                             backgroundPosition: 'center'
                         }}
                     >
-                        {/* Dark overlay specifically for images to keep text readable */}
-                        {bannerImage && <div className="absolute inset-0 bg-black/40 z-0" />}
+                        {bannerImageUrl && <div className="absolute inset-0 bg-black/40 z-0" />}
                         <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-10 -mt-10 blur-3xl z-0" />
                     </div>
 
-                    {/* Content Layer */}
                     <div className="relative z-10 p-8 h-full flex flex-col justify-between">
                         <div className="flex justify-between items-start">
-                            {/* Added drop-shadow to text to ensure it pops against any background */}
                             <h3 className="text-white text-2xl font-black hover:underline truncate pr-12 drop-shadow-md">{title}</h3>
 
-                            {/* --- MENU BUTTON & DROPDOWN --- */}
                             <div className="absolute top-6 right-6">
                                 <button
                                     onClick={(e) => {
@@ -99,7 +92,6 @@ const StudentClassCard = ({ id, title, section, bannerColor, bannerImage, teache
                                     <MoreVertical size={20} />
                                 </button>
 
-                                {/* Dropdown Menu */}
                                 {showMenu && (
                                     <>
                                         <div
@@ -139,7 +131,7 @@ const StudentClassCard = ({ id, title, section, bannerColor, bannerImage, teache
                     <div className="flex items-center gap-3">
                         <div
                             className="w-12 h-12 rounded-2xl border-2 border-zinc-100 dark:border-zinc-800 flex items-center justify-center font-black text-white"
-                            style={{ backgroundColor: bannerColor || '#4F46E5' }} // Always fallback to color for the avatar
+                            style={{ backgroundColor: themeColorHex || '#4F46E5' }} // 🟢 FIX: Updated here too
                         >
                             {teacher?.charAt(0) || 'T'}
                         </div>
@@ -164,7 +156,6 @@ const StudentClassCard = ({ id, title, section, bannerColor, bannerImage, teache
                 </div>
             </div>
 
-            {/* Report Modal Component */}
             <ReportClassModal
                 isOpen={showReportModal}
                 onClose={() => setShowReportModal(false)}
@@ -172,7 +163,6 @@ const StudentClassCard = ({ id, title, section, bannerColor, bannerImage, teache
                 onReportSubmit={handleReportSubmit}
             />
 
-            {/* Render the Alert Component */}
             {alert.show && (
                 <CustomAlert
                     type={alert.type}
@@ -182,7 +172,6 @@ const StudentClassCard = ({ id, title, section, bannerColor, bannerImage, teache
                 />
             )}
 
-            {/* Render the Confirm Modal for Unenrollment */}
             <ConfirmActionModal
                 isOpen={showConfirmUnenroll}
                 onClose={() => setShowConfirmUnenroll(false)}

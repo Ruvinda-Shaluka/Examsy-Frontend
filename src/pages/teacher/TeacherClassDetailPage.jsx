@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {useParams, useNavigate, useLocation} from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
     ChevronLeft,
     Layout,
@@ -13,61 +13,29 @@ import ClassStream from '../../components/teacher/class-detail/ClassStream';
 import ClassPeopleList from '../../components/teacher/class-detail/ClassPeopleList';
 import ClassworkView from '../../components/teacher/class-detail/ClassworkView';
 import GradesView from '../../components/teacher/class-detail/GradesView';
-import StreamCoverView from '../../components/teacher/class-detail/StreamCoverView';
-import ClassAppearanceModal from '../../components/teacher/class-detail/ClassAppearanceModal';
 import ToggleButton from '../../components/landingPage/ToggleButton';
 
-// Data Imports
-import { MOCK_CLASSES } from '../../data/TeacherMockData';
-
 const TeacherClassDetailPage = () => {
+    // 🟢 Grabs the real database ID straight from the URL
     const { classId } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
 
     // UI States
     const [activeTab, setActiveTab] = useState(location.state?.defaultTab || 'stream');
-    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Navbar scroll logic
     const [isVisible, setIsVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
 
-    /** * ✅ STEP 1: Derived Data
-     * We find the class data directly from the mock data during render.
-     * This ensures classInfo is NEVER null.
-     */
-    const classInfo = MOCK_CLASSES.find(c => c.id === parseInt(classId)) || MOCK_CLASSES[0];
-
-    /**
-     * ✅ STEP 2: Initial State Bootstrapping
-     * We initialize these states with the data we just found.
-     * This avoids the "cascading render" error because the state is
-     * correct from the very first frame.
-     */
-    const [bannerColor, setBannerColor] = useState(classInfo?.bannerColor || 'bg-examsy-primary');
-    const [bannerImage, setBannerImage] = useState(classInfo?.bannerImage || null);
-
-    /**
-     * ✅ STEP 3: Context Syncing
-     * This effect only runs if the user navigates between different class IDs.
-     * It resets the local customization states to match the new classroom's defaults.
-     */
-    useEffect(() => {
-        if (classInfo) {
-            setBannerColor(classInfo.bannerColor || 'bg-examsy-primary');
-            setBannerImage(classInfo.bannerImage || null);
-        }
-    }, [classId]);
-
-    // useEffect tp sync the Active Tab if location state changes
+    // Sync the Active Tab if location state changes
     useEffect(() => {
         if (location.state?.defaultTab) {
             setActiveTab(location.state?.defaultTab);
         }
     }, [location.state]);
 
-    // Effect: Handle Navbar visibility on scroll
+    // Handle Navbar visibility on scroll
     useEffect(() => {
         const controlNavbar = () => {
             if (window.scrollY > lastScrollY && window.scrollY > 100) {
@@ -140,6 +108,7 @@ const TeacherClassDetailPage = () => {
             <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {activeTab === 'stream' && (
                     <div className="space-y-8">
+                        {/* 🟢 Passes the real ID down to the Stream component */}
                         <ClassStream classId={classId} />
                     </div>
                 )}
@@ -148,15 +117,6 @@ const TeacherClassDetailPage = () => {
                 {activeTab === 'people' && <ClassPeopleList classId={classId} isTeacher={true} />}
                 {activeTab === 'grades' && <GradesView classId={classId} />}
             </div>
-
-            {/* --- 4. Customization Modal --- */}
-            <ClassAppearanceModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                currentColor={bannerColor}
-                onColorSelect={setBannerColor}
-                onImageSelect={setBannerImage}
-            />
         </div>
     );
 };
