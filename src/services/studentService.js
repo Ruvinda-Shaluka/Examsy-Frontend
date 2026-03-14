@@ -49,10 +49,10 @@ export const studentService = {
         return response.data.data;
     },
 
-    getVaultExams: async () => {
+    getVaultExams: async (classId) => {
         try {
-            // This URL must match your StudentExamController mapping exactly!
-            const response = await api.get('/student/exams/vault');
+            if (!classId) throw new Error("Class ID is required");
+            const response = await api.get(`/student/exams/vault/${classId}`);
             return response.data.data;
         } catch (error) {
             console.error("Failed to fetch vault exams from backend", error);

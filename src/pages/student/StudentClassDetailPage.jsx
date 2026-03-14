@@ -13,7 +13,7 @@ import StreamCoverView from '../../components/teacher/class-detail/StreamCoverVi
 import ClassStream from '../../components/teacher/class-detail/ClassStream';
 import ClassPeopleList from '../../components/teacher/class-detail/ClassPeopleList';
 import StudentGradesView from '../../components/student/class-detail/StudentGradesView';
-import AcademicVault from "./AcademicVault.jsx";
+import AcademicVault from "../../components/student/class-detail/AcademicVault.jsx";
 import ToggleButton from '../../components/landingPage/ToggleButton';
 import ClassAppearanceModal from '../../components/teacher/class-detail/ClassAppearanceModal';
 

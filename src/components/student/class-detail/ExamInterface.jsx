@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ShieldCheck, ChevronLeft, ChevronRight, AlertTriangle, Clock, EyeOff, Loader2 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
-import useTabSecurity from '../../hooks/useTabSecurity';
-import { studentService } from '../../services/studentService';
+import useTabSecurity from '../../../hooks/useTabSecurity.js';
+import { studentService } from '../../../services/studentService.js';
 
-import MCQView from '../../components/student/exam/MCQView';
-import ShortAnswerView from '../../components/student/exam/ShortAnswerView';
-import PDFUploadView from '../../components/student/exam/PDFUploadView';
-import SubmitModal from '../../components/student/exam/SubmitModal';
-import SecurityAlertModal from '../../components/student/exam/SecurityAlertModal';
-import CustomAlert from '../../components/common/CustomAlert';
+import MCQView from '../exam/MCQView.jsx';
+import ShortAnswerView from '../exam/ShortAnswerView.jsx';
+import PDFUploadView from '../exam/PDFUploadView.jsx';
+import SubmitModal from '../exam/SubmitModal.jsx';
+import SecurityAlertModal from '../exam/SecurityAlertModal.jsx';
+import CustomAlert from '../../common/CustomAlert.jsx';
 
 const ExamInterface = () => {
     const { examId } = useParams();

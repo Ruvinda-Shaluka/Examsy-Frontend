@@ -12,20 +12,19 @@ import {
     Lock,
     XCircle
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { studentService } from '../../services/studentService';
+import { useNavigate, useParams } from 'react-router-dom';
+import { studentService } from '../../../services/studentService.js';
 
 const AcademicVault = () => {
     const navigate = useNavigate();
+    const { classId } = useParams();
 
     const [vaultData, setVaultData] = useState({ upcomingExams: [], availableExams: [] });
     const [isLoading, setIsLoading] = useState(true);
 
-    // 🟢 LIVE TICKER: Keeps track of the current time
     const [now, setNow] = useState(new Date());
 
     useEffect(() => {
-        // Update the current time every 5 seconds so buttons unlock automatically!
         const timer = setInterval(() => setNow(new Date()), 5000);
         return () => clearInterval(timer);
     }, []);
@@ -33,7 +32,8 @@ const AcademicVault = () => {
     useEffect(() => {
         const fetchVaultData = async () => {
             try {
-                const response = await studentService.getVaultExams();
+                // 🟢 PASS classId to the service
+                const response = await studentService.getVaultExams(classId);
                 setVaultData({
                     upcomingExams: response?.upcomingExams || [],
                     availableExams: response?.availableExams || []
@@ -45,8 +45,11 @@ const AcademicVault = () => {
             }
         };
 
-        fetchVaultData();
-    }, []);
+        // 🟢 ONLY fetch if classId exists
+        if (classId) {
+            fetchVaultData();
+        }
+    }, [classId]);
 
     const formatDateTime = (isoString) => {
         if (!isoString) return 'TBA';
@@ -93,7 +96,6 @@ const AcademicVault = () => {
 
                             // 🟢 TIME LOGIC CALCULATIONS
                             const startTime = new Date(ex.scheduledStartTime);
-                            // Real-time exams end exactly at startTime + durationMinutes
                             const endTime = new Date(startTime.getTime() + ex.durationMinutes * 60000);
 
                             const isBeforeStart = now < startTime;
@@ -125,7 +127,6 @@ const AcademicVault = () => {
                                         <div className={`px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest border ${isCompleted ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : isAfterEnd ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'}`}>
                                             {isCompleted ? 'Completed' : isAfterEnd ? 'Missed' : 'Real-Time'}
                                         </div>
-                                        {/* Dynamic Icon based on status */}
                                         {isCompleted ? <CheckCircle2 size={18} className="text-emerald-500 md:w-5 md:h-5"/>
                                             : isAfterEnd ? <XCircle size={18} className="text-red-500 md:w-5 md:h-5"/>
                                                 : isBeforeStart ? <Lock size={18} className="text-zinc-400 md:w-5 md:h-5"/>
@@ -168,7 +169,6 @@ const AcademicVault = () => {
                         {vaultData.availableExams.map(ex => {
                             const isCompleted = ex.studentStatus === 'SUBMITTED';
 
-                            // 🟢 TIME LOGIC CALCULATIONS FOR DEADLINES
                             const deadline = new Date(ex.deadlineTime);
                             const isPastDeadline = now > deadline;
 
