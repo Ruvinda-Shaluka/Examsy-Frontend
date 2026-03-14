@@ -1,31 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, ListChecks, Type, FileUp, ChevronDown, Send, X, AlertCircle, Clock, Calendar, Edit2, Trash2, Loader2 } from 'lucide-react';
-
-import TeacherMCQBuilder from '../exam-manage/TeacherMCQBuilder';
-import TeacherShortAnswerBuilder from '../exam-manage/TeacherShortAnswerBuilder';
-import TeacherPDFUploader from '../exam-manage/TeacherPDFUploader';
+import { ListChecks, FileUp, Type, AlertCircle, Clock, Calendar, Edit2, Trash2, Loader2, X } from 'lucide-react';
 import { teacherService } from '../../../services/teacherService';
+import CustomAlert from '../../common/CustomAlert';
+import ConfirmActionModal from '../../common/ConfirmActionModal';
 
 const ClassworkView = ({ classId }) => {
     const [exams, setExams] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [alert, setAlert] = useState({ show: false, type: '', title: '', message: '' });
 
-    // Builder States
-    const [isCreating, setIsCreating] = useState(false);
-    const [examType, setExamType] = useState(null);
-    const [showDropdown, setShowDropdown] = useState(false);
+    // Modal States
+    const [examToDelete, setExamToDelete] = useState(null);
+    const [examToUpdate, setExamToUpdate] = useState(null);
+    const [newDeadline, setNewDeadline] = useState('');
+    const [isActionLoading, setIsActionLoading] = useState(false);
 
-    // 🟢 FIX: State to hold the data from the builders!
-    const [examQuestions, setExamQuestions] = useState([]);
-    const [pdfFile, setPdfFile] = useState(null);
-
-    const examOptions = [
-        { id: 'MCQ', title: 'Multiple Choice', icon: ListChecks, desc: 'Auto-graded quiz' },
-        { id: 'SHORT', title: 'Short Answer', icon: Type, desc: 'Manual review builder' },
-        { id: 'PDF', title: 'PDF Upload', icon: FileUp, desc: 'Traditional paper upload' },
-    ];
-
-    // 🟢 Fetch Exams on Load
     useEffect(() => {
         const loadExams = async () => {
             try {
@@ -40,148 +29,155 @@ const ClassworkView = ({ classId }) => {
         if (classId) loadExams();
     }, [classId]);
 
-    const handleSelectType = (type) => {
-        setExamType(type);
-        setExamQuestions([]); // Reset states
-        setPdfFile(null);
-        setIsCreating(true);
-        setShowDropdown(false);
-    };
-
-    const handleCancel = () => {
-        setIsCreating(false);
-        setExamType(null);
-    };
-
-    // 🟢 Delete Logic
-    const handleDelete = async (examId) => {
-        if (!window.confirm("Are you sure you want to delete this exam?")) return;
+    // --- Delete Logic ---
+    const executeDelete = async () => {
+        if (!examToDelete) return;
         try {
-            await teacherService.deleteExam(examId);
-            setExams(prev => prev.filter(e => e.id !== examId));
+            await teacherService.deleteExam(examToDelete);
+            setExams(prev => prev.filter(e => e.id !== examToDelete));
+            setAlert({ show: true, type: 'success', title: 'Deleted', message: 'Exam successfully removed.' });
         } catch (error) {
-            alert("Failed to delete exam.");
+            setAlert({ show: true, type: 'error', title: 'Error', message: 'Failed to delete exam.' });
+        } finally {
+            setExamToDelete(null);
         }
     };
 
-    const handlePublish = async () => {
-        // (You will add your ExamPublishDTO builder logic here to map title, duration, and examQuestions before saving!)
-        console.log("Data to send:", examQuestions);
-        alert(`Exam mapped! Ready to send to API.`);
-        setIsCreating(false);
+    // --- Update Deadline Logic ---
+    const executeUpdateDeadline = async () => {
+        if (!examToUpdate || !newDeadline) return;
+        setIsActionLoading(true);
+        try {
+            await teacherService.updateExamDeadline(examToUpdate.id, newDeadline);
+            setExams(prev => prev.map(e => e.id === examToUpdate.id ? { ...e, deadlineTime: newDeadline } : e));
+            setAlert({ show: true, type: 'success', title: 'Updated', message: 'Deadline successfully updated.' });
+            setExamToUpdate(null);
+            setNewDeadline('');
+        } catch (error) {
+            setAlert({ show: true, type: 'error', title: 'Error', message: 'Failed to update deadline.' });
+        } finally {
+            setIsActionLoading(false);
+        }
     };
 
     if (isLoading) {
-        return <div className="p-20 text-center text-examsy-muted"><Loader2 className="animate-spin mx-auto" /></div>;
+        return <div className="p-20 flex justify-center text-examsy-primary"><Loader2 className="animate-spin" size={40}/></div>;
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
-            {/* --- HEADER SECTION --- */}
-            <div className="flex justify-between items-center">
-                <div>
-                    <h2 className="text-2xl font-black text-examsy-text">Classwork</h2>
-                    <p className="text-examsy-muted font-bold text-sm">Manage assignments and examinations for this class.</p>
-                </div>
+        <div className="space-y-6 animate-in fade-in duration-500 pb-10">
 
-                {!isCreating && (
-                    <div className="relative">
-                        <button
-                            onClick={() => setShowDropdown(!showDropdown)}
-                            className="bg-examsy-primary text-white px-6 py-4 rounded-2xl font-black flex items-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-examsy-primary/20"
-                        >
-                            <Plus size={20} /> Create
-                            <ChevronDown size={18} className={`transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
-                        </button>
+            {/* Custom Alert */}
+            {alert.show && (
+                <CustomAlert type={alert.type} title={alert.title} message={alert.message} onClose={() => setAlert({ ...alert, show: false })} />
+            )}
 
-                        {showDropdown && (
-                            <>
-                                <div className="fixed inset-0 z-10" onClick={() => setShowDropdown(false)} />
-                                <div className="absolute right-0 mt-3 w-72 bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-[32px] shadow-2xl z-20 overflow-hidden p-2 animate-in zoom-in-95 duration-200">
-                                    {examOptions.map((opt) => (
-                                        <button
-                                            key={opt.id}
-                                            onClick={() => handleSelectType(opt.id)}
-                                            className="w-full flex items-center gap-4 p-4 hover:bg-examsy-bg rounded-2xl transition-all text-left group"
-                                        >
-                                            <div className="p-3 bg-examsy-primary/10 text-examsy-primary rounded-xl group-hover:bg-examsy-primary group-hover:text-white transition-all">
-                                                <opt.icon size={20} />
-                                            </div>
-                                            <div>
-                                                <p className="font-black text-examsy-text text-sm">{opt.title}</p>
-                                                <p className="text-[10px] font-bold text-examsy-muted uppercase tracking-wider">{opt.desc}</p>
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </>
-                        )}
-                    </div>
-                )}
+            {/* Header */}
+            <div className="mb-8">
+                <h2 className="text-2xl font-black text-examsy-text">Classwork</h2>
+                <p className="text-examsy-muted font-bold text-sm mt-1">Manage assignments and examinations for this class.</p>
             </div>
 
-            {/* --- BUILDER VIEW --- */}
-            {isCreating ? (
-                <div className="space-y-6">
-                    <div className="flex items-center justify-between bg-examsy-surface p-4 rounded-3xl border border-zinc-200 dark:border-zinc-800">
-                        <div className="flex items-center gap-4">
-                            <button onClick={handleCancel} className="p-2 hover:bg-examsy-bg rounded-xl text-examsy-muted"><X size={20} /></button>
-                            <span className="text-xs font-black uppercase tracking-widest text-examsy-muted">
-                                Creating Exam
-                            </span>
+            {/* Empty State */}
+            {exams.length === 0 ? (
+                <div className="bg-examsy-surface rounded-[2.5rem] p-16 text-center border border-dashed border-zinc-200 dark:border-zinc-800">
+                    <div className="w-16 h-16 bg-examsy-bg rounded-full flex items-center justify-center mx-auto mb-4 text-examsy-muted">
+                        <AlertCircle size={32} />
+                    </div>
+                    <h3 className="text-xl font-black text-examsy-text mb-2">No Exams Published</h3>
+                    <p className="text-examsy-muted font-bold max-w-sm mx-auto">Publish exams from the "Manage Exams" portal to see them appear here.</p>
+                </div>
+            ) : (
+                /* Beautiful Card List matching the screenshot */
+                <div className="space-y-4">
+                    {exams.map(exam => (
+                        <div key={exam.id} className="bg-[#1A1A1E] dark:bg-[#121214] p-5 rounded-3xl border border-zinc-200/5 dark:border-zinc-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:shadow-xl transition-all group">
+
+                            <div className="flex items-center gap-4">
+                                {/* Icon Box */}
+                                <div className="w-14 h-14 bg-[#0A0A0C] dark:bg-[#08080A] rounded-2xl flex items-center justify-center text-examsy-primary shadow-inner shrink-0">
+                                    {exam.examType === 'MCQ' ? <ListChecks size={24} /> : exam.examType === 'PDF' ? <FileUp size={24} /> : <Type size={24} />}
+                                </div>
+
+                                {/* Info */}
+                                <div>
+                                    <h3 className="text-lg font-black text-white">{exam.title}</h3>
+                                    <div className="flex items-center gap-4 mt-1.5 text-xs font-bold text-zinc-400 uppercase tracking-widest">
+                                        <span className="flex items-center gap-1.5"><Clock size={14} /> {exam.durationMinutes} MIN</span>
+                                        {exam.deadlineTime && (
+                                            <span className="flex items-center gap-1.5"><Calendar size={14} /> {new Date(exam.deadlineTime).toLocaleDateString()}</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Actions (Visible on hover in desktop, always visible on mobile) */}
+                            <div className="flex items-center gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                <button
+                                    onClick={() => setExamToUpdate(exam)}
+                                    className="p-3 bg-zinc-800/50 hover:bg-examsy-primary/20 text-zinc-300 hover:text-examsy-primary rounded-xl transition-all"
+                                    title="Change Deadline"
+                                >
+                                    <Edit2 size={18} />
+                                </button>
+                                <button
+                                    onClick={() => setExamToDelete(exam.id)}
+                                    className="p-3 bg-zinc-800/50 hover:bg-red-500/20 text-zinc-300 hover:text-red-500 rounded-xl transition-all"
+                                    title="Delete Exam"
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            </div>
                         </div>
+                    ))}
+                </div>
+            )}
+
+            {/* --- Modals --- */}
+
+            {/* 1. Delete Confirmation Modal */}
+            <ConfirmActionModal
+                isOpen={!!examToDelete}
+                onClose={() => setExamToDelete(null)}
+                onConfirm={executeDelete}
+                title="Delete Exam"
+                message="Are you sure you want to permanently delete this exam? All student submissions related to it will also be lost."
+                confirmText="Delete Exam"
+                isDanger={true}
+            />
+
+            {/* 2. Update Deadline Modal */}
+            {examToUpdate && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+                    <div className="bg-examsy-surface w-full max-w-sm rounded-[32px] p-8 shadow-2xl animate-in zoom-in-95 border border-zinc-200 dark:border-zinc-800">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-black">Edit Deadline</h3>
+                            <button onClick={() => setExamToUpdate(null)} className="text-examsy-muted hover:text-examsy-text"><X size={20}/></button>
+                        </div>
+
+                        <p className="text-sm font-bold text-examsy-muted mb-4">Set a new deadline for <span className="text-examsy-text">{examToUpdate.title}</span>.</p>
+
+                        <input
+                            type="datetime-local"
+                            value={newDeadline}
+                            onChange={(e) => setNewDeadline(e.target.value)}
+                            className="w-full bg-examsy-bg border border-zinc-200 dark:border-zinc-700 rounded-xl p-4 text-examsy-text font-bold outline-none focus:border-examsy-primary mb-8"
+                        />
+
                         <div className="flex gap-3">
-                            <button onClick={handlePublish} className="bg-examsy-primary text-white px-8 py-3 rounded-xl font-black flex items-center gap-2 hover:shadow-lg hover:scale-105 transition-all">
-                                <Send size={18} /> Publish Now
+                            <button onClick={() => setExamToUpdate(null)} className="flex-1 py-3.5 rounded-xl bg-examsy-bg font-bold text-examsy-muted hover:text-examsy-text transition-colors">Cancel</button>
+                            <button
+                                onClick={executeUpdateDeadline}
+                                disabled={!newDeadline || isActionLoading}
+                                className="flex-1 py-3.5 rounded-xl bg-examsy-primary text-white font-black hover:bg-examsy-primary/90 transition-colors flex justify-center items-center disabled:opacity-50"
+                            >
+                                {isActionLoading ? <Loader2 size={18} className="animate-spin" /> : 'Update'}
                             </button>
                         </div>
                     </div>
-
-                    {/* 🟢 FIX: PASSING onChange PREVENTS THE CRASH */}
-                    <div className="animate-in slide-in-from-bottom-4 duration-500">
-                        {examType === 'MCQ' && <TeacherMCQBuilder questions={examQuestions} onChange={setExamQuestions} />}
-                        {examType === 'SHORT' && <TeacherShortAnswerBuilder questions={examQuestions} onChange={setExamQuestions} />}
-                        {examType === 'PDF' && <TeacherPDFUploader file={pdfFile} onChange={setPdfFile} />}
-                    </div>
-                </div>
-            ) : (
-                /* --- LIST VIEW --- */
-                <div className="space-y-4">
-                    {exams.length === 0 ? (
-                        <div className="bg-examsy-surface rounded-[40px] p-20 text-center border border-dashed border-zinc-200 dark:border-zinc-800 transition-all">
-                            <div className="p-6 bg-examsy-bg rounded-full w-fit mx-auto mb-6 text-examsy-muted"><AlertCircle size={40} /></div>
-                            <h3 className="text-xl font-black text-examsy-text mb-2">No Exams Yet</h3>
-                            <p className="text-examsy-muted font-bold max-w-xs mx-auto">Click the "Create" button to start building your first examination.</p>
-                        </div>
-                    ) : (
-                        exams.map(exam => (
-                            <div key={exam.id} className="bg-examsy-surface p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:shadow-lg transition-all group">
-                                <div className="flex items-center gap-5">
-                                    <div className="w-14 h-14 bg-examsy-bg rounded-2xl flex items-center justify-center text-examsy-primary shadow-inner">
-                                        {exam.examType === 'MCQ' ? <ListChecks size={24} /> : exam.examType === 'PDF' ? <FileUp size={24} /> : <Type size={24} />}
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-black text-examsy-text">{exam.title || 'Untitled Exam'}</h3>
-                                        <div className="flex items-center gap-4 mt-2 text-xs font-bold text-examsy-muted uppercase tracking-widest">
-                                            <span className="flex items-center gap-1"><Clock size={14} /> {exam.durationMinutes || 0} MIN</span>
-                                            {exam.deadlineTime && <span className="flex items-center gap-1"><Calendar size={14} /> {new Date(exam.deadlineTime).toLocaleDateString()}</span>}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-3 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button className="p-3 bg-examsy-bg text-examsy-text rounded-xl hover:bg-examsy-primary/10 hover:text-examsy-primary transition-all">
-                                        <Edit2 size={18} />
-                                    </button>
-                                    <button onClick={() => handleDelete(exam.id)} className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all">
-                                        <Trash2 size={18} />
-                                    </button>
-                                </div>
-                            </div>
-                        ))
-                    )}
                 </div>
             )}
+
         </div>
     );
 };

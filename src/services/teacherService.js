@@ -64,5 +64,10 @@ export const teacherService = {
     deleteExam: async (examId) => {
         const response = await api.delete(`/teacher/exams/${examId}`);
         return response.data;
-    }
+    },
+
+    updateExamDeadline: async (examId, newDeadline) => {
+        const response = await api.patch(`/teacher/exams/${examId}/deadline`, { newDeadline });
+        return response.data;
+    },
 }
