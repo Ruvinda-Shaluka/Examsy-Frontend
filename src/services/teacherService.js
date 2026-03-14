@@ -54,5 +54,15 @@ export const teacherService = {
     updateClassAppearance: async (classId, appearanceData) => {
         const response = await api.put(`/teacher/classes/${classId}/appearance`, appearanceData);
         return response.data;
+    },
+
+    getClassExams: async (classId) => {
+        const response = await api.get(`/teacher/exams/class/${classId}`);
+        return response.data.data;
+    },
+
+    deleteExam: async (examId) => {
+        const response = await api.delete(`/teacher/exams/${examId}`);
+        return response.data;
     }
 }
