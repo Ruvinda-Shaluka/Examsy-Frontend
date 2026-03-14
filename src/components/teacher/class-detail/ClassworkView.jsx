@@ -14,7 +14,7 @@ const ClassworkView = ({ classId }) => {
     const [examToUpdate, setExamToUpdate] = useState(null);
     const [isActionLoading, setIsActionLoading] = useState(false);
 
-    // 🟢 NEW: SPLIT TIMING STATES
+    // 🟢 SPLIT TIMING STATES
     const [startDate, setStartDate] = useState('');
     const [startTime, setStartTime] = useState('');
     const [deadlineDate, setDeadlineDate] = useState('');
@@ -48,7 +48,7 @@ const ClassworkView = ({ classId }) => {
         }
     };
 
-    // 🟢 NEW: PRE-FILL THE MODAL
+    // 🟢 PRE-FILL THE MODAL
     const handleOpenUpdateModal = (exam) => {
         setExamToUpdate(exam);
         setDuration(exam.durationMinutes || '');
@@ -72,14 +72,21 @@ const ClassworkView = ({ classId }) => {
         }
     };
 
-    // 🟢 NEW: SUBMIT FULL TIMINGS TO BACKEND
+    // 🟢 SUBMIT FULL TIMINGS TO BACKEND (With Safe Formatting)
     const executeUpdateTiming = async () => {
         if (!examToUpdate) return;
         setIsActionLoading(true);
 
-        // Format strings for Spring Boot (or null if empty)
-        const formattedStart = (startDate && startTime) ? `${startDate}T${startTime}:00` : null;
-        const formattedDeadline = (deadlineDate && deadlineTime) ? `${deadlineDate}T${deadlineTime}:00` : null;
+        // Helper to guarantee Spring Boot never chokes on the time format
+        const formatSafeDateTime = (dateStr, timeStr) => {
+            if (!dateStr || !timeStr) return null;
+            // Takes only the first 5 characters (HH:mm) just in case the browser sends seconds
+            const cleanTime = timeStr.substring(0, 5);
+            return `${dateStr}T${cleanTime}:00`;
+        };
+
+        const formattedStart = formatSafeDateTime(startDate, startTime);
+        const formattedDeadline = formatSafeDateTime(deadlineDate, deadlineTime);
 
         const payload = {
             scheduledStartTime: formattedStart,
@@ -101,6 +108,7 @@ const ClassworkView = ({ classId }) => {
             setAlert({ show: true, type: 'success', title: 'Updated', message: 'Exam timings successfully updated.' });
             setExamToUpdate(null);
         } catch (error) {
+            console.error("API Update Error:", error); // Logs to console so you can trace it!
             setAlert({ show: true, type: 'error', title: 'Error', message: 'Failed to update exam timings.' });
         } finally {
             setIsActionLoading(false);
@@ -133,7 +141,7 @@ const ClassworkView = ({ classId }) => {
                         <TeacherExamCard
                             key={exam.id}
                             exam={exam}
-                            onEditDeadline={handleOpenUpdateModal} // 🟢 Hooks into our new pre-fill method!
+                            onEditDeadline={handleOpenUpdateModal}
                             onDelete={setExamToDelete}
                         />
                     ))}
@@ -142,7 +150,7 @@ const ClassworkView = ({ classId }) => {
 
             <ConfirmActionModal isOpen={!!examToDelete} onClose={() => setExamToDelete(null)} onConfirm={executeDelete} title="Delete Exam" message="Are you sure you want to permanently delete this exam? All student submissions related to it will also be lost." confirmText="Delete Exam" isDanger={true} />
 
-            {/* 🟢 NEW: COMPREHENSIVE TIMINGS MODAL */}
+            {/* COMPREHENSIVE TIMINGS MODAL */}
             {examToUpdate && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
                     <div className="bg-examsy-surface w-full max-w-lg rounded-[32px] p-8 shadow-2xl animate-in zoom-in-95 border border-zinc-200 dark:border-zinc-800 max-h-[90vh] overflow-y-auto">

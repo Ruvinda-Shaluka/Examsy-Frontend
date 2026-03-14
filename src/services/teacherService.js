@@ -66,8 +66,8 @@ export const teacherService = {
         return response.data;
     },
 
-    updateExamDeadline: async (examId, newDeadline) => {
-        const response = await api.patch(`/teacher/exams/${examId}/deadline`, { newDeadline });
+    updateExamTiming: async (examId, timingData) => {
+        const response = await api.put(`/teacher/exams/${examId}/timing`, timingData);
         return response.data;
     },
 }

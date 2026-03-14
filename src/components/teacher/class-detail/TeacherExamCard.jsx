@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
-import { MoreVertical, ListChecks, FileUp, Type, Clock, Calendar, Edit2, Trash2 } from 'lucide-react';
+import { MoreVertical, ListChecks, FileUp, Type, Clock, Calendar, Edit2, Trash2, CalendarDays } from 'lucide-react';
 
 const TeacherExamCard = ({ exam, onEditDeadline, onDelete }) => {
     const [showMenu, setShowMenu] = useState(false);
 
-    // Dynamically assign a color and icon based on the exam type
     const getCardTheme = (type) => {
         switch(type) {
-            case 'MCQ': return { color: '#059669', icon: ListChecks, label: 'Multiple Choice' }; // Green
-            case 'SHORT': return { color: '#4F46E5', icon: Type, label: 'Short Answer' }; // Indigo
-            case 'PDF': return { color: '#DB2777', icon: FileUp, label: 'PDF Upload' }; // Pink
-            default: return { color: '#2563EB', icon: ListChecks, label: 'Exam' }; // Blue fallback
+            case 'MCQ': return { color: '#059669', icon: ListChecks, label: 'Multiple Choice' };
+            case 'SHORT': return { color: '#4F46E5', icon: Type, label: 'Short Answer' };
+            case 'PDF': return { color: '#DB2777', icon: FileUp, label: 'PDF Upload' };
+            default: return { color: '#2563EB', icon: ListChecks, label: 'Exam' };
         }
     };
 
@@ -18,12 +17,11 @@ const TeacherExamCard = ({ exam, onEditDeadline, onDelete }) => {
     const Icon = theme.icon;
 
     return (
-        <div className="bg-examsy-surface rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col h-full">
+        <div className="bg-examsy-surface rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col h-full overflow-hidden">
 
             {/* --- TOP BANNER --- */}
-            <div className="h-28 relative rounded-t-[2rem] shrink-0" style={{ backgroundColor: theme.color }}>
-                {/* Decorative glow */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl z-0" />
+            <div className="h-28 relative shrink-0" style={{ backgroundColor: theme.color }}>
+                {/* 🟢 Removed the decorative glow div from here! */}
 
                 <div className="relative z-10 p-6 flex justify-between items-start">
                     <div>
@@ -52,7 +50,7 @@ const TeacherExamCard = ({ exam, onEditDeadline, onDelete }) => {
                                         onClick={() => { setShowMenu(false); onEditDeadline(exam); }}
                                         className="w-full text-left px-4 py-3 text-sm font-bold text-examsy-text hover:bg-examsy-bg transition-colors flex items-center gap-3"
                                     >
-                                        <Edit2 size={16} className="text-examsy-primary" /> Update Deadline
+                                        <Edit2 size={16} className="text-examsy-primary" /> Edit Timings
                                     </button>
                                     <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-1 mx-2"></div>
                                     <button
@@ -68,10 +66,9 @@ const TeacherExamCard = ({ exam, onEditDeadline, onDelete }) => {
                 </div>
             </div>
 
-            {/* --- BOTTOM DETAILS (Relative Container) --- */}
+            {/* --- BOTTOM DETAILS --- */}
             <div className="relative p-6 flex-1 flex flex-col justify-end bg-transparent rounded-b-[2rem]">
 
-                {/* 🟢 FIXED FLOATING ICON: Absolutely positioned on the seam */}
                 <div
                     className="absolute -top-8 left-6 w-16 h-16 rounded-[1.2rem] bg-examsy-bg border-4 border-examsy-surface shadow-lg flex items-center justify-center z-20"
                     style={{ color: theme.color }}
@@ -79,20 +76,36 @@ const TeacherExamCard = ({ exam, onEditDeadline, onDelete }) => {
                     <Icon size={24} strokeWidth={2.5} />
                 </div>
 
-                {/* Info Pills */}
-                <div className="mt-8 space-y-3">
-                    <div className="flex items-center gap-3 text-examsy-text font-bold text-sm bg-examsy-bg/50 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800/50">
-                        <Clock size={16} className="text-examsy-muted" />
-                        <span>{exam.durationMinutes || 0} Minutes Allowed</span>
+                <div className="mt-8 space-y-2">
+
+                    <div className="flex items-center gap-3 text-examsy-text font-bold text-[13px] bg-examsy-bg/50 px-3 py-2.5 rounded-xl border border-zinc-100 dark:border-zinc-800/50">
+                        <CalendarDays size={16} className="text-examsy-muted shrink-0" />
+                        <div className="truncate">
+                            <span className="text-examsy-muted mr-1">Starts:</span>
+                            {exam.scheduledStartTime
+                                ? new Date(exam.scheduledStartTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+                                : 'Immediately'}
+                        </div>
                     </div>
-                    <div className="flex items-center gap-3 text-examsy-text font-bold text-sm bg-examsy-bg/50 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800/50">
-                        <Calendar size={16} className="text-examsy-muted" />
-                        <span>
+
+                    <div className="flex items-center gap-3 text-red-500/90 font-bold text-[13px] bg-red-500/5 px-3 py-2.5 rounded-xl border border-red-500/10">
+                        <Calendar size={16} className="shrink-0" />
+                        <div className="truncate">
+                            <span className="mr-1 opacity-80">Ends:</span>
                             {exam.deadlineTime
                                 ? new Date(exam.deadlineTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
-                                : 'No Deadline Set'}
-                        </span>
+                                : 'No Deadline'}
+                        </div>
                     </div>
+
+                    <div className="flex items-center gap-3 text-examsy-text font-bold text-[13px] bg-examsy-bg/50 px-3 py-2.5 rounded-xl border border-zinc-100 dark:border-zinc-800/50">
+                        <Clock size={16} className="text-examsy-primary shrink-0" />
+                        <div className="truncate">
+                            <span className="text-examsy-muted mr-1">Duration:</span>
+                            {exam.durationMinutes || 0} Minutes
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
