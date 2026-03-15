@@ -70,4 +70,9 @@ export const teacherService = {
         const response = await api.put(`/teacher/exams/${examId}/timing`, timingData);
         return response.data;
     },
+
+    rotateClassCodes: async () => {
+        const response = await api.post('/teacher/dashboard/rotate-codes');
+        return response.data;
+    },
 }

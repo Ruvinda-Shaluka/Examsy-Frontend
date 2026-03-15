@@ -6,6 +6,7 @@ import GoogleAuthButton from '../components/forms/GoogleAuthButton.jsx';
 import { useTheme } from '../theme/useTheme.jsx';
 import { authService } from '../services/authService.js';
 import CustomAlert from '../components/common/CustomAlert.jsx';
+import {teacherService} from "../services/teacherService.js";
 
 const LoginPage = () => {
     const { theme } = useTheme();
@@ -35,7 +36,7 @@ const LoginPage = () => {
             // Grab the actual role returned by the Spring Boot backend
             const userRole = localStorage.getItem('examsy_role');
 
-            // --- NEW LOGIC: STRICT ROLE VERIFICATION ---
+            // --- STRICT ROLE VERIFICATION ---
             // If the actual database role does not match the UI toggle, block the login!
             if (
                 (userRole === 'STUDENT' && role !== 'student') ||
@@ -53,9 +54,8 @@ const LoginPage = () => {
                     onClose: () => setAlert(null)
                 });
                 setIsLoading(false);
-                return; // Stop the login process right here
+                return;
             }
-            // --- END NEW LOGIC ---
 
             if (userRole === 'ADMIN') {
                 setAlert({
@@ -69,15 +69,44 @@ const LoginPage = () => {
                 });
             }
             else if (userRole === 'TEACHER') {
-                setAlert({
-                    type: 'success',
-                    title: 'Login Successful',
-                    message: `Welcome back, ${identifier}! Redirecting to your dashboard.`,
-                    onClose: () => {
-                        setAlert(null);
-                        navigate('/teacher/dashboard');
-                    }
-                });
+
+                // 🟢 STRICT ROTATION LOGIC
+                try {
+                    await teacherService.rotateClassCodes();
+
+                    // If rotation succeeds, proceed to dashboard
+                    setAlert({
+                        type: 'success',
+                        title: 'Login Successful',
+                        message: `Welcome back, ${identifier}! Redirecting to your dashboard.`,
+                        onClose: () => {
+                            setAlert(null);
+                            navigate('/teacher/dashboard');
+                        }
+                    });
+
+                } catch (rotationError) {
+                    console.error("Failed to rotate class codes during login:", rotationError);
+
+                    // Stop the loading spinner immediately so the user can interact with the alert
+                    setIsLoading(false);
+
+                    // Show the error alert FIRST
+                    setAlert({
+                        type: 'error',
+                        title: 'System Update Failed',
+                        message: 'Updating class codes failed. For security reasons, you will be logged out once you close this message. Please try again.',
+                        onClose: () => {
+                            // 🟢 LOGOUT HAPPENS HERE: Only AFTER they close the notification!
+                            localStorage.removeItem('examsy_token');
+                            localStorage.removeItem('examsy_role');
+                            setAlert(null);
+                        }
+                    });
+
+                    return; // Halt the rest of the login function
+                }
+
             } else {
                 setAlert({
                     type: 'success',
