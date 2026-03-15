@@ -5,7 +5,10 @@ import { teacherService } from '../../../services/teacherService';
 const InviteStudentModal = ({ classId, isOpen, onClose }) => {
     const [email, setEmail] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [feedback, setFeedback] = useState(null); // { type: 'success' | 'error', message: '' }
+    const [feedback, setFeedback] = useState(null);
+
+    // 🟢 NEW: State to trigger the slow fade-out animation
+    const [isClosing, setIsClosing] = useState(false);
 
     if (!isOpen) return null;
 
@@ -16,15 +19,14 @@ const InviteStudentModal = ({ classId, isOpen, onClose }) => {
 
         setIsSubmitting(true);
         try {
-            // Send the email to the backend endpoint
             await teacherService.inviteStudent(classId, email.trim());
 
             setFeedback({ type: 'success', message: `Invitation sent securely to ${email}!` });
 
-            // Auto-close after 2 seconds on success
+            // 🟢 NEW: Slowed down the auto-close timer to 4 seconds (4000ms)
             setTimeout(() => {
                 handleClose();
-            }, 2000);
+            }, 4000);
 
         } catch (error) {
             setFeedback({
@@ -36,16 +38,28 @@ const InviteStudentModal = ({ classId, isOpen, onClose }) => {
         }
     };
 
+    // 🟢 NEW: The Smooth Close Function
     const handleClose = () => {
-        setEmail('');
-        setFeedback(null);
-        onClose();
+        setIsClosing(true); // 1. Start the fade-out CSS animation
+
+        // 2. Wait 400ms for the animation to finish, THEN actually close it
+        setTimeout(() => {
+            setEmail('');
+            setFeedback(null);
+            setIsClosing(false); // Reset for the next time it opens
+            onClose(); // Tell the parent component to destroy the modal
+        }, 400);
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            {/* Modal Container */}
-            <div className="bg-examsy-surface w-full max-w-md rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 relative">
+        // 🟢 NEW: Dynamically swap the background animation classes based on `isClosing`
+        <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm ${
+            isClosing ? 'animate-out fade-out duration-500' : 'animate-in fade-in duration-300'
+        }`}>
+            {/* 🟢 NEW: Dynamically swap the modal body animation classes */}
+            <div className={`bg-examsy-surface w-full max-w-md rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative ${
+                isClosing ? 'animate-out zoom-out-95 duration-500' : 'animate-in zoom-in-95 duration-300'
+            }`}>
 
                 {/* Background Decoration */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-examsy-primary/10 rounded-full -mr-20 -mt-20 blur-3xl pointer-events-none" />
@@ -62,6 +76,7 @@ const InviteStudentModal = ({ classId, isOpen, onClose }) => {
                                 <p className="text-xs text-examsy-muted font-bold">Class ID: {classId}</p>
                             </div>
                         </div>
+                        {/* 🟢 Uses the new smooth handleClose */}
                         <button
                             onClick={handleClose}
                             className="p-2 text-examsy-muted hover:text-examsy-text hover:bg-examsy-bg rounded-xl transition-all"
@@ -72,7 +87,7 @@ const InviteStudentModal = ({ classId, isOpen, onClose }) => {
 
                     {/* Content */}
                     <div className="space-y-6">
-                        {/* Info Card (Matches your screenshot design) */}
+                        {/* Info Card */}
                         <div className="bg-blue-500/5 border border-blue-500/10 p-5 rounded-3xl flex gap-4 items-start">
                             <div className="bg-blue-500/10 p-2.5 rounded-2xl text-blue-500 shrink-0">
                                 <KeyRound size={20} />
