@@ -85,4 +85,10 @@ export const teacherService = {
         const response = await api.delete(`/teacher/classes/${classId}/students/${studentId}`);
         return response.data;
     },
+
+    inviteStudent: async (classId, email) => {
+        // Send the email wrapped in an object so it matches the DTO!
+        const response = await api.post(`/teacher/classes/${classId}/invite`, { email });
+        return response.data;
+    },
 }

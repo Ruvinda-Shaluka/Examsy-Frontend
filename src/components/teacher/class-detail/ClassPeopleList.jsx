@@ -84,7 +84,6 @@ const ClassPeopleList = ({ classId, isTeacher = false }) => {
                     {peopleData.teachers.map((teacher) => (
                         <div key={teacher.id} className="flex items-center justify-between p-4 bg-examsy-primary/5 rounded-2xl border border-examsy-primary/10">
                             <div className="flex items-center gap-4">
-                                {/* 🟢 TEACHER AVATAR WITH IMAGE SUPPORT */}
                                 <div className="w-12 h-12 rounded-2xl bg-examsy-primary text-white flex items-center justify-center font-black text-lg overflow-hidden shrink-0">
                                     {teacher.profileImageUrl ? (
                                         <img src={teacher.profileImageUrl} alt={teacher.name} className="w-full h-full object-cover" />
@@ -127,7 +126,6 @@ const ClassPeopleList = ({ classId, isTeacher = false }) => {
                         peopleData.students.map((student) => (
                             <div key={student.id} className="flex items-center justify-between p-4 hover:bg-examsy-bg rounded-2xl group transition-all border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 relative">
                                 <div className="flex items-center gap-4">
-                                    {/* 🟢 STUDENT AVATAR WITH IMAGE SUPPORT */}
                                     <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-examsy-muted flex items-center justify-center font-black overflow-hidden group-hover:bg-examsy-primary group-hover:text-white transition-all shrink-0">
                                         {student.profileImageUrl ? (
                                             <img src={student.profileImageUrl} alt={student.name} className="w-full h-full object-cover" />
