@@ -67,15 +67,17 @@ const StudentDashboard = () => {
         }
     };
 
-    // Handle Join Class
+    // 🟢 UPDATED: Handle Join Class
     const handleJoinClass = async (joinData) => {
         try {
+            // Sends { inviteLink: "..." } to the backend API service
             const joinedClass = await studentService.joinClass(joinData);
 
-            // Instantly add the new class to the UI
+            // Instantly add the returned new class DTO to the UI
             setEnrolledClasses(prev => [joinedClass, ...prev]);
 
-            setIsJoinModalOpen(false); // Close Modal
+            // Only close the modal on success
+            setIsJoinModalOpen(false);
 
             setAlert({
                 type: 'success',
@@ -85,12 +87,16 @@ const StudentDashboard = () => {
             });
         } catch (error) {
             console.error("Join class failed", error);
+            // Modal stays open so they can re-type the link.
+            // Error is shown in the global alert.
             setAlert({
                 type: 'error',
                 title: 'Enrollment Failed',
-                message: error.response?.data?.message || 'Could not join class. Verify the link and try again.',
+                message: error.response?.data?.message || 'Invalid or expired invite link. Please check the link and try again.',
                 onClose: () => setAlert(null)
             });
+            // Re-throw so the modal's internal try/catch finally block knows to stop spinning
+            throw error;
         }
     };
 
@@ -136,7 +142,6 @@ const StudentDashboard = () => {
                             id={cls.id}
                             title={cls.title}
                             section={cls.section}
-                            // 🟢 FIXED: Map the two new backend fields to the Card component
                             themeColorHex={cls.themeColorHex}
                             bannerImageUrl={cls.bannerImageUrl}
                             teacher={cls.teacher}

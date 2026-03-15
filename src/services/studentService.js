@@ -23,7 +23,9 @@ export const studentService = {
     },
 
     joinClass: async (joinData) => {
+        // joinData is simply { inviteLink: "https://examsy.com/join/5/CODE" }
         const response = await api.post('/student/dashboard/classes/join', joinData);
+        // Return the nested DTO so your dashboard can immediately add it to the state!
         return response.data.data;
     },
 
