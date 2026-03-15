@@ -61,4 +61,10 @@ export const studentService = {
             throw error;
         }
     },
+
+    getClassPeople: async (classId) => {
+        const response = await api.get(`/student/dashboard/classes/${classId}/people`);
+        return response.data.data;
+    },
+
 };

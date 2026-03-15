@@ -75,4 +75,14 @@ export const teacherService = {
         const response = await api.post('/teacher/dashboard/rotate-codes');
         return response.data;
     },
+
+    getClassPeople: async (classId) => {
+        const response = await api.get(`/teacher/classes/${classId}/people`);
+        return response.data.data;
+    },
+
+    removeStudent: async (classId, studentId) => {
+        const response = await api.delete(`/teacher/classes/${classId}/students/${studentId}`);
+        return response.data;
+    },
 }
