@@ -4,8 +4,8 @@ import { MoreVertical, TrendingUp, FolderOpen, Link as LinkIcon, Trash2 } from '
 import CustomAlert from '../../common/CustomAlert';
 import ConfirmActionModal from '../../common/ConfirmActionModal';
 
-// 🟢 FIX: Renamed props to match backend DTO exactly!
-const TeacherClassCard = ({ id, title, section, themeColorHex, bannerImageUrl, onDelete }) => {
+// 🟢 NEW: Added `classCode` to the destructuring props!
+const TeacherClassCard = ({ id, title, section, themeColorHex, bannerImageUrl, classCode, onDelete }) => {
     const navigate = useNavigate();
 
     const [showMenu, setShowMenu] = useState(false);
@@ -17,7 +17,9 @@ const TeacherClassCard = ({ id, title, section, themeColorHex, bannerImageUrl, o
         setShowMenu(false);
 
         if (action === 'copy') {
-            const inviteLink = `https://examsy.com/join/${id}/req-${Math.random().toString(36).substring(7)}`;
+            // 🟢 NEW: Use the real classCode instead of Math.random()
+            const inviteLink = `https://examsy.com/join/${id}/${classCode}`;
+
             try {
                 await navigator.clipboard.writeText(inviteLink);
                 setAlert({
@@ -26,6 +28,7 @@ const TeacherClassCard = ({ id, title, section, themeColorHex, bannerImageUrl, o
                     title: 'Link Copied',
                     message: 'Invite link copied to clipboard successfully!',
                 });
+                // Auto-hide alert after 3 seconds
                 setTimeout(() => setAlert(prev => ({ ...prev, show: false })), 3000);
             } catch (err) {
                 console.error("Failed to copy link: ", err);
@@ -48,7 +51,6 @@ const TeacherClassCard = ({ id, title, section, themeColorHex, bannerImageUrl, o
                     onClick={() => navigate(`/teacher/class/${id}`)}
                     className="h-28 relative cursor-pointer rounded-t-[2rem]"
                 >
-                    {/* 🟢 FIX: Used the updated prop names here */}
                     <div
                         className="absolute inset-0 overflow-hidden rounded-t-[2rem]"
                         style={{
@@ -113,7 +115,7 @@ const TeacherClassCard = ({ id, title, section, themeColorHex, bannerImageUrl, o
                 <div className="p-6 h-32 flex items-center">
                     <div
                         className="w-16 h-16 rounded-[1.2rem] bg-examsy-bg border-4 border-examsy-surface -mt-16 shadow-lg flex items-center justify-center font-black z-20 relative"
-                        style={{ color: themeColorHex || '#4F46E5' }} // 🟢 FIX: Updated here too
+                        style={{ color: themeColorHex || '#4F46E5' }}
                     >
                         {title?.split(' ').map(word => word.charAt(0)).join('').substring(0, 2).toUpperCase()}
                     </div>
