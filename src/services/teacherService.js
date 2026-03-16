@@ -91,4 +91,9 @@ export const teacherService = {
         const response = await api.post(`/teacher/classes/${classId}/invite`, { email });
         return response.data;
     },
+
+    getCalendarExams: async () => {
+        const response = await api.get('/teacher/dashboard/calendar/exams');
+        return response.data.data;
+    },
 }

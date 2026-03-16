@@ -1,23 +1,35 @@
-import React from 'react';
-import {STUDENT_DATA} from '../../data/StudentMockData';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import StudentLayout from "../../layouts/StudentLayout.jsx";
 import CalendarView from "../../components/common/Calendar.jsx";
+import { studentService } from "../../services/studentService";
 
 const StudentCalendar = () => {
+    const [exams, setExams] = useState([]);
+    const navigate = useNavigate();
 
-    // Combine both exam lists into one array for the calendar
-    const allStudentExams = [
-        ...STUDENT_DATA.upcomingExams,
-        ...STUDENT_DATA.availableExams
-    ];
+    useEffect(() => {
+        const fetchExams = async () => {
+            try {
+                const data = await studentService.getCalendarExams();
+                setExams(data);
+            } catch (error) {
+                console.error("Failed to load exams", error);
+            }
+        };
+        fetchExams();
+    }, []);
+
+    // 🟢 Navigate to Student Class Detail with state to open Classwork tab
+    const handleExamClick = (classId) => {
+        navigate(`/student/class/${classId}`, { state: { defaultTab: 'classwork' } });
+    };
 
     return (
         <StudentLayout>
-            <CalendarView exams={allStudentExams}/>
+            <CalendarView exams={exams} onExamClick={handleExamClick} />
         </StudentLayout>
     );
-
 }
-
 
 export default StudentCalendar;

@@ -67,4 +67,8 @@ export const studentService = {
         return response.data.data;
     },
 
+    getCalendarExams: async () => {
+        const response = await api.get('/student/dashboard/calendar/exams');
+        return response.data.data;
+    },
 };
