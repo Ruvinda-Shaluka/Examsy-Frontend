@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, User, GraduationCap, ChevronLeft } from 'lucide-react';
+import { Mail, Lock, ArrowRight, User, GraduationCap, ChevronLeft, Eye, EyeOff } from 'lucide-react';
 import TextPressure from '../components/logo/TextPressure.jsx';
 import GoogleAuthButton from '../components/forms/GoogleAuthButton.jsx';
 import { useTheme } from '../theme/useTheme.jsx';
 import { authService } from '../services/authService.js';
 import CustomAlert from '../components/common/CustomAlert.jsx';
-import {teacherService} from "../services/teacherService.js";
+import { teacherService } from "../services/teacherService.js";
 
 const LoginPage = () => {
     const { theme } = useTheme();
@@ -17,6 +17,9 @@ const LoginPage = () => {
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    // 🟢 NEW: State for password visibility toggle
+    const [showPassword, setShowPassword] = useState(false);
 
     // Alert State
     const [alert, setAlert] = useState(null);
@@ -33,20 +36,15 @@ const LoginPage = () => {
         try {
             await authService.login(identifier, password);
 
-            // Grab the actual role returned by the Spring Boot backend
             const userRole = localStorage.getItem('examsy_role');
 
-            // --- STRICT ROLE VERIFICATION ---
-            // If the actual database role does not match the UI toggle, block the login!
             if (
                 (userRole === 'STUDENT' && role !== 'student') ||
                 (userRole === 'TEACHER' && role !== 'teacher')
             ) {
-                // Instantly remove the tokens so they aren't actually logged in
                 localStorage.removeItem('examsy_token');
                 localStorage.removeItem('examsy_role');
 
-                // Show the error alert
                 setAlert({
                     type: 'error',
                     title: 'Role Mismatch',
@@ -69,12 +67,9 @@ const LoginPage = () => {
                 });
             }
             else if (userRole === 'TEACHER') {
-
-                // 🟢 STRICT ROTATION LOGIC
                 try {
                     await teacherService.rotateClassCodes();
 
-                    // If rotation succeeds, proceed to dashboard
                     setAlert({
                         type: 'success',
                         title: 'Login Successful',
@@ -88,23 +83,20 @@ const LoginPage = () => {
                 } catch (rotationError) {
                     console.error("Failed to rotate class codes during login:", rotationError);
 
-                    // Stop the loading spinner immediately so the user can interact with the alert
                     setIsLoading(false);
 
-                    // Show the error alert FIRST
                     setAlert({
                         type: 'error',
                         title: 'System Update Failed',
                         message: 'Updating class codes failed. For security reasons, you will be logged out once you close this message. Please try again.',
                         onClose: () => {
-                            // 🟢 LOGOUT HAPPENS HERE: Only AFTER they close the notification!
                             localStorage.removeItem('examsy_token');
                             localStorage.removeItem('examsy_role');
                             setAlert(null);
                         }
                     });
 
-                    return; // Halt the rest of the login function
+                    return;
                 }
 
             } else {
@@ -134,7 +126,6 @@ const LoginPage = () => {
     return (
         <div className="min-h-screen w-full flex bg-examsy-bg transition-colors duration-500 relative overflow-hidden">
 
-            {/* Render the CustomAlert if the alert state is not null */}
             {alert && (
                 <CustomAlert
                     type={alert.type}
@@ -144,13 +135,11 @@ const LoginPage = () => {
                 />
             )}
 
-            {/* --- RETURN TO HOME BUTTON --- */}
             <Link to="/" className="absolute top-6 left-6 z-[110] flex items-center gap-2 px-4 py-2 bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-xl text-examsy-muted hover:text-examsy-primary hover:border-examsy-primary/30 transition-all duration-300 group shadow-sm">
                 <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
                 <span className="font-bold text-sm">Return to Home</span>
             </Link>
 
-            {/* --- LEFT SIDE (Visual Branding) --- */}
             <div className="hidden lg:flex w-5/12 bg-examsy-surface relative overflow-hidden items-center justify-center p-12 lg:p-20 border-r border-white/5">
                 <div className="absolute top-0 left-0 w-full h-full bg-examsy-primary/5 blur-[150px] -z-10"></div>
                 <div className="w-full max-w-md flex flex-col items-start z-10 relative">
@@ -166,14 +155,12 @@ const LoginPage = () => {
                 </div>
             </div>
 
-            {/* --- RIGHT SIDE (Login Form) --- */}
             <div className="w-full lg:w-7/12 flex items-center justify-center p-6 relative">
                 <div className="w-full max-w-[480px] mx-auto py-8 animate-fade-in-up">
                     <div className="text-center mb-6">
                         <h1 className="text-4xl font-black text-examsy-text mb-1 tracking-tight">Welcome Back</h1>
                         <p className="text-examsy-muted font-bold text-sm">Please enter your details to sign in.</p>
 
-                        {/* ROLE TOGGLE BUTTON */}
                         <div className="mt-6 relative inline-flex p-1.5 bg-examsy-surface rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-inner w-72">
                             <div className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-examsy-primary rounded-xl transition-all duration-300 ease-out z-0 shadow-lg shadow-examsy-primary/30 ${role === 'teacher' ? 'translate-x-[calc(100%+0px)]' : 'translate-x-0'}`} />
                             <button type="button" onClick={() => setRole('student')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-bold z-10 transition-colors duration-300 ${role === 'student' ? 'text-white' : 'text-examsy-muted hover:text-examsy-text'}`}>
@@ -216,13 +203,23 @@ const LoginPage = () => {
                             <div className="relative">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
                                 <input
-                                    type="password"
+                                    // 🟢 NEW: Bind the input type to the showPassword state
+                                    type={showPassword ? "text" : "password"}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
-                                    className="w-full pl-12 pr-4 h-12 bg-examsy-surface border border-zinc-200 dark:border-zinc-700 focus:border-examsy-primary focus:ring-4 focus:ring-examsy-primary/10 rounded-2xl outline-none transition-all text-examsy-text placeholder-examsy-muted/30 text-sm"
+                                    // 🟢 NEW: Added pr-12 so the text doesn't overlap the eye icon
+                                    className="w-full pl-12 pr-12 h-12 bg-examsy-surface border border-zinc-200 dark:border-zinc-700 focus:border-examsy-primary focus:ring-4 focus:ring-examsy-primary/10 rounded-2xl outline-none transition-all text-examsy-text placeholder-examsy-muted/30 text-sm"
                                     placeholder="••••••••••••"
                                 />
+                                {/* 🟢 NEW: The Toggle Button */}
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-examsy-primary transition-colors focus:outline-none"
+                                >
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
                             </div>
                         </div>
 

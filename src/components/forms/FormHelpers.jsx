@@ -1,31 +1,54 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
-// 1. Added value, onChange, and required to the props list here
-export const InputField = ({ label, icon, id, type, placeholder, value, onChange, required }) => (
-    <div className="flex flex-col">
-        <label className="font-bold text-[11px] text-examsy-muted uppercase tracking-widest pb-1.5 flex items-center gap-2" htmlFor={id}>
-            {label}
-        </label>
-        <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
-                {icon}
+export const InputField = ({ label, icon, id, type, placeholder, value, onChange, required }) => {
+    // State to toggle password visibility
+    const [showPassword, setShowPassword] = useState(false);
+
+    // Check if this specific field is meant to be a password
+    const isPassword = type === 'password';
+
+    // Dynamically set the HTML input type
+    const currentType = isPassword ? (showPassword ? 'text' : 'password') : type;
+
+    return (
+        <div className="flex flex-col">
+            <label className="font-bold text-[11px] text-examsy-muted uppercase tracking-widest pb-1.5 flex items-center gap-2" htmlFor={id}>
+                {label}
+            </label>
+            <div className="relative">
+                {/* Left Icon */}
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
+                    {icon}
+                </div>
+
+                {/* Input */}
+                <input
+                    // Added dynamic right padding so text doesn't hide behind the eye icon
+                    className={`w-full bg-examsy-bg border border-zinc-200 dark:border-zinc-700 rounded-2xl pl-14 py-3 text-sm focus:ring-4 focus:ring-examsy-primary/10 outline-none text-examsy-text transition-all duration-300 placeholder-examsy-muted/30 ${isPassword ? 'pr-12' : 'pr-4'}`}
+                    type={currentType}
+                    id={id}
+                    placeholder={placeholder}
+                    value={value}
+                    onChange={onChange}
+                    required={required}
+                />
+
+                {/* Right Icon Toggle (Only renders if it's a password field) */}
+                {isPassword && (
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-examsy-primary transition-colors focus:outline-none"
+                    >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                )}
             </div>
-            <input
-                className="w-full bg-examsy-bg border border-zinc-200 dark:border-zinc-700 rounded-2xl pl-14 pr-4 py-3 text-sm focus:ring-4 focus:ring-examsy-primary/10 outline-none text-examsy-text transition-all duration-300 placeholder-examsy-muted/30"
-                type={type}
-                id={id}
-                placeholder={placeholder}
-
-                // 2. Bound the React state to the HTML input here!
-                value={value}
-                onChange={onChange}
-                required={required}
-            />
         </div>
-    </div>
-);
+    );
+};
 
-// 1. Added value, onChange, and required here too
 export const SelectField = ({ label, id, options, value, onChange, required }) => (
     <div className="flex flex-col">
         <label className="font-bold text-[11px] text-examsy-muted uppercase tracking-widest pb-1.5" htmlFor={id}>
@@ -34,15 +57,10 @@ export const SelectField = ({ label, id, options, value, onChange, required }) =
         <select
             id={id}
             className="bg-examsy-bg border border-zinc-200 dark:border-zinc-700 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-examsy-primary/10 outline-none text-examsy-text transition-all duration-300 cursor-pointer"
-
-            // 2. Bound the React state to the HTML select here!
             value={value}
             onChange={onChange}
             required={required}
         >
-            {/* Note: I removed .toLowerCase() from the value.
-                If the user selects "Grade 10", we want to send exactly "Grade 10" to Spring Boot,
-                not "grade 10", so it matches your backend perfectly. */}
             {options.map(opt => (
                 <option key={opt} value={opt}>{opt}</option>
             ))}
