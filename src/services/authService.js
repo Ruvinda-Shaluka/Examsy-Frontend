@@ -54,5 +54,18 @@ export const authService = {
         };
         const response = await api.post('/auth/signup/teacher', payload);
         return response.data;
-    }
+    },
+
+    sendPasswordResetCode: async (email) => {
+        const response = await api.post('/auth/forgot-password', { email });
+        return response.data;
+    },
+    verifyResetCode: async (email, code) => {
+        const response = await api.post('/auth/verify-code', { email, code });
+        return response.data;
+    },
+    resetPassword: async (email, code, newPassword) => {
+        const response = await api.post('/auth/reset-password', { email, code, newPassword });
+        return response.data;
+    },
 };
