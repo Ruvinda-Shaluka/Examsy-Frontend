@@ -71,31 +71,28 @@ const StudentDashboard = () => {
     const handleJoinClass = async (joinData) => {
         try {
             // Sends { inviteLink: "..." } to the backend API service
-            const joinedClass = await studentService.joinClass(joinData);
+            const responseMessage = await studentService.joinClass(joinData);
 
-            // Instantly add the returned new class DTO to the UI
-            setEnrolledClasses(prev => [joinedClass, ...prev]);
+            // 🟢 We REMOVED the setEnrolledClasses line here. The card won't show until approved!
 
             // Only close the modal on success
             setIsJoinModalOpen(false);
 
             setAlert({
                 type: 'success',
-                title: 'Successfully Joined!',
-                message: `You are now enrolled in "${joinedClass.title}".`,
+                title: 'Request Sent!',
+                // 🟢 Display the message from the backend
+                message: typeof responseMessage === 'string' ? responseMessage : 'Your request to join has been sent to the instructor.',
                 onClose: () => setAlert(null)
             });
         } catch (error) {
             console.error("Join class failed", error);
-            // Modal stays open so they can re-type the link.
-            // Error is shown in the global alert.
             setAlert({
                 type: 'error',
-                title: 'Enrollment Failed',
-                message: error.response?.data?.message || 'Invalid or expired invite link. Please check the link and try again.',
+                title: 'Request Failed',
+                message: error.response?.data?.message || 'Invalid link or request already pending.',
                 onClose: () => setAlert(null)
             });
-            // Re-throw so the modal's internal try/catch finally block knows to stop spinning
             throw error;
         }
     };
