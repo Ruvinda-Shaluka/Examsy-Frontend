@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Send, MoreVertical, AlertCircle, Loader2, MessageSquarePlus, Edit2, Trash2, Check } from 'lucide-react';
 import { teacherService } from '../../../services/teacherService';
 
-// Import the components we just fixed!
+// Import the components
 import StreamCoverView from './StreamCoverView';
 import ClassAppearanceModal from './ClassAppearanceModal';
 
-const ClassStream = ({ classId }) => {
+// 🟢 ADDED isTeacher prop here
+const ClassStream = ({ classId, isTeacher = false }) => {
     const [streamData, setStreamData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [newPostContent, setNewPostContent] = useState('');
@@ -24,7 +25,7 @@ const ClassStream = ({ classId }) => {
         const fetchStream = async () => {
             try {
                 const data = await teacherService.getClassStream(classId);
-                setStreamData(data); // 🟢 Now includes title, color, image, etc.
+                setStreamData(data);
             } catch (error) {
                 console.error("Failed to load class stream", error);
             } finally {
@@ -34,11 +35,9 @@ const ClassStream = ({ classId }) => {
         if (classId) fetchStream();
     }, [classId]);
 
-    // 🟢 Handle saving the new appearance to the database
     const handleSaveAppearance = async (appearanceData) => {
         try {
             await teacherService.updateClassAppearance(classId, appearanceData);
-            // Instantly update the UI without refreshing
             setStreamData(prev => ({
                 ...prev,
                 themeColorHex: appearanceData.themeColorHex,
@@ -46,7 +45,7 @@ const ClassStream = ({ classId }) => {
             }));
         } catch (error) {
             console.error("Failed to save appearance", error);
-            throw error; // Let the modal catch it and show an error alert
+            throw error;
         }
     };
 
@@ -137,23 +136,23 @@ const ClassStream = ({ classId }) => {
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 relative">
 
-
-             {/*🟢 THE COVER COMPONENT (Now tied to real data)*/}
+            {/* 🟢 Pass dynamic isTeacher prop down */}
             <StreamCoverView
                 title={streamData.title}
                 section={streamData.section}
-                                        themeColorHex={streamData.themeColorHex}
+                themeColorHex={streamData.themeColorHex}
                 bannerImageUrl={streamData.bannerImageUrl}
                 onCustomize={() => setIsAppearanceModalOpen(true)}
+                isTeacher={isTeacher}
             />
 
-
-            {/* 🟢 THE CUSTOMIZATION MODAL */}
+            {/* 🟢 Pass dynamic isTeacher prop down */}
             <ClassAppearanceModal
                 isOpen={isAppearanceModalOpen}
                 onClose={() => setIsAppearanceModalOpen(false)}
                 currentColor={streamData.themeColorHex}
                 onSave={handleSaveAppearance}
+                isTeacher={isTeacher}
             />
 
             {/* Delete Modal */}
@@ -168,8 +167,8 @@ const ClassStream = ({ classId }) => {
                             This action cannot be undone. Are you sure you want to permanently remove this announcement?
                         </p>
                         <div className="flex gap-3">
-                            <button onClick={() => setPostToDelete(null)} disabled={isActionLoading} className="flex-1 py-3.5 rounded-xl bg-examsy-bg border border-zinc-200 dark:border-zinc-800 font-bold text-examsy-muted hover:text-examsy-text transition-colors disabled:opacity-50">Cancel</button>
-                            <button onClick={confirmDelete} disabled={isActionLoading} className="flex-1 py-3.5 rounded-xl bg-red-500 text-white font-black hover:bg-red-600 transition-colors flex justify-center items-center gap-2 shadow-lg shadow-red-500/20 disabled:opacity-50 disabled:shadow-none">
+                            <button onClick={() => setPostToDelete(null)} disabled={isActionLoading} className="flex-1 py-3.5 rounded-2xl bg-examsy-bg border border-zinc-200 dark:border-zinc-800 font-bold text-examsy-muted hover:text-examsy-text transition-colors disabled:opacity-50">Cancel</button>
+                            <button onClick={confirmDelete} disabled={isActionLoading} className="flex-1 py-3.5 rounded-2xl bg-red-500 text-white font-black hover:bg-red-600 transition-colors flex justify-center items-center gap-2 shadow-lg shadow-red-500/20 disabled:opacity-50 disabled:shadow-none">
                                 {isActionLoading ? <Loader2 size={18} className="animate-spin" /> : 'Delete'}
                             </button>
                         </div>
@@ -192,19 +191,26 @@ const ClassStream = ({ classId }) => {
                 </div>
 
                 <div className="lg:col-span-3 space-y-6">
-                    <div className="bg-examsy-surface p-4 rounded-3xl border border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center gap-4 shadow-sm transition-all focus-within:border-examsy-primary focus-within:shadow-md">
-                        <div className="w-10 h-10 rounded-full bg-examsy-primary flex items-center justify-center text-white font-black text-sm shrink-0">ME</div>
-                        <input value={newPostContent} onChange={(e) => setNewPostContent(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handlePost()} placeholder="Announce something to your class..." className="bg-transparent flex-1 w-full outline-none text-examsy-text font-bold" />
-                        <button onClick={handlePost} disabled={isPosting || !newPostContent.trim()} className="bg-examsy-primary text-white p-3 rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 transition-all shrink-0 w-full sm:w-auto flex justify-center">
-                            {isPosting ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
-                        </button>
-                    </div>
+                    {/* 🟢 Hide the post input block if the user is not a teacher */}
+                    {isTeacher && (
+                        <div className="bg-examsy-surface p-4 rounded-3xl border border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center gap-4 shadow-sm transition-all focus-within:border-examsy-primary focus-within:shadow-md">
+                            <div className="w-10 h-10 rounded-full bg-examsy-primary flex items-center justify-center text-white font-black text-sm shrink-0">ME</div>
+                            <input value={newPostContent} onChange={(e) => setNewPostContent(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handlePost()} placeholder="Announce something to your class..." className="bg-transparent flex-1 w-full outline-none text-examsy-text font-bold" />
+                            <button onClick={handlePost} disabled={isPosting || !newPostContent.trim()} className="bg-examsy-primary text-white p-3 rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 transition-all shrink-0 w-full sm:w-auto flex justify-center">
+                                {isPosting ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
+                            </button>
+                        </div>
+                    )}
 
                     {streamData.announcements.length === 0 ? (
                         <div className="py-20 flex flex-col items-center justify-center bg-examsy-surface/50 rounded-3xl border-2 border-dashed border-zinc-200 dark:border-zinc-800 text-center">
                             <MessageSquarePlus size={48} className="text-zinc-300 dark:text-zinc-700 mb-4" />
-                            <h3 className="text-lg font-black text-examsy-text">Start the Conversation</h3>
-                            <p className="text-sm font-bold text-examsy-muted mt-1 max-w-sm">This class stream is empty. Post a welcome message, syllabus, or announcement above!</p>
+                            <h3 className="text-lg font-black text-examsy-text">
+                                {isTeacher ? "Start the Conversation" : "No Announcements Yet"}
+                            </h3>
+                            <p className="text-sm font-bold text-examsy-muted mt-1 max-w-sm">
+                                {isTeacher ? "This class stream is empty. Post a welcome message, syllabus, or announcement above!" : "Your instructor hasn't posted anything here yet."}
+                            </p>
                         </div>
                     ) : (
                         <div className="space-y-6">
@@ -219,19 +225,22 @@ const ClassStream = ({ classId }) => {
                                             </div>
                                         </div>
 
-                                        <div className="relative">
-                                            <button onClick={() => setActiveMenuId(activeMenuId === post.id ? null : post.id)} className="text-examsy-muted hover:text-examsy-text p-2 rounded-lg hover:bg-examsy-bg transition-colors">
-                                                <MoreVertical size={18} />
-                                            </button>
+                                        {/* 🟢 Hide the 3-dot menu if the user is not a teacher */}
+                                        {isTeacher && (
+                                            <div className="relative">
+                                                <button onClick={() => setActiveMenuId(activeMenuId === post.id ? null : post.id)} className="text-examsy-muted hover:text-examsy-text p-2 rounded-lg hover:bg-examsy-bg transition-colors">
+                                                    <MoreVertical size={18} />
+                                                </button>
 
-                                            {activeMenuId === post.id && (
-                                                <div className="absolute right-0 mt-2 w-36 bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl overflow-hidden z-30 animate-in fade-in zoom-in-95 duration-100">
-                                                    <button onClick={() => startEditing(post)} className="w-full flex items-center gap-2 px-4 py-3 text-sm font-bold text-examsy-text hover:bg-examsy-surface transition-colors"><Edit2 size={14} /> Edit</button>
-                                                    <div className="h-px w-full bg-zinc-200 dark:bg-zinc-800" />
-                                                    <button onClick={() => { setPostToDelete(post.id); setActiveMenuId(null); }} className="w-full flex items-center gap-2 px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-500/10 transition-colors"><Trash2 size={14} /> Delete</button>
-                                                </div>
-                                            )}
-                                        </div>
+                                                {activeMenuId === post.id && (
+                                                    <div className="absolute right-0 mt-2 w-36 bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl overflow-hidden z-30 animate-in fade-in zoom-in-95 duration-100">
+                                                        <button onClick={() => startEditing(post)} className="w-full flex items-center gap-2 px-4 py-3 text-sm font-bold text-examsy-text hover:bg-examsy-surface transition-colors"><Edit2 size={14} /> Edit</button>
+                                                        <div className="h-px w-full bg-zinc-200 dark:bg-zinc-800" />
+                                                        <button onClick={() => { setPostToDelete(post.id); setActiveMenuId(null); }} className="w-full flex items-center gap-2 px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-500/10 transition-colors"><Trash2 size={14} /> Delete</button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {editingId === post.id ? (

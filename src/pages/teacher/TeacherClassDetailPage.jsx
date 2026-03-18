@@ -109,7 +109,7 @@ const TeacherClassDetailPage = () => {
                 {activeTab === 'stream' && (
                     <div className="space-y-8">
                         {/* 🟢 Passes the real ID down to the Stream component */}
-                        <ClassStream classId={classId} />
+                        <ClassStream classId={classId} isTeacher={true}/>
                     </div>
                 )}
 

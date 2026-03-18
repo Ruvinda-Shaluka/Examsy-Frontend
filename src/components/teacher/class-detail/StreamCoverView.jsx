@@ -1,11 +1,10 @@
 import React from 'react';
 import { Image as ImageIcon } from 'lucide-react';
 
-const StreamCoverView = ({ title, section, themeColorHex, bannerImageUrl, onCustomize }) => {
+const StreamCoverView = ({ title, section, themeColorHex, bannerImageUrl, onCustomize, isTeacher = false }) => {
     return (
         <div
             className="relative h-64 w-full rounded-[2.5rem] overflow-hidden mb-8 shadow-2xl group transition-all duration-500"
-            // 🟢 THE FIX: Handle HEX colors and URLs dynamically via style
             style={{
                 backgroundColor: bannerImageUrl ? 'transparent' : (themeColorHex || '#4F46E5'),
                 backgroundImage: bannerImageUrl ? `url(${bannerImageUrl})` : 'none',
@@ -28,12 +27,15 @@ const StreamCoverView = ({ title, section, themeColorHex, bannerImageUrl, onCust
                 </p>
             </div>
 
-            <button
-                onClick={onCustomize}
-                className="absolute bottom-6 right-6 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white px-5 py-2.5 rounded-2xl flex items-center gap-2 font-bold transition-all border border-white/20 z-20 shadow-lg"
-            >
-                <ImageIcon size={18} /> Customize
-            </button>
+            {/* 🟢 SECURE: Only render the button if the user is a teacher */}
+            {isTeacher && (
+                <button
+                    onClick={onCustomize}
+                    className="absolute bottom-6 right-6 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white px-5 py-2.5 rounded-2xl flex items-center gap-2 font-bold transition-all border border-white/20 z-20 shadow-lg"
+                >
+                    <ImageIcon size={18} /> Customize
+                </button>
+            )}
         </div>
     );
 };

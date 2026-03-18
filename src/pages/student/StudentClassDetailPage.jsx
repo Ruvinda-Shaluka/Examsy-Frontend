@@ -9,48 +9,23 @@ import {
 } from 'lucide-react';
 
 // Detail Components
-import StreamCoverView from '../../components/teacher/class-detail/StreamCoverView';
 import ClassStream from '../../components/teacher/class-detail/ClassStream';
 import ClassPeopleList from '../../components/teacher/class-detail/ClassPeopleList';
 import StudentGradesView from '../../components/student/class-detail/StudentGradesView';
 import AcademicVault from "../../components/student/class-detail/AcademicVault.jsx";
 import ToggleButton from '../../components/landingPage/ToggleButton';
-import ClassAppearanceModal from '../../components/teacher/class-detail/ClassAppearanceModal';
-
-// Data
-import { STUDENT_DATA } from '../../data/StudentMockData';
 
 const StudentClassDetailPage = () => {
     const { classId } = useParams();
     const navigate = useNavigate();
-    const location = useLocation(); // ✅ Access navigation state
+    const location = useLocation();
 
-    // --- 1. DERIVED DATA ---
-    // Calculate class data directly during render to prevent null errors
-    const classInfo = STUDENT_DATA.enrolledClasses.find(c => c.id === classId) || STUDENT_DATA.enrolledClasses[0];
-
-    // --- 2. INITIALIZE STATE ---
-
-    // ✅ Initialize activeTab: Check if 'defaultTab' was passed via router state, otherwise default to 'stream'
+    // ✅ Initialize activeTab
     const [activeTab, setActiveTab] = useState(location.state?.defaultTab || 'stream');
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [bannerColor, setBannerColor] = useState(classInfo?.bannerColor || 'bg-examsy-primary');
-    const [bannerImage, setBannerImage] = useState(null);
 
     // Navbar scroll logic
     const [isVisible, setIsVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
-
-    // --- 3. EFFECTS ---
-
-    // Sync banner state if user switches classes via URL
-    useEffect(() => {
-        if (classInfo) {
-            setBannerColor(classInfo.bannerColor || 'bg-examsy-primary');
-            setBannerImage(null);
-        }
-    }, [classId]);
 
     // ✅ Sync activeTab if location state changes (e.g., clicking notification)
     useEffect(() => {
@@ -130,7 +105,7 @@ const StudentClassDetailPage = () => {
             <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {activeTab === 'stream' && (
                     <div className="space-y-8">
-                        <ClassStream classId={classId} />
+                        <ClassStream classId={classId} isTeacher={false}/>
                     </div>
                 )}
 
@@ -140,15 +115,6 @@ const StudentClassDetailPage = () => {
 
                 {activeTab === 'grades' && <StudentGradesView />}
             </div>
-
-            {/* --- Appearance Customization Modal --- */}
-            <ClassAppearanceModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                currentColor={bannerColor}
-                onColorSelect={setBannerColor}
-                onImageSelect={setBannerImage}
-            />
         </div>
     );
 };
