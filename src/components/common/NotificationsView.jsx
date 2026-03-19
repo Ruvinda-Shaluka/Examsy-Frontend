@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // 🟢 Import useLocation
-import { Bell, ArrowLeft, Check, AlertTriangle, Info, ShieldAlert, Megaphone } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Bell, ArrowLeft, Check, AlertTriangle, Info, ShieldAlert, Megaphone, ChevronDown, ChevronUp } from 'lucide-react';
 import { notificationService } from '../../services/notificationService';
 import CustomAlert from './CustomAlert';
 
 const NotificationsView = ({ basePath }) => {
     const navigate = useNavigate();
-    const location = useLocation(); // 🟢 Initialize useLocation
+    const location = useLocation();
     const [notifications, setNotifications] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [alert, setAlert] = useState(null);
+
+    // 🟢 NEW: State to track which notifications are expanded
+    const [expandedNotifs, setExpandedNotifs] = useState(new Set());
 
     useEffect(() => {
         const loadNotifs = async () => {
@@ -45,7 +48,6 @@ const NotificationsView = ({ basePath }) => {
         }
     };
 
-    // 🟢 NEW: Handle clicking the notification card
     const handleNotificationClick = async (notif) => {
         if (!notif.isRead) {
             await handleMarkAsRead(notif.id);
@@ -55,6 +57,20 @@ const NotificationsView = ({ basePath }) => {
             const role = location.pathname.includes('/teacher') ? 'teacher' : 'student';
             navigate(`/${role}/class/${notif.courseId}`, { state: { defaultTab: 'stream' } });
         }
+    };
+
+    // 🟢 NEW: Toggle expand/collapse state for a specific notification
+    const toggleExpand = (e, id) => {
+        e.stopPropagation(); // Prevent the main card click from triggering navigation
+        setExpandedNotifs(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(id)) {
+                newSet.delete(id);
+            } else {
+                newSet.add(id);
+            }
+            return newSet;
+        });
     };
 
     const getIcon = (title) => {
@@ -75,6 +91,10 @@ const NotificationsView = ({ basePath }) => {
     if (isLoading) return <div className="p-10 text-center font-bold text-examsy-muted">Loading notifications...</div>;
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
+
+    // 🟢 NEW: Slice the array to only show the first 15 notifications
+    const displayNotifications = notifications.slice(0, 15);
+    const hasMore = notifications.length > 15;
 
     return (
         <div className="max-w-4xl mx-auto pb-10 animate-fade-in px-4 md:px-0">
@@ -109,40 +129,74 @@ const NotificationsView = ({ basePath }) => {
             </div>
 
             <div className="space-y-4">
-                {notifications.length === 0 ? (
+                {displayNotifications.length === 0 ? (
                     <div className="py-20 text-center bg-examsy-surface rounded-[2rem] border border-zinc-200 dark:border-zinc-800 border-dashed">
                         <Bell size={48} className="mx-auto text-examsy-muted mb-4 opacity-30" />
                         <h3 className="text-xl font-black text-examsy-text">You're all caught up!</h3>
                         <p className="text-examsy-muted font-bold mt-2">No new notifications right now.</p>
                     </div>
                 ) : (
-                    notifications.map(notif => (
-                        <div
-                            key={notif.id}
-                            // 🟢 Update the onClick handler here
-                            onClick={() => handleNotificationClick(notif)}
-                            className={`p-6 rounded-[2rem] border transition-all duration-300 flex flex-col sm:flex-row gap-6 hover:scale-[1.01] cursor-pointer ${
-                                notif.isRead
-                                    ? 'bg-examsy-surface border-zinc-200 dark:border-zinc-800 opacity-70 hover:opacity-100'
-                                    : 'bg-examsy-surface border-examsy-primary shadow-xl'
-                            }`}
-                        >
-                            <div className="shrink-0">{getIcon(notif.title)}</div>
-                            <div className="flex-1">
-                                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-2">
-                                    <h3 className={`text-lg font-black ${notif.isRead ? 'text-examsy-text' : 'text-examsy-primary'}`}>
-                                        {notif.title}
-                                    </h3>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 shrink-0">
-                                        {new Date(notif.createdAt).toLocaleDateString()} • {new Date(notif.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                    </span>
+                    <>
+                        {displayNotifications.map(notif => {
+                            const isExpanded = expandedNotifs.has(notif.id);
+                            // Set character limit for truncation
+                            const isLongMessage = notif.message.length > 120;
+                            const displayMessage = !isExpanded && isLongMessage
+                                ? notif.message.substring(0, 120) + "..."
+                                : notif.message;
+
+                            return (
+                                <div
+                                    key={notif.id}
+                                    onClick={() => handleNotificationClick(notif)}
+                                    className={`p-6 rounded-[2rem] border transition-all duration-300 flex flex-col sm:flex-row gap-6 hover:scale-[1.01] cursor-pointer ${
+                                        notif.isRead
+                                            ? 'bg-examsy-surface border-zinc-200 dark:border-zinc-800 opacity-70 hover:opacity-100'
+                                            : 'bg-examsy-surface border-examsy-primary shadow-xl'
+                                    }`}
+                                >
+                                    <div className="shrink-0">{getIcon(notif.title)}</div>
+                                    <div className="flex-1">
+                                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-2">
+                                            <h3 className={`text-lg font-black ${notif.isRead ? 'text-examsy-text' : 'text-examsy-primary'}`}>
+                                                {notif.title}
+                                            </h3>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 shrink-0">
+                                                {new Date(notif.createdAt).toLocaleDateString()} • {new Date(notif.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+                                            <p className="text-sm font-bold text-examsy-muted leading-relaxed flex-1 whitespace-pre-wrap">
+                                                {displayMessage}
+                                            </p>
+
+                                            {/* 🟢 Expand/Collapse Button (Only shows if message is long) */}
+                                            {isLongMessage && (
+                                                <button
+                                                    onClick={(e) => toggleExpand(e, notif.id)}
+                                                    className="shrink-0 px-3 py-1.5 bg-examsy-bg hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl text-xs font-black text-examsy-text flex items-center gap-1 transition-colors"
+                                                >
+                                                    {isExpanded ? (
+                                                        <><ChevronUp size={14} /> Show Less</>
+                                                    ) : (
+                                                        <><ChevronDown size={14} /> Read More</>
+                                                    )}
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-                                <p className="text-sm font-bold text-examsy-muted leading-relaxed">
-                                    {notif.message}
-                                </p>
+                            );
+                        })}
+
+                        {/* 🟢 Informational footer if there are more than 15 notifications */}
+                        {hasMore && (
+                            <div className="py-6 text-center text-xs font-bold text-examsy-muted uppercase tracking-widest border-t border-zinc-200 dark:border-zinc-800 mt-4">
+                                Showing latest 15 notifications. Older notifications have been archived.
                             </div>
-                        </div>
-                    ))
+                        )}
+                    </>
                 )}
             </div>
         </div>
