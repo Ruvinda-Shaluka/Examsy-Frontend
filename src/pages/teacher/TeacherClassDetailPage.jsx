@@ -7,8 +7,6 @@ import {
     Users,
     BarChart3
 } from 'lucide-react';
-
-// Detail View Components
 import ClassStream from '../../components/teacher/class-detail/ClassStream';
 import ClassPeopleList from '../../components/teacher/class-detail/ClassPeopleList';
 import ClassworkView from '../../components/teacher/class-detail/ClassworkView';
