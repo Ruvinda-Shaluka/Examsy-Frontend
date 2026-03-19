@@ -117,4 +117,9 @@ export const teacherService = {
         return response.data.data;
     },
 
+    getLiveMonitorData: async (examId) => {
+        const response = await api.get(`/teacher/exams/${examId}/monitor`);
+        return response.data.data;
+    },
+
 }

@@ -1,14 +1,18 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TeacherLayout from '../../../layouts/TeacherLayout.jsx';
-import { MOCK_LIVE_STUDENTS } from '../../../data/TeacherMockData.js';
-import { Search, ChevronLeft, CheckCircle2, ShieldAlert, Sparkles, MessageSquare, Send, Megaphone, X, Clock } from 'lucide-react';
+import { Search, ChevronLeft, CheckCircle2, ShieldAlert, Sparkles, MessageSquare, Send, Megaphone, X, Clock, Loader2 } from 'lucide-react';
 import StudentActionModal from '../../../components/teacher/live-monitor/StudentActionModal';
+import { teacherService } from '../../../services/teacherService'; // 🟢 Import the service
 
 const TeacherLiveMonitor = () => {
     const { examId } = useParams();
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
+
+    // 🟢 Real Data States
+    const [liveStudents, setLiveStudents] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Broadcast Modal State
     const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
@@ -18,12 +22,35 @@ const TeacherLiveMonitor = () => {
     // Student Action Modal State
     const [selectedStudent, setSelectedStudent] = useState(null);
 
+    // 🟢 Fetch Data & Setup Polling
+    useEffect(() => {
+        const fetchMonitorData = async () => {
+            try {
+                const data = await teacherService.getLiveMonitorData(examId);
+                setLiveStudents(data);
+            } catch (error) {
+                console.error("Failed to load live monitor data", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        // Initial fetch
+        fetchMonitorData();
+
+        // Set up polling every 5 seconds for "Live" effect
+        const intervalId = setInterval(fetchMonitorData, 5000);
+
+        // Cleanup on unmount
+        return () => clearInterval(intervalId);
+    }, [examId]);
+
     // Memoize the filtered list
     const filteredStudents = useMemo(() => {
-        return MOCK_LIVE_STUDENTS.filter(s =>
+        return liveStudents.filter(s =>
             s.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
-    }, [searchTerm]);
+    }, [liveStudents, searchTerm]);
 
     // Format seconds to mm:ss
     const formatTime = (totalSeconds) => {
@@ -44,7 +71,6 @@ const TeacherLiveMonitor = () => {
     };
 
     const handleWarnStudent = (studentId, message) => {
-        // Mock backend call
         alert(`Warning sent to student ${studentId}: "${message}"`);
     };
 
@@ -52,9 +78,19 @@ const TeacherLiveMonitor = () => {
         if(window.confirm("Are you sure you want to forcibly terminate this student's exam? This action cannot be undone.")) {
             alert(`Student ${studentId} has been terminated from the exam.`);
             setSelectedStudent(null);
-            // Here you would also update your state to remove them or mark status as 'terminated'
         }
     };
+
+    if (isLoading) {
+        return (
+            <TeacherLayout>
+                <div className="flex flex-col items-center justify-center py-32 text-examsy-primary">
+                    <Loader2 className="animate-spin mb-4" size={40} />
+                    <p className="font-bold tracking-widest text-sm uppercase">Connecting to Live Stream...</p>
+                </div>
+            </TeacherLayout>
+        );
+    }
 
     return (
         <TeacherLayout>
@@ -87,7 +123,7 @@ const TeacherLiveMonitor = () => {
                             <ChevronLeft size={16} /> Back to Ongoing Exams
                         </button>
                         <h1 className="text-3xl font-black text-examsy-text">
-                            Live Monitor: <span className="text-examsy-primary">Physics Mid-Term</span>
+                            Live Monitor <span className="text-emerald-500 animate-pulse text-xl ml-2">● REC</span>
                         </h1>
                     </div>
 
@@ -125,11 +161,11 @@ const TeacherLiveMonitor = () => {
                     <div className="overflow-x-auto hide-scrollbar">
                         <table className="fixed-monitor-table text-left">
                             <colgroup>
-                                <col style={{ width: '320px' }} /> {/* Student */}
-                                <col style={{ width: '120px' }} /> {/* Status */}
-                                <col style={{ width: '250px' }} /> {/* AI Integrity */}
-                                <col style={{ width: '200px' }} /> {/* Total Away Time */}
-                                <col style={{ width: '210px' }} /> {/* Actions */}
+                                <col style={{ width: '320px' }} />
+                                <col style={{ width: '120px' }} />
+                                <col style={{ width: '250px' }} />
+                                <col style={{ width: '200px' }} />
+                                <col style={{ width: '210px' }} />
                             </colgroup>
 
                             <thead className="bg-examsy-bg/50">
@@ -138,7 +174,7 @@ const TeacherLiveMonitor = () => {
                                 <th className="px-8 py-4 text-center">Status</th>
                                 <th className="px-8 py-4">Integrity Check</th>
                                 <th className="px-8 py-4">Total Away Time</th>
-                                <th className="px-8 py-4 text-right">Flag Student</th>
+                                <th className="px-8 py-4 text-right">Actions</th>
                             </tr>
                             </thead>
 
@@ -186,7 +222,7 @@ const TeacherLiveMonitor = () => {
                                             )}
                                         </td>
 
-                                        {/* Total Away Time (UPDATED) */}
+                                        {/* Total Away Time */}
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-2 font-bold text-sm">
                                                 <Clock size={16} className={student.totalAwaySeconds > 90 ? 'text-red-500' : 'text-examsy-muted'} />
@@ -212,7 +248,7 @@ const TeacherLiveMonitor = () => {
                             ) : (
                                 <tr>
                                     <td colSpan="5" className="p-20 text-center">
-                                        <p className="text-examsy-muted font-black">No students match your search.</p>
+                                        <p className="text-examsy-muted font-black">No active students found for this exam.</p>
                                     </td>
                                 </tr>
                             )}
@@ -286,7 +322,6 @@ const TeacherLiveMonitor = () => {
                 )}
             </div>
 
-            {/* NEW: Student Action Modal */}
             <StudentActionModal
                 isOpen={!!selectedStudent}
                 student={selectedStudent}
