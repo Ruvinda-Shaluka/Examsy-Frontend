@@ -42,10 +42,14 @@ const TeacherLiveMonitor = () => {
         return () => clearInterval(intervalId);
     }, [examId]);
 
+    // 🟢 BULLETPROOF SEARCH LOGIC
     const filteredStudents = useMemo(() => {
-        return liveStudents.filter(s =>
-            s.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        if (!searchTerm.trim()) return liveStudents;
+
+        return liveStudents.filter(s => {
+            const studentName = s.name || "";
+            return studentName.toLowerCase().includes(searchTerm.toLowerCase().trim());
+        });
     }, [liveStudents, searchTerm]);
 
     const formatTime = (totalSeconds) => {
@@ -55,7 +59,7 @@ const TeacherLiveMonitor = () => {
         return m > 0 ? `${m}m ${s}s` : `${s}s`;
     };
 
-    // 🟢 ACTUAL BROADCAST LOGIC (PHASE 3)
+    // ACTUAL BROADCAST LOGIC
     const handleSendBroadcast = async () => {
         if (!broadcastMessage.trim()) return;
         setIsSending(true);
@@ -72,7 +76,7 @@ const TeacherLiveMonitor = () => {
         }
     };
 
-    // 🟢 ACTUAL WARNING LOGIC (PHASE 3)
+    // ACTUAL WARNING LOGIC
     const handleWarnStudent = async (studentId, message) => {
         try {
             await teacherService.warnStudent(examId, studentId, message);
@@ -164,7 +168,6 @@ const TeacherLiveMonitor = () => {
                     </div>
 
                     <div className="overflow-x-auto hide-scrollbar">
-                        {/* 🟢 FIXED: Unnecessary gaps removed by utilizing 100% width and consistent padding */}
                         <table className="fixed-monitor-table text-left border-collapse">
                             <colgroup>
                                 <col style={{ width: '30%' }} />
@@ -249,7 +252,7 @@ const TeacherLiveMonitor = () => {
                             ) : (
                                 <tr>
                                     <td colSpan="5" className="p-20 text-center">
-                                        <p className="text-examsy-muted font-black">No active students found for this exam.</p>
+                                        <p className="text-examsy-muted font-black">No matching students found.</p>
                                     </td>
                                 </tr>
                             )}
