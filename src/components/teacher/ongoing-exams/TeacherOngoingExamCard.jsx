@@ -6,6 +6,28 @@ const TeacherOngoingExamCard = ({ exam, type }) => {
     const navigate = useNavigate();
     const isRealTime = type === 'real-time';
 
+    // 🟢 NEW: Helper function to convert raw minutes into Days, Hours, and Minutes
+    const formatRemainingTime = (timeStr) => {
+        // Pass through special status messages untouched
+        if (!timeStr || timeStr === "Ending soon" || timeStr === "Time TBA") return timeStr;
+
+        // Extract the total minutes from the backend string (e.g., "150m left" -> 150)
+        const totalMinutes = parseInt(timeStr.replace(/\D/g, ''), 10);
+
+        if (isNaN(totalMinutes)) return timeStr;
+
+        const d = Math.floor(totalMinutes / (24 * 60));
+        const h = Math.floor((totalMinutes % (24 * 60)) / 60);
+        const m = totalMinutes % 60;
+
+        let parts = [];
+        if (d > 0) parts.push(`${d}d`);
+        if (h > 0) parts.push(`${h}h`);
+        if (m > 0 || parts.length === 0) parts.push(`${m}m`);
+
+        return parts.join(' ');
+    };
+
     return (
         <div className="bg-examsy-surface rounded-[32px] border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-xl hover:shadow-examsy-primary/5 transition-all group">
             <div className="flex justify-between items-start mb-6">
@@ -22,7 +44,6 @@ const TeacherOngoingExamCard = ({ exam, type }) => {
 
             <div className="space-y-1 mb-6">
                 <h3 className="text-lg font-black text-examsy-text group-hover:text-examsy-primary transition-colors">{exam.title}</h3>
-                {/* 🟢 Using the DTO's className */}
                 <p className="text-sm font-bold text-examsy-muted">{exam.className}</p>
             </div>
 
@@ -33,8 +54,8 @@ const TeacherOngoingExamCard = ({ exam, type }) => {
                     </p>
                     <div className="flex items-center gap-2 font-black">
                         <Activity size={14} className="text-examsy-primary" />
-                        {/* 🟢 Using the DTO's fields */}
-                        <span>{isRealTime ? exam.remainingTime : `${exam.submissions}/${exam.totalStudents}`}</span>
+                        {/* 🟢 Implement the formatter here */}
+                        <span>{isRealTime ? formatRemainingTime(exam.remainingTime) : `${exam.submissions}/${exam.totalStudents}`}</span>
                     </div>
                 </div>
                 <div className="space-y-1">
@@ -43,7 +64,6 @@ const TeacherOngoingExamCard = ({ exam, type }) => {
                     </p>
                     <div className="flex items-center gap-2 font-black">
                         <Users size={14} className="text-examsy-primary" />
-                        {/* 🟢 Using the DTO's fields */}
                         <span className="truncate text-xs">{isRealTime ? `${exam.activeStudents} Joined` : exam.deadline}</span>
                     </div>
                 </div>
