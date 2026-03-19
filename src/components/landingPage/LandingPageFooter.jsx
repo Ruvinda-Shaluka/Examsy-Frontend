@@ -5,7 +5,8 @@ import React from "react";
 const LandingPageFooter = () => {
     // Function to handle the email contact button
     const handleContactClick = () => {
-        window.location.href = "mailto:info@examsy.com?subject=Inquiry about Examsy";
+        let contactMail = import.meta.env.VITE_CONTACT_EMAIL || 'ruvinda.dev@gmail.com'
+        window.location.href = `mailto:${contactMail}?subject=Inquiry about Examsy`;
     };
 
     return (
