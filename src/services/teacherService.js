@@ -101,12 +101,20 @@ export const teacherService = {
         const response = await api.get(`/teacher/classes/${classId}/requests`);
         return response.data.data;
     },
+
     approveRequest: async (requestId) => {
         const response = await api.post(`/teacher/classes/requests/${requestId}/approve`);
         return response.data;
     },
+
     rejectRequest: async (requestId) => {
         const response = await api.post(`/teacher/classes/requests/${requestId}/reject`);
         return response.data;
     },
+
+    getOngoingExams: async () => {
+        const response = await api.get('/teacher/exams/ongoing');
+        return response.data.data;
+    },
+
 }

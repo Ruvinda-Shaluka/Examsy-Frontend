@@ -1,13 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TeacherLayout from '../../../layouts/TeacherLayout.jsx';
-import TeacherOngoingExamCard from '../../../components/teacher/ongoing-exams/TeacherOngoingExamCard.jsx';
-import { MOCK_ONGOING_EXAMS } from '../../../data/TeacherMockData.js';
-import { Activity, Clock, ChevronDown, Filter } from 'lucide-react';
+import TeacherOngoingExamCard from './TeacherOngoingExamCard.jsx';
+import { Activity, Clock, ChevronDown, Filter, Loader2 } from 'lucide-react';
+import { teacherService } from '../../../services/teacherService'; // 🟢 Import the service
 
 const TeacherOngoing = () => {
-    // State to handle the filter selection
-    const [viewType, setViewType] = useState('all'); // 'all' | 'real-time' | 'deadline'
+    const [viewType, setViewType] = useState('all');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    // 🟢 New Real Data States
+    const [ongoingExams, setOngoingExams] = useState({ realTime: [], deadline: [] });
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchExams = async () => {
+            try {
+                const data = await teacherService.getOngoingExams();
+                setOngoingExams(data);
+            } catch (error) {
+                console.error("Failed to load ongoing exams", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchExams();
+    }, []);
 
     const filterOptions = [
         { id: 'all', label: 'All Ongoing Exams', icon: Filter },
@@ -16,6 +33,17 @@ const TeacherOngoing = () => {
     ];
 
     const currentOption = filterOptions.find(opt => opt.id === viewType);
+
+    if (isLoading) {
+        return (
+            <TeacherLayout>
+                <div className="flex flex-col items-center justify-center py-32 text-examsy-primary">
+                    <Loader2 className="animate-spin mb-4" size={40} />
+                    <p className="font-bold tracking-widest text-sm uppercase">Loading Sessions...</p>
+                </div>
+            </TeacherLayout>
+        );
+    }
 
     return (
         <TeacherLayout>
@@ -27,7 +55,6 @@ const TeacherOngoing = () => {
                         <p className="text-examsy-muted font-bold mt-1">Track active sessions and manage pending submission windows.</p>
                     </div>
 
-                    {/* Custom Dropdown Drawer */}
                     <div className="relative w-full md:w-72">
                         <button
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -77,11 +104,11 @@ const TeacherOngoing = () => {
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {MOCK_ONGOING_EXAMS.realTime.map(exam => (
+                                {ongoingExams.realTime.map(exam => (
                                     <TeacherOngoingExamCard key={exam.id} exam={exam} type="real-time" />
                                 ))}
                             </div>
-                            {MOCK_ONGOING_EXAMS.realTime.length === 0 && (
+                            {ongoingExams.realTime.length === 0 && (
                                 <p className="text-center py-10 text-examsy-muted font-bold italic">No live exams at this moment.</p>
                             )}
                         </section>
@@ -98,11 +125,11 @@ const TeacherOngoing = () => {
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {MOCK_ONGOING_EXAMS.deadline.map(exam => (
+                                {ongoingExams.deadline.map(exam => (
                                     <TeacherOngoingExamCard key={exam.id} exam={exam} type="deadline" />
                                 ))}
                             </div>
-                            {MOCK_ONGOING_EXAMS.deadline.length === 0 && (
+                            {ongoingExams.deadline.length === 0 && (
                                 <p className="text-center py-10 text-examsy-muted font-bold italic">No pending deadlines at this moment.</p>
                             )}
                         </section>

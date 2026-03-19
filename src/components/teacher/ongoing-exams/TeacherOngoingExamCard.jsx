@@ -22,7 +22,8 @@ const TeacherOngoingExamCard = ({ exam, type }) => {
 
             <div className="space-y-1 mb-6">
                 <h3 className="text-lg font-black text-examsy-text group-hover:text-examsy-primary transition-colors">{exam.title}</h3>
-                <p className="text-sm font-bold text-examsy-muted">{exam.class}</p>
+                {/* 🟢 Using the DTO's className */}
+                <p className="text-sm font-bold text-examsy-muted">{exam.className}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4 py-4 border-t border-zinc-100 dark:border-zinc-800 text-examsy-text">
@@ -32,7 +33,8 @@ const TeacherOngoingExamCard = ({ exam, type }) => {
                     </p>
                     <div className="flex items-center gap-2 font-black">
                         <Activity size={14} className="text-examsy-primary" />
-                        <span>{isRealTime ? '45m 12s' : `${exam.submissions}/${exam.totalStudents}`}</span>
+                        {/* 🟢 Using the DTO's fields */}
+                        <span>{isRealTime ? exam.remainingTime : `${exam.submissions}/${exam.totalStudents}`}</span>
                     </div>
                 </div>
                 <div className="space-y-1">
@@ -41,6 +43,7 @@ const TeacherOngoingExamCard = ({ exam, type }) => {
                     </p>
                     <div className="flex items-center gap-2 font-black">
                         <Users size={14} className="text-examsy-primary" />
+                        {/* 🟢 Using the DTO's fields */}
                         <span className="truncate text-xs">{isRealTime ? `${exam.activeStudents} Joined` : exam.deadline}</span>
                     </div>
                 </div>
