@@ -122,4 +122,13 @@ export const teacherService = {
         return response.data.data;
     },
 
+    broadcastToExam: async (examId, message) => {
+        const response = await api.post(`/teacher/exams/${examId}/broadcast`, { message });
+        return response.data;
+    },
+    warnStudent: async (examId, studentId, message) => {
+        const response = await api.post(`/teacher/exams/${examId}/warn/${studentId}`, { message });
+        return response.data;
+    },
+
 }

@@ -3,16 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import TeacherLayout from '../../../layouts/TeacherLayout.jsx';
 import { Search, ChevronLeft, CheckCircle2, ShieldAlert, Sparkles, MessageSquare, Send, Megaphone, X, Clock, Loader2 } from 'lucide-react';
 import StudentActionModal from '../../../components/teacher/live-monitor/StudentActionModal';
-import { teacherService } from '../../../services/teacherService'; // 🟢 Import the service
+import { teacherService } from '../../../services/teacherService';
+import CustomAlert from '../../../components/common/CustomAlert';
 
 const TeacherLiveMonitor = () => {
     const { examId } = useParams();
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
 
-    // 🟢 Real Data States
     const [liveStudents, setLiveStudents] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    // Global UI Alert State
+    const [alertInfo, setAlertInfo] = useState(null);
 
     // Broadcast Modal State
     const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
@@ -22,7 +25,6 @@ const TeacherLiveMonitor = () => {
     // Student Action Modal State
     const [selectedStudent, setSelectedStudent] = useState(null);
 
-    // 🟢 Fetch Data & Setup Polling
     useEffect(() => {
         const fetchMonitorData = async () => {
             try {
@@ -35,24 +37,17 @@ const TeacherLiveMonitor = () => {
             }
         };
 
-        // Initial fetch
         fetchMonitorData();
-
-        // Set up polling every 5 seconds for "Live" effect
         const intervalId = setInterval(fetchMonitorData, 5000);
-
-        // Cleanup on unmount
         return () => clearInterval(intervalId);
     }, [examId]);
 
-    // Memoize the filtered list
     const filteredStudents = useMemo(() => {
         return liveStudents.filter(s =>
             s.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [liveStudents, searchTerm]);
 
-    // Format seconds to mm:ss
     const formatTime = (totalSeconds) => {
         if (!totalSeconds) return "0s";
         const m = Math.floor(totalSeconds / 60);
@@ -60,18 +55,32 @@ const TeacherLiveMonitor = () => {
         return m > 0 ? `${m}m ${s}s` : `${s}s`;
     };
 
-    const handleSendBroadcast = () => {
+    // 🟢 ACTUAL BROADCAST LOGIC (PHASE 3)
+    const handleSendBroadcast = async () => {
         if (!broadcastMessage.trim()) return;
         setIsSending(true);
-        setTimeout(() => {
-            setIsSending(false);
+        try {
+            await teacherService.broadcastToExam(examId, broadcastMessage);
             setIsBroadcastOpen(false);
             setBroadcastMessage("");
-        }, 1500);
+            setAlertInfo({ type: 'success', title: 'Broadcast Sent', message: 'Your message was delivered to all active students.' });
+        } catch (error) {
+            console.error("Broadcast failed", error);
+            setAlertInfo({ type: 'error', title: 'Broadcast Failed', message: 'Could not send the message. Please try again.' });
+        } finally {
+            setIsSending(false);
+        }
     };
 
-    const handleWarnStudent = (studentId, message) => {
-        alert(`Warning sent to student ${studentId}: "${message}"`);
+    // 🟢 ACTUAL WARNING LOGIC (PHASE 3)
+    const handleWarnStudent = async (studentId, message) => {
+        try {
+            await teacherService.warnStudent(examId, studentId, message);
+            setAlertInfo({ type: 'success', title: 'Warning Sent', message: 'The direct warning was delivered to the student.' });
+        } catch (error) {
+            console.error("Warning failed", error);
+            setAlertInfo({ type: 'error', title: 'Warning Failed', message: 'Could not send the warning. Please try again.' });
+        }
     };
 
     const handleTerminateStudent = (studentId) => {
@@ -96,22 +105,18 @@ const TeacherLiveMonitor = () => {
         <TeacherLayout>
             <style>
                 {`
-                    .hide-scrollbar::-webkit-scrollbar {
-                        display: none;
-                    }
-                    .hide-scrollbar {
-                        -ms-overflow-style: none;
-                        scrollbar-width: none;
-                        scrollbar-gutter: stable !important;
-                    }
-                    .fixed-monitor-table {
-                        table-layout: fixed !important;
-                        width: 1100px !important; 
-                    }
+                    .hide-scrollbar::-webkit-scrollbar { display: none; }
+                    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; scrollbar-gutter: stable !important; }
+                    .fixed-monitor-table { table-layout: fixed !important; width: 100% !important; min-width: 1000px; }
                 `}
             </style>
 
             <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-fade-in relative hide-scrollbar">
+
+                {/* Custom Alert Overlay */}
+                {alertInfo && (
+                    <CustomAlert type={alertInfo.type} title={alertInfo.title} message={alertInfo.message} onClose={() => setAlertInfo(null)} />
+                )}
 
                 {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -159,16 +164,17 @@ const TeacherLiveMonitor = () => {
                     </div>
 
                     <div className="overflow-x-auto hide-scrollbar">
-                        <table className="fixed-monitor-table text-left">
+                        {/* 🟢 FIXED: Unnecessary gaps removed by utilizing 100% width and consistent padding */}
+                        <table className="fixed-monitor-table text-left border-collapse">
                             <colgroup>
-                                <col style={{ width: '320px' }} />
-                                <col style={{ width: '120px' }} />
-                                <col style={{ width: '250px' }} />
-                                <col style={{ width: '200px' }} />
-                                <col style={{ width: '210px' }} />
+                                <col style={{ width: '30%' }} />
+                                <col style={{ width: '15%' }} />
+                                <col style={{ width: '20%' }} />
+                                <col style={{ width: '20%' }} />
+                                <col style={{ width: '15%' }} />
                             </colgroup>
 
-                            <thead className="bg-examsy-bg/50">
+                            <thead className="bg-examsy-bg/50 border-b border-zinc-100 dark:border-zinc-800">
                             <tr className="text-[10px] font-black uppercase text-examsy-muted tracking-widest">
                                 <th className="px-8 py-4">Student</th>
                                 <th className="px-8 py-4 text-center">Status</th>
@@ -185,7 +191,6 @@ const TeacherLiveMonitor = () => {
                                         key={student.id}
                                         className={`transition-colors duration-200 ${student.flagged ? 'bg-red-500/[0.03]' : 'hover:bg-examsy-bg/30'}`}
                                     >
-                                        {/* Student Info */}
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-4 overflow-hidden">
                                                 <div className="w-10 h-10 rounded-xl bg-examsy-primary text-white flex-shrink-0 flex items-center justify-center font-black">
@@ -197,7 +202,6 @@ const TeacherLiveMonitor = () => {
                                             </div>
                                         </td>
 
-                                        {/* Status */}
                                         <td className="px-8 py-6">
                                             <div className="flex items-center justify-center gap-2">
                                                 <div className={`w-2 h-2 rounded-full flex-shrink-0 ${student.status === 'active' ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'}`} />
@@ -205,7 +209,6 @@ const TeacherLiveMonitor = () => {
                                             </div>
                                         </td>
 
-                                        {/* Integrity Badge */}
                                         <td className="px-8 py-6">
                                             {student.flagged ? (
                                                 <div className="flex items-center gap-2 text-red-500 bg-red-500/10 px-4 py-2 rounded-xl border border-red-500/20 inline-flex max-w-full overflow-hidden">
@@ -222,7 +225,6 @@ const TeacherLiveMonitor = () => {
                                             )}
                                         </td>
 
-                                        {/* Total Away Time */}
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-2 font-bold text-sm">
                                                 <Clock size={16} className={student.totalAwaySeconds > 90 ? 'text-red-500' : 'text-examsy-muted'} />
@@ -232,7 +234,6 @@ const TeacherLiveMonitor = () => {
                                             </div>
                                         </td>
 
-                                        {/* Action Buttons */}
                                         <td className="px-8 py-6">
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
