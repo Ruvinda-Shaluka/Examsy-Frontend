@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import TeacherLayout from '../../../layouts/TeacherLayout.jsx';
-import TeacherOngoingExamCard from './TeacherOngoingExamCard.jsx';
+import TeacherOngoingExamCard from '../../../components/teacher/ongoing-exams/TeacherOngoingExamCard.jsx';
 import { Activity, Clock, ChevronDown, Filter, Loader2 } from 'lucide-react';
 import { teacherService } from '../../../services/teacherService'; // 🟢 Import the service
 
