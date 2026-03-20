@@ -9,7 +9,7 @@ import AuthHeader from '../../components/auth/AuthHeader.jsx';
 import { authService } from '../../services/authService.js';
 import CustomAlert from "../../components/common/CustomAlert.jsx";
 
-// 🟢 NEW: Helper function to generate a unique Student Index Number
+// Helper function to generate a unique Student Index Number
 const generateStudentIndexNumber = () => {
     const year = new Date().getFullYear();
     const uniqueHash = Date.now().toString(36).toUpperCase();
@@ -21,7 +21,6 @@ const RegisterStudent = () => {
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Alert State
     const [alert, setAlert] = useState(null);
     const { login } = useExamsyAuth(() => setStep(2));
 
@@ -30,7 +29,7 @@ const RegisterStudent = () => {
         indexNumber: '', dateOfBirth: '', gender: 'Male', grade: 'Grade 10'
     });
 
-    // 🟢 NEW: Automatically generate the ID the millisecond the component loads
+    // Automatically generate the ID the millisecond the component loads
     useEffect(() => {
         setFormData(prev => ({
             ...prev,
@@ -125,13 +124,13 @@ const RegisterStudent = () => {
                 ) : (
                     <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4">
-                            <InputField label="Index Number" icon={<Hash size={18} />} id="indexNumber" value={formData.indexNumber} onChange={handleChange} type="text" placeholder="STU-2026-X" />
+                            {/* 🟢 NEW: readOnly flag added here */}
+                            <InputField label="Index Number" icon={<Hash size={18} />} id="indexNumber" value={formData.indexNumber} onChange={handleChange} type="text" placeholder="STU-2026-X" readOnly={true} />
                             <InputField label="Date of Birth" icon={<Calendar size={18} />} id="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} type="date" />
                             <SelectField label="Gender" id="gender" value={formData.gender} onChange={handleChange} options={['Male', 'Female', 'Other']} />
                             <SelectField label="Grade" id="grade" value={formData.grade} onChange={handleChange} options={['Grade 10', 'Grade 11', 'Advanced Level', 'University']} />
                         </div>
 
-                        {/* 🟢 NEW: Academic Note explaining the generated ID */}
                         <p className="text-xs text-examsy-muted italic leading-relaxed bg-examsy-surface p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
                             <span className="font-black text-examsy-text block mb-1">Enrollment Note:</span>
                             Your Index Number is automatically generated to uniquely identify you across all class sessions and exams.
