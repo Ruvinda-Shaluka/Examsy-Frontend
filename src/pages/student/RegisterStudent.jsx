@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Mail, Lock, Calendar, Hash, ArrowRight, GraduationCap } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useExamsyAuth } from '../../hooks/useExamsyAuth.js';
@@ -8,6 +8,13 @@ import AuthLayout from '../../components/auth/AuthLayout.jsx';
 import AuthHeader from '../../components/auth/AuthHeader.jsx';
 import { authService } from '../../services/authService.js';
 import CustomAlert from "../../components/common/CustomAlert.jsx";
+
+// 🟢 NEW: Helper function to generate a unique Student Index Number
+const generateStudentIndexNumber = () => {
+    const year = new Date().getFullYear();
+    const uniqueHash = Date.now().toString(36).toUpperCase();
+    return `STU-${year}-${uniqueHash}`;
+};
 
 const RegisterStudent = () => {
     const navigate = useNavigate();
@@ -22,6 +29,14 @@ const RegisterStudent = () => {
         fullName: '', email: '', username: '', password: '',
         indexNumber: '', dateOfBirth: '', gender: 'Male', grade: 'Grade 10'
     });
+
+    // 🟢 NEW: Automatically generate the ID the millisecond the component loads
+    useEffect(() => {
+        setFormData(prev => ({
+            ...prev,
+            indexNumber: generateStudentIndexNumber()
+        }));
+    }, []);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -45,13 +60,11 @@ const RegisterStudent = () => {
         } catch (err) {
             console.log(err.response);
 
-            // 🟢 FIXED: Safely extract the error message without the syntax error
             let errorMessage = "Please check your details and try again.";
 
             if (err.response?.data?.message) {
                 errorMessage = err.response.data.message;
             } else if (err.response?.data?.data) {
-                // If the backend sends an object of field errors, stringify it safely
                 errorMessage = typeof err.response.data.data === 'string'
                     ? err.response.data.data
                     : "Validation failed. Please check your inputs.";
@@ -74,7 +87,6 @@ const RegisterStudent = () => {
             quote="The beautiful thing about learning is that no one can take it away from you."
             author="B.B. King"
         >
-            {/* Render the CustomAlert if the alert state is not null */}
             {alert && (
                 <CustomAlert
                     type={alert.type}
@@ -113,11 +125,18 @@ const RegisterStudent = () => {
                 ) : (
                     <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4">
-                            <InputField label="Index Number" icon={<Hash size={18} />} id="indexNumber" value={formData.indexNumber} onChange={handleChange} type="text" placeholder="STU/2026/001" />
+                            <InputField label="Index Number" icon={<Hash size={18} />} id="indexNumber" value={formData.indexNumber} onChange={handleChange} type="text" placeholder="STU-2026-X" />
                             <InputField label="Date of Birth" icon={<Calendar size={18} />} id="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} type="date" />
                             <SelectField label="Gender" id="gender" value={formData.gender} onChange={handleChange} options={['Male', 'Female', 'Other']} />
                             <SelectField label="Grade" id="grade" value={formData.grade} onChange={handleChange} options={['Grade 10', 'Grade 11', 'Advanced Level', 'University']} />
                         </div>
+
+                        {/* 🟢 NEW: Academic Note explaining the generated ID */}
+                        <p className="text-xs text-examsy-muted italic leading-relaxed bg-examsy-surface p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                            <span className="font-black text-examsy-text block mb-1">Enrollment Note:</span>
+                            Your Index Number is automatically generated to uniquely identify you across all class sessions and exams.
+                        </p>
+
                         <button onClick={handleCompleteRegistration} disabled={isLoading} className="w-full bg-examsy-primary text-white h-12 rounded-2xl font-bold text-base shadow-lg shadow-examsy-primary/20 transition-all hover:scale-[1.01] disabled:opacity-50">
                             {isLoading ? 'Creating Account...' : 'Complete Registration'}
                         </button>
