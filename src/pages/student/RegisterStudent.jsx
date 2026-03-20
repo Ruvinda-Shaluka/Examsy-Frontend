@@ -28,27 +28,39 @@ const RegisterStudent = () => {
     };
 
     const handleCompleteRegistration = async () => {
-        setAlert(null); // Clear any existing alerts
+        setAlert(null);
         setIsLoading(true);
         try {
             await authService.registerStudent(formData);
-            // Trigger Success Alert
+
             setAlert({
                 type: 'success',
                 title: 'Registration Successful',
                 message: 'Your account has been created. Please log in to continue.',
                 onClose: () => {
                     setAlert(null);
-                    navigate('/login'); // Navigate to login after they close the alert
+                    navigate('/login');
                 }
             });
         } catch (err) {
-            console.error(err);
-            // Trigger Error Alert
+            console.log(err.response);
+
+            // 🟢 FIXED: Safely extract the error message without the syntax error
+            let errorMessage = "Please check your details and try again.";
+
+            if (err.response?.data?.message) {
+                errorMessage = err.response.data.message;
+            } else if (err.response?.data?.data) {
+                // If the backend sends an object of field errors, stringify it safely
+                errorMessage = typeof err.response.data.data === 'string'
+                    ? err.response.data.data
+                    : "Validation failed. Please check your inputs.";
+            }
+
             setAlert({
                 type: 'error',
                 title: 'Registration Failed',
-                message: err.response?.data?.message || "Please check your details and try again.",
+                message: errorMessage,
                 onClose: () => setAlert(null)
             });
         } finally {
