@@ -17,16 +17,6 @@ const ExamInterface = () => {
 
     const numericExamId = parseInt(examId, 10);
 
-    const [exam, setExam] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
-    const [timeLeft, setTimeLeft] = useState(0);
-    const [answers, setAnswers] = useState({});
-    const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
-    const [resultData, setResultData] = useState(null);
-
-    const [alertData, setAlertData] = useState(null);
-
     const {
         tabWarnings,
         isTabActive,
@@ -34,8 +24,18 @@ const ExamInterface = () => {
         setShowReturnAlert,
         lastAwayDuration,
         totalAwaySeconds,
-        formatDuration
+        formatDuration,
+        violationType
     } = useTabSecurity(numericExamId);
+
+    const [exam, setExam] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
+    const [timeLeft, setTimeLeft] = useState(0);
+    const [answers, setAnswers] = useState({});
+    const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+    const [resultData, setResultData] = useState(null);
+    const [alertData, setAlertData] = useState(null);
 
     // FETCH REAL EXAM
     useEffect(() => {
@@ -59,61 +59,13 @@ const ExamInterface = () => {
                     message: 'Exam not found or you have already submitted it.'
                 });
                 setTimeout(() => navigate('/student/dashboard'), 2500);
-                setIsLoading(false); // Make sure to stop loading even on error
+                setIsLoading(false);
             }
         };
         loadExam();
     }, [numericExamId, navigate]);
 
-    // TIMER LOGIC
-    useEffect(() => {
-        if (!exam) return;
-        const timer = setInterval(() => {
-            setTimeLeft(prev => {
-                if (prev <= 1) {
-                    clearInterval(timer);
-                    handleSubmit();
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-        return () => clearInterval(timer);
-    }, [exam]);
-
-    const formatTime = (seconds) => {
-        const h = Math.floor(seconds / 3600);
-        const m = Math.floor((seconds % 3600) / 60);
-        const s = seconds % 60;
-        return `${h > 0 ? h + ':' : ''}${m < 10 && h > 0 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
-    };
-
-    const handleNext = () => {
-        if (currentQuestionIdx < (exam?.questions?.length || 1) - 1) {
-            setCurrentQuestionIdx(prev => prev + 1);
-        }
-    };
-
-    const handlePrev = () => {
-        if (currentQuestionIdx > 0) {
-            setCurrentQuestionIdx(prev => prev - 1);
-        }
-    };
-
-    const handleSaveAnswer = (val) => {
-        const currentQ = exam.questions[currentQuestionIdx];
-        setAnswers(prev => ({ ...prev, [currentQ.id]: val }));
-    };
-
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (e.key === 'ArrowRight') handleNext();
-            if (e.key === 'ArrowLeft') handlePrev();
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [currentQuestionIdx, exam]);
-
+    // 🟢 MOVED: handleSubmit must be declared BEFORE the useEffect that calls it!
     const handleSubmit = async () => {
         try {
             const formattedAnswers = exam.questions?.map(q => ({
@@ -151,7 +103,56 @@ const ExamInterface = () => {
         }
     };
 
-    // 🟢 THE FIX: We added "|| !exam" here so React stops rendering if the exam is null
+    // TIMER LOGIC
+    useEffect(() => {
+        if (!exam) return;
+        const timer = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev <= 1) {
+                    clearInterval(timer);
+                    handleSubmit(); // <--- This is why it crashed previously.
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [exam]); // We ignore handleSubmit in deps to prevent infinite loops from recreation
+
+    const formatTime = (seconds) => {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+        return `${h > 0 ? h + ':' : ''}${m < 10 && h > 0 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    };
+
+    const handleNext = () => {
+        if (currentQuestionIdx < (exam?.questions?.length || 1) - 1) {
+            setCurrentQuestionIdx(prev => prev + 1);
+        }
+    };
+
+    const handlePrev = () => {
+        if (currentQuestionIdx > 0) {
+            setCurrentQuestionIdx(prev => prev - 1);
+        }
+    };
+
+    const handleSaveAnswer = (val) => {
+        const currentQ = exam.questions[currentQuestionIdx];
+        setAnswers(prev => ({ ...prev, [currentQ.id]: val }));
+    };
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'ArrowRight') handleNext();
+            if (e.key === 'ArrowLeft') handlePrev();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }); // Safe to omit deps here for keyboard listeners
+
     if (isLoading || !exam) {
         return (
             <div className="fixed inset-0 flex flex-col items-center justify-center bg-examsy-bg z-[100]">
@@ -194,6 +195,7 @@ const ExamInterface = () => {
                 totalAwaySeconds={totalAwaySeconds}
                 warningCount={tabWarnings}
                 formatDuration={formatDuration}
+                violationType={violationType}
             />
 
             {/* --- RESPONSIVE HEADER --- */}
@@ -221,7 +223,6 @@ const ExamInterface = () => {
                 </div>
 
                 <div className="flex items-center gap-4 md:gap-10 shrink-0">
-                    {/* RESPONSIVE TIMER: Visible on mobile, hides text */}
                     <div className="text-right flex flex-col items-end">
                         <div className="hidden md:flex items-center justify-end gap-2 text-examsy-muted mb-0.5">
                             <Clock size={12} />
@@ -243,16 +244,12 @@ const ExamInterface = () => {
                 </div>
             </header>
 
-            {/* RESPONSIVE LAYOUT: Column on Mobile, Row on Desktop */}
             <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-
-                {/* --- RESPONSIVE SIDEBAR/TOP NAV --- */}
                 <aside className="w-full md:w-[90px] border-b md:border-b-0 md:border-r border-zinc-200 dark:border-zinc-800 bg-examsy-surface/20 flex flex-row md:flex-col relative z-10 shrink-0">
                     <div className="hidden md:block p-4 border-b border-zinc-200 dark:border-zinc-800 text-center">
                         <p className="text-[9px] font-black uppercase tracking-widest text-examsy-muted">Index</p>
                     </div>
 
-                    {/* Horizontal scroll on mobile, vertical on desktop */}
                     <div className="flex-1 flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto p-3 gap-3" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         {exam.questions?.map((q, i) => (
                             <button
@@ -274,7 +271,6 @@ const ExamInterface = () => {
                     </div>
                 </aside>
 
-                {/* --- MAIN CONTENT --- */}
                 <main className="flex-1 p-4 md:p-12 overflow-y-auto bg-examsy-bg">
                     <div className="max-w-4xl mx-auto h-full flex flex-col">
 
@@ -331,7 +327,6 @@ const ExamInterface = () => {
                             )}
                         </div>
 
-                        {/* BOTTOM NAVIGATION FOR MOBILE */}
                         <div className="md:hidden flex justify-between mt-8 pt-6 border-t border-zinc-200 dark:border-zinc-800 pb-4">
                             <button onClick={handlePrev} disabled={currentQuestionIdx === 0} className="px-6 py-3.5 bg-examsy-surface rounded-xl font-bold text-sm disabled:opacity-50 border border-zinc-200 dark:border-zinc-800 shadow-sm">Previous</button>
                             <button onClick={handleNext} disabled={currentQuestionIdx === (exam?.questions?.length || 1) - 1} className="px-8 py-3.5 bg-examsy-primary text-white rounded-xl font-black text-sm disabled:opacity-50 shadow-lg shadow-purple-500/20">Next</button>

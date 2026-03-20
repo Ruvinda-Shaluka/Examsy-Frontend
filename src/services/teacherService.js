@@ -5,12 +5,12 @@ export const teacherService = {
         const response = await api.get('/teachers/me');
         return response.data.data; // Assumes your APIResponse puts the teacher in the "data" field
     },
+
     updateProfile: async (profileData) => {
         const response = await api.put('/teachers/me', profileData);
         return response.data.data;
     },
 
-    // Add these inside your existing teacherService object
     getClasses: async () => {
         const response = await api.get('/teacher/dashboard/classes');
         return response.data.data;
@@ -126,6 +126,7 @@ export const teacherService = {
         const response = await api.post(`/teacher/exams/${examId}/broadcast`, { message });
         return response.data;
     },
+
     warnStudent: async (examId, studentId, message) => {
         const response = await api.post(`/teacher/exams/${examId}/warn/${studentId}`, { message });
         return response.data;

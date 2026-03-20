@@ -71,4 +71,12 @@ export const studentService = {
         const response = await api.get('/student/dashboard/calendar/exams');
         return response.data.data;
     },
+
+    logProctoringEvent: async (examId, eventType, durationSeconds) => {
+        const response = await api.post(`/student/exams/${examId}/log-event`, {
+            eventType,
+            durationSeconds
+        });
+        return response.data.data; // This returns { totalFlags, totalAwaySeconds } to the hook
+    },
 };
