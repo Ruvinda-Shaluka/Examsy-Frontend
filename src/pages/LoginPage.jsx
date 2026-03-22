@@ -120,7 +120,7 @@ const LoginPage = () => {
 
                     {/* 🟢 Clean, native Google Button Link */}
                     <div className="mb-6 flex justify-center w-full">
-                        <GoogleAuthButton label="Continue with Google" />
+                        <GoogleAuthButton label="Continue with Google" role={role}/>
                     </div>
 
                     <div className="relative flex items-center gap-4 mb-6">
