@@ -21,7 +21,6 @@ const StatCard = ({ label, value, change, icon: Icon, color }) => {
                 <h3 className="text-3xl font-black text-examsy-text tracking-tight">{value}</h3>
                 <p className="text-sm font-bold text-examsy-muted mt-1">{label}</p>
             </div>
-            <div></div>
         </div>
     );
 };
