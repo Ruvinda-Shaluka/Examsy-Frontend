@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Lock, Calendar, Hash, ArrowRight, GraduationCap } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-// 🟢 NEW: Import the official Google component
-import { GoogleLogin } from '@react-oauth/google';
 
 import { InputField, SelectField } from '../../components/forms/FormHelpers.jsx';
 import AuthLayout from '../../components/auth/AuthLayout.jsx';
 import AuthHeader from '../../components/auth/AuthHeader.jsx';
 import { authService } from '../../services/authService.js';
 import CustomAlert from "../../components/common/CustomAlert.jsx";
+import GoogleAuthButton from '../../components/forms/GoogleAuthButton.jsx'; // 🟢 Added
 
 const generateStudentIndexNumber = () => {
     const year = new Date().getFullYear();
@@ -28,43 +27,11 @@ const RegisterStudent = () => {
     });
 
     useEffect(() => {
-        setFormData(prev => ({
-            ...prev,
-            indexNumber: generateStudentIndexNumber()
-        }));
+        setFormData(prev => ({ ...prev, indexNumber: generateStudentIndexNumber() }));
     }, []);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
-    };
-
-    // 🟢 NEW: Direct Google Authentication (Auto-Registers via Backend)
-    const handleGoogleSuccess = async (credentialResponse) => {
-        setIsLoading(true);
-        setAlert(null);
-        try {
-            // Pass the token and enforce the 'student' role
-            await authService.loginWithGoogle(credentialResponse.credential, 'student');
-
-            setAlert({
-                type: 'success',
-                title: 'Registration Successful',
-                message: `Account created via Google! Redirecting...`,
-                onClose: () => {
-                    setAlert(null);
-                    navigate('/student/dashboard');
-                }
-            });
-        } catch (error) {
-            console.error("Google auth failed", error);
-            setAlert({
-                type: 'error',
-                title: 'Google Sign-Up Failed',
-                message: error.response?.data?.message || "Failed to authenticate with Google."
-            });
-        } finally {
-            setIsLoading(false);
-        }
     };
 
     const handleCompleteRegistration = async () => {
@@ -72,46 +39,19 @@ const RegisterStudent = () => {
         setIsLoading(true);
         try {
             await authService.registerStudent(formData);
-            setAlert({
-                type: 'success',
-                title: 'Registration Successful',
-                message: 'Your account has been created. Please log in to continue.',
-                onClose: () => {
-                    setAlert(null);
-                    navigate('/login');
-                }
-            });
+            setAlert({ type: 'success', title: 'Registration Successful', message: 'Your account has been created. Please log in to continue.' });
+            setTimeout(() => { setAlert(null); navigate('/login'); }, 1500);
         } catch (err) {
             console.log(err.response);
-            let errorMessage = "Please check your details and try again.";
-            if (err.response?.data?.message) {
-                errorMessage = err.response.data.message;
-            } else if (err.response?.data?.data) {
-                errorMessage = typeof err.response.data.data === 'string'
-                    ? err.response.data.data
-                    : "Validation failed. Please check your inputs.";
-            }
-            setAlert({
-                type: 'error',
-                title: 'Registration Failed',
-                message: errorMessage,
-                onClose: () => setAlert(null)
-            });
-        } finally {
+            let errorMessage = err.response?.data?.message || (typeof err.response?.data?.data === 'string' ? err.response.data.data : "Validation failed. Please check your inputs.");
+            setAlert({ type: 'error', title: 'Registration Failed', message: errorMessage, onClose: () => setAlert(null) });
             setIsLoading(false);
         }
     };
 
     return (
-        <AuthLayout
-            image="https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80"
-            quote="The beautiful thing about learning is that no one can take it away from you."
-            author="B.B. King"
-        >
-            {alert && (
-                <CustomAlert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose} />
-            )}
-
+        <AuthLayout image="https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80" quote="The beautiful thing about learning is that no one can take it away from you." author="B.B. King">
+            {alert && <CustomAlert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose} />}
             <AuthHeader badgeIcon={GraduationCap} badgeText="Student Account" title="Create Your Account" subtitle={`Step ${step} of 2: ${step === 1 ? 'Basic Information' : 'Academic Profile'}`} />
 
             <div className="min-h-[330px]">
@@ -133,15 +73,9 @@ const RegisterStudent = () => {
                             <div className="h-px bg-zinc-200 dark:bg-zinc-800 flex-1"></div>
                         </div>
 
-                        {/* 🟢 NEW: Official Google Component */}
+                        {/* 🟢 Clean, native Google Button Link */}
                         <div className="flex justify-center w-full">
-                            <GoogleLogin
-                                onSuccess={handleGoogleSuccess}
-                                onError={() => setAlert({ type: 'error', title: 'Error', message: 'Google Sign-In failed or was cancelled.' })}
-                                text="signup_with"
-                                shape="rectangular"
-                                width="480px"
-                            />
+                            <GoogleAuthButton label="Sign up with Google" />
                         </div>
                     </div>
                 ) : (
@@ -152,18 +86,13 @@ const RegisterStudent = () => {
                             <SelectField label="Gender" id="gender" value={formData.gender} onChange={handleChange} options={['Male', 'Female', 'Other']} />
                             <SelectField label="Grade" id="grade" value={formData.grade} onChange={handleChange} options={['Grade 10', 'Grade 11', 'Advanced Level', 'University']} />
                         </div>
-
                         <p className="text-xs text-examsy-muted italic leading-relaxed bg-examsy-surface p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                            <span className="font-black text-examsy-text block mb-1">Enrollment Note:</span>
-                            Your Index Number is automatically generated to uniquely identify you across all class sessions and exams.
+                            <span className="font-black text-examsy-text block mb-1">Enrollment Note:</span> Your Index Number is automatically generated to uniquely identify you across all class sessions and exams.
                         </p>
-
                         <button onClick={handleCompleteRegistration} disabled={isLoading} className="w-full bg-examsy-primary text-white h-12 rounded-2xl font-bold text-base shadow-lg shadow-examsy-primary/20 transition-all hover:scale-[1.01] disabled:opacity-50">
                             {isLoading ? 'Creating Account...' : 'Complete Registration'}
                         </button>
-                        <button onClick={() => setStep(1)} disabled={isLoading} className="w-full text-xs text-examsy-muted font-bold hover:text-examsy-text transition-colors mt-2">
-                            ← Back to Step 1
-                        </button>
+                        <button onClick={() => setStep(1)} disabled={isLoading} className="w-full text-xs text-examsy-muted font-bold hover:text-examsy-text transition-colors mt-2">← Back to Step 1</button>
                     </div>
                 )}
             </div>

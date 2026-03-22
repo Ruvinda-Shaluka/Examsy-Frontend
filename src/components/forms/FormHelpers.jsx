@@ -2,13 +2,8 @@ import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
 export const InputField = ({ label, icon, id, type, placeholder, value, onChange, required, readOnly }) => {
-    // State to toggle password visibility
     const [showPassword, setShowPassword] = useState(false);
-
-    // Check if this specific field is meant to be a password
     const isPassword = type === 'password';
-
-    // Dynamically set the HTML input type
     const currentType = isPassword ? (showPassword ? 'text' : 'password') : type;
 
     return (
@@ -17,12 +12,9 @@ export const InputField = ({ label, icon, id, type, placeholder, value, onChange
                 {label}
             </label>
             <div className="relative">
-                {/* Left Icon */}
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
                     {icon}
                 </div>
-
-                {/* Input */}
                 <input
                     className={`w-full bg-examsy-bg border border-zinc-200 dark:border-zinc-700 rounded-2xl pl-14 py-3 text-sm focus:ring-4 focus:ring-examsy-primary/10 outline-none text-examsy-text transition-all duration-300 placeholder-examsy-muted/30 ${isPassword ? 'pr-12' : 'pr-4'} ${readOnly ? 'opacity-60 cursor-not-allowed select-none' : ''}`}
                     type={currentType}
@@ -31,10 +23,8 @@ export const InputField = ({ label, icon, id, type, placeholder, value, onChange
                     value={value}
                     onChange={onChange}
                     required={required}
-                    readOnly={readOnly} // 🟢 Passes the readOnly flag to the DOM
+                    readOnly={readOnly}
                 />
-
-                {/* Right Icon Toggle (Only renders if it's a password field) */}
                 {isPassword && (
                     <button
                         type="button"

@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Lock, Briefcase, BookOpen, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-// 🟢 NEW: Import the official Google component
-import { GoogleLogin } from '@react-oauth/google';
 
 import { InputField } from '../../components/forms/FormHelpers.jsx';
 import AuthLayout from '../../components/auth/AuthLayout.jsx';
 import AuthHeader from '../../components/auth/AuthHeader.jsx';
 import { authService } from '../../services/authService.js';
 import CustomAlert from "../../components/common/CustomAlert.jsx";
+import GoogleAuthButton from '../../components/forms/GoogleAuthButton.jsx'; // 🟢 Added
 
 const generateCorporateInstructorId = () => {
     const year = new Date().getFullYear();
@@ -28,43 +27,11 @@ const RegisterTeacher = () => {
     });
 
     useEffect(() => {
-        setFormData(prev => ({
-            ...prev,
-            instructorId: generateCorporateInstructorId()
-        }));
+        setFormData(prev => ({ ...prev, instructorId: generateCorporateInstructorId() }));
     }, []);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
-    };
-
-    // 🟢 NEW: Direct Google Authentication (Auto-Registers via Backend)
-    const handleGoogleSuccess = async (credentialResponse) => {
-        setIsLoading(true);
-        setAlert(null);
-        try {
-            // Pass the token and enforce the 'teacher' role
-            await authService.loginWithGoogle(credentialResponse.credential, 'teacher');
-
-            setAlert({
-                type: 'success',
-                title: 'Registration Successful',
-                message: `Account created via Google! Redirecting...`,
-                onClose: () => {
-                    setAlert(null);
-                    navigate('/teacher/dashboard');
-                }
-            });
-        } catch (error) {
-            console.error("Google auth failed", error);
-            setAlert({
-                type: 'error',
-                title: 'Google Sign-Up Failed',
-                message: error.response?.data?.message || "Failed to authenticate with Google."
-            });
-        } finally {
-            setIsLoading(false);
-        }
     };
 
     const handleCompleteRegistration = async () => {
@@ -72,38 +39,18 @@ const RegisterTeacher = () => {
         setIsLoading(true);
         try {
             await authService.registerTeacher(formData);
-            setAlert({
-                type: 'success',
-                title: 'Registration Successful',
-                message: 'Your faculty account has been created. Please log in.',
-                onClose: () => {
-                    setAlert(null);
-                    navigate('/login');
-                }
-            });
+            setAlert({ type: 'success', title: 'Registration Successful', message: 'Your faculty account has been created. Please log in.' });
+            setTimeout(() => { setAlert(null); navigate('/login'); }, 1500);
         } catch (err) {
             console.error(err);
-            setAlert({
-                type: 'error',
-                title: 'Registration Failed',
-                message: err.response?.data?.message || "Please verify your details and try again.",
-                onClose: () => setAlert(null)
-            });
-        } finally {
+            setAlert({ type: 'error', title: 'Registration Failed', message: err.response?.data?.message || "Please verify your details and try again.", onClose: () => setAlert(null) });
             setIsLoading(false);
         }
     };
 
     return (
-        <AuthLayout
-            image="https://images.unsplash.com/photo-1544531585-9847b68c8c86?q=80"
-            quote="It is the supreme art of the teacher to awaken joy in creative expression and knowledge."
-            author="Albert Einstein"
-        >
-            {alert && (
-                <CustomAlert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose} />
-            )}
-
+        <AuthLayout image="https://images.unsplash.com/photo-1544531585-9847b68c8c86?q=80" quote="It is the supreme art of the teacher to awaken joy in creative expression and knowledge." author="Albert Einstein">
+            {alert && <CustomAlert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose} />}
             <AuthHeader badgeIcon={ShieldCheck} badgeText="Faculty Registration" title="Join the Faculty" subtitle={step === 1 ? 'Step 1: Account Setup' : 'Step 2: Professional Verification'} />
 
             <div className="min-h-[330px]">
@@ -125,15 +72,9 @@ const RegisterTeacher = () => {
                             <div className="h-px bg-zinc-200 dark:bg-zinc-800 flex-1"></div>
                         </div>
 
-                        {/* 🟢 NEW: Official Google Component */}
+                        {/* 🟢 Clean, native Google Button Link */}
                         <div className="flex justify-center w-full">
-                            <GoogleLogin
-                                onSuccess={handleGoogleSuccess}
-                                onError={() => setAlert({ type: 'error', title: 'Error', message: 'Google Sign-In failed or was cancelled.' })}
-                                text="signup_with"
-                                shape="rectangular"
-                                width="480px"
-                            />
+                            <GoogleAuthButton label="Sign up with Google" />
                         </div>
                     </div>
                 ) : (
@@ -143,15 +84,12 @@ const RegisterTeacher = () => {
                             <InputField label="Specialization" icon={<BookOpen size={18} />} id="specialization" value={formData.specialization} onChange={handleChange} type="text" placeholder="Java / Physics" />
                         </div>
                         <p className="text-xs text-examsy-muted italic leading-relaxed bg-examsy-surface p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                            <span className="font-black text-examsy-text block mb-1">Verification Note:</span>
-                            Your Instructor ID is automatically generated to verify your authority to manage exams.
+                            <span className="font-black text-examsy-text block mb-1">Verification Note:</span> Your Instructor ID is automatically generated to verify your authority to manage exams.
                         </p>
                         <button onClick={handleCompleteRegistration} disabled={isLoading} className="w-full bg-examsy-primary text-white h-12 rounded-2xl font-bold text-base shadow-lg shadow-examsy-primary/20 transition-all hover:scale-[1.01] disabled:opacity-50">
                             {isLoading ? 'Verifying...' : 'Access Teacher Dashboard'}
                         </button>
-                        <button onClick={() => setStep(1)} disabled={isLoading} className="w-full text-xs text-examsy-muted font-bold hover:text-examsy-text transition-colors mt-2">
-                            ← Back to Step 1
-                        </button>
+                        <button onClick={() => setStep(1)} disabled={isLoading} className="w-full text-xs text-examsy-muted font-bold hover:text-examsy-text transition-colors mt-2">← Back to Step 1</button>
                     </div>
                 )}
             </div>

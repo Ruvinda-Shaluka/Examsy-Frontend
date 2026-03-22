@@ -18,21 +18,6 @@ export const authService = {
         return response.data;
     },
 
-    loginWithGoogle: async (googleToken, requestedRole) => {
-        const response = await api.post('/auth/google', {
-            token: googleToken,
-            role: requestedRole
-        });
-
-        const data = response.data.data;
-        if (data.token) {
-            localStorage.setItem('examsy_token', data.token);
-            localStorage.setItem('examsy_role', data.role);
-            api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
-        }
-        return data;
-    },
-
     logout: () => {
         localStorage.removeItem('examsy_token');
         localStorage.removeItem('examsy_role');
@@ -75,10 +60,12 @@ export const authService = {
         const response = await api.post('/auth/forgot-password', { email });
         return response.data;
     },
+
     verifyResetCode: async (email, code) => {
         const response = await api.post('/auth/verify-code', { email, code });
         return response.data;
     },
+
     resetPassword: async (email, code, newPassword) => {
         const response = await api.post('/auth/reset-password', { email, code, newPassword });
         return response.data;

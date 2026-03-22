@@ -1,79 +1,24 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, User, GraduationCap, ChevronLeft, Eye, EyeOff } from 'lucide-react';
-// 🟢 Import the official GoogleLogin component
-import { GoogleLogin } from '@react-oauth/google';
 
 import TextPressure from '../components/logo/TextPressure.jsx';
 import { useTheme } from '../theme/useTheme.jsx';
 import { authService } from '../services/authService.js';
 import CustomAlert from '../components/common/CustomAlert.jsx';
 import { teacherService } from "../services/teacherService.js";
+import GoogleAuthButton from '../components/forms/GoogleAuthButton.jsx'; // 🟢 Import the clean button
 
 const LoginPage = () => {
     const { theme } = useTheme();
     const navigate = useNavigate();
 
-    // Form & UI State
     const [role, setRole] = useState('student');
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-
-    // Alert State
     const [alert, setAlert] = useState(null);
-
-    // 🟢 Handle successful Google Auth with Auto-Redirect
-    const handleGoogleSuccess = async (credentialResponse) => {
-        setIsLoading(true);
-        setAlert(null);
-        try {
-            // Send the Google ID Token and the currently selected role to the backend
-            const result = await authService.loginWithGoogle(credentialResponse.credential, role);
-
-            // Handle specific post-login actions (like rotating class codes for teachers)
-            if (result.role === 'TEACHER') {
-                try {
-                    await teacherService.rotateClassCodes();
-                } catch (rotationError) {
-                    console.error("Failed to rotate class codes during Google login:", rotationError);
-                }
-            }
-
-            setAlert({
-                type: 'success',
-                title: 'Login Successful',
-                message: `Welcome back via Google! Redirecting...`,
-            });
-
-            // 🟢 NEW: Auto-redirect after 1.5 seconds instead of waiting for a click
-            setTimeout(() => {
-                setAlert(null);
-                navigate(result.role === 'ADMIN' ? '/admin/dashboard' : result.role === 'TEACHER' ? '/teacher/dashboard' : '/student/dashboard');
-            }, 1500);
-
-        } catch (error) {
-            console.error("Google login failed", error);
-            setAlert({
-                type: 'error',
-                title: 'Google Login Failed',
-                message: error.response?.data?.message || "Failed to authenticate with Google. Please try again.",
-                onClose: () => setAlert(null)
-            });
-            setIsLoading(false); // Only stop loading if it failed, otherwise let it ride out the redirect
-        }
-    };
-
-    // Handle failed Google Auth popup
-    const handleGoogleError = () => {
-        setAlert({
-            type: 'error',
-            title: 'Login Cancelled',
-            message: "Google Sign-In was cancelled or failed to initialize.",
-            onClose: () => setAlert(null)
-        });
-    };
 
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
@@ -82,7 +27,6 @@ const LoginPage = () => {
 
         try {
             await authService.login(identifier, password);
-
             const userRole = localStorage.getItem('examsy_role');
 
             if (
@@ -103,83 +47,43 @@ const LoginPage = () => {
             }
 
             if (userRole === 'ADMIN') {
-                setAlert({
-                    type: 'success',
-                    title: 'Login Successful',
-                    message: `Welcome back, ${identifier}! Redirecting to your dashboard.`,
-                });
-                setTimeout(() => {
-                    setAlert(null);
-                    navigate('/admin/dashboard');
-                }, 1500);
+                setAlert({ type: 'success', title: 'Login Successful', message: `Welcome back, ${identifier}! Redirecting to your dashboard.` });
+                setTimeout(() => { setAlert(null); window.location.href = '/admin/dashboard'; }, 1500);
             }
             else if (userRole === 'TEACHER') {
                 try {
                     await teacherService.rotateClassCodes();
-
-                    setAlert({
-                        type: 'success',
-                        title: 'Login Successful',
-                        message: `Welcome back, ${identifier}! Redirecting to your dashboard.`,
-                    });
-                    setTimeout(() => {
-                        setAlert(null);
-                        navigate('/teacher/dashboard');
-                    }, 1500);
-
+                    setAlert({ type: 'success', title: 'Login Successful', message: `Welcome back, ${identifier}! Redirecting to your dashboard.` });
+                    setTimeout(() => { setAlert(null); window.location.href = '/teacher/dashboard'; }, 1500);
                 } catch (rotationError) {
                     console.error("Failed to rotate class codes during login:", rotationError);
-
                     setIsLoading(false);
-
                     setAlert({
                         type: 'error',
                         title: 'System Update Failed',
-                        message: 'Updating class codes failed. For security reasons, you will be logged out once you close this message. Please try again.',
+                        message: 'Updating class codes failed. For security reasons, you will be logged out. Please try again.',
                         onClose: () => {
                             localStorage.removeItem('examsy_token');
                             localStorage.removeItem('examsy_role');
                             setAlert(null);
                         }
                     });
-
                     return;
                 }
-
             } else {
-                setAlert({
-                    type: 'success',
-                    title: 'Login Successful',
-                    message: `Welcome back, ${identifier}! Redirecting to your dashboard.`,
-                });
-                setTimeout(() => {
-                    setAlert(null);
-                    navigate('/student/dashboard');
-                }, 1500);
+                setAlert({ type: 'success', title: 'Login Successful', message: `Welcome back, ${identifier}! Redirecting to your dashboard.` });
+                setTimeout(() => { setAlert(null); window.location.href = '/student/dashboard'; }, 1500);
             }
         } catch (err) {
             console.error("Login failed", err);
-            setAlert({
-                type: 'error',
-                title: 'Login Failed',
-                message: "Invalid username or password. Please try again.",
-                onClose: () => setAlert(null)
-            });
+            setAlert({ type: 'error', title: 'Login Failed', message: "Invalid username or password. Please try again.", onClose: () => setAlert(null) });
             setIsLoading(false);
         }
     };
 
     return (
         <div className="min-h-screen w-full flex bg-examsy-bg transition-colors duration-500 relative overflow-hidden">
-
-            {alert && (
-                <CustomAlert
-                    type={alert.type}
-                    title={alert.title}
-                    message={alert.message}
-                    onClose={alert.onClose}
-                />
-            )}
+            {alert && <CustomAlert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose} />}
 
             <Link to="/" className="absolute top-6 left-6 z-[110] flex items-center gap-2 px-4 py-2 bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-xl text-examsy-muted hover:text-examsy-primary hover:border-examsy-primary/30 transition-all duration-300 group shadow-sm">
                 <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
@@ -192,7 +96,7 @@ const LoginPage = () => {
                     <div className="mb-10 relative h-[60px] w-[200px]">
                         <TextPressure text="Examsy !" flex alpha={false} stroke={false} width weight={false} italic textColor={theme === 'dark' ? '#fff' : '#465ed2'} strokeColor="#5227FF" minFontSize={36} />
                     </div>
-                    <img src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=2072&auto=format&fit=crop" alt="Learning Illustration" className="w-full h-64 object-cover rounded-3xl shadow-2xl mb-8 border border-white/10 opacity-90 transition-all duration-500" />
+                    <img src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=2072&auto=format&fit=crop" alt="Learning" className="w-full h-64 object-cover rounded-3xl shadow-2xl mb-8 border border-white/10 opacity-90 transition-all duration-500" />
                     <h2 className="text-3xl font-bold text-examsy-text mb-3 leading-tight">Empower Your Future.</h2>
                     <div className="space-y-1.5">
                         <p className="text-lg text-examsy-muted leading-relaxed italic">"Education is the passport to the future, for tomorrow belongs to those who prepare for it today."</p>
@@ -209,24 +113,14 @@ const LoginPage = () => {
 
                         <div className="mt-6 relative inline-flex p-1.5 bg-examsy-surface rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-inner w-72">
                             <div className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-examsy-primary rounded-xl transition-all duration-300 ease-out z-0 shadow-lg shadow-examsy-primary/30 ${role === 'teacher' ? 'translate-x-[calc(100%+0px)]' : 'translate-x-0'}`} />
-                            <button type="button" onClick={() => setRole('student')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-bold z-10 transition-colors duration-300 ${role === 'student' ? 'text-white' : 'text-examsy-muted hover:text-examsy-text'}`}>
-                                <GraduationCap size={18} /> Student
-                            </button>
-                            <button type="button" onClick={() => setRole('teacher')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-bold z-10 transition-colors duration-300 ${role === 'teacher' ? 'text-white' : 'text-examsy-muted hover:text-examsy-text'}`}>
-                                <User size={18} /> Teacher
-                            </button>
+                            <button type="button" onClick={() => setRole('student')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-bold z-10 transition-colors duration-300 ${role === 'student' ? 'text-white' : 'text-examsy-muted hover:text-examsy-text'}`}><GraduationCap size={18} /> Student</button>
+                            <button type="button" onClick={() => setRole('teacher')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-bold z-10 transition-colors duration-300 ${role === 'teacher' ? 'text-white' : 'text-examsy-muted hover:text-examsy-text'}`}><User size={18} /> Teacher</button>
                         </div>
                     </div>
 
+                    {/* 🟢 Clean, native Google Button Link */}
                     <div className="mb-6 flex justify-center w-full">
-                        <GoogleLogin
-                            onSuccess={handleGoogleSuccess}
-                            onError={handleGoogleError}
-                            theme={theme === 'dark' ? 'filled_black' : 'outline'}
-                            text="continue_with"
-                            shape="rectangular"
-                            width="480px"
-                        />
+                        <GoogleAuthButton label="Continue with Google" />
                     </div>
 
                     <div className="relative flex items-center gap-4 mb-6">
@@ -240,14 +134,7 @@ const LoginPage = () => {
                             <label className="text-[11px] font-black uppercase tracking-widest text-examsy-muted ml-1">Username</label>
                             <div className="relative">
                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-                                <input
-                                    type="text"
-                                    value={identifier}
-                                    onChange={(e) => setIdentifier(e.target.value)}
-                                    required
-                                    className="w-full pl-12 pr-4 h-12 bg-examsy-surface border border-zinc-200 dark:border-zinc-700 focus:border-examsy-primary focus:ring-4 focus:ring-examsy-primary/10 rounded-2xl outline-none transition-all text-examsy-text placeholder-examsy-muted/30 text-sm"
-                                    placeholder="johndoe_1"
-                                />
+                                <input type="text" value={identifier} onChange={(e) => setIdentifier(e.target.value)} required className="w-full pl-12 pr-4 h-12 bg-examsy-surface border border-zinc-200 dark:border-zinc-700 focus:border-examsy-primary focus:ring-4 focus:ring-examsy-primary/10 rounded-2xl outline-none transition-all text-examsy-text placeholder-examsy-muted/30 text-sm" placeholder="johndoe_1" />
                             </div>
                         </div>
 
@@ -255,19 +142,8 @@ const LoginPage = () => {
                             <label className="text-[11px] font-black uppercase tracking-widest text-examsy-muted ml-1">Password</label>
                             <div className="relative">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                    className="w-full pl-12 pr-12 h-12 bg-examsy-surface border border-zinc-200 dark:border-zinc-700 focus:border-examsy-primary focus:ring-4 focus:ring-examsy-primary/10 rounded-2xl outline-none transition-all text-examsy-text placeholder-examsy-muted/30 text-sm"
-                                    placeholder="••••••••••••"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-examsy-primary transition-colors focus:outline-none"
-                                >
+                                <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required className="w-full pl-12 pr-12 h-12 bg-examsy-surface border border-zinc-200 dark:border-zinc-700 focus:border-examsy-primary focus:ring-4 focus:ring-examsy-primary/10 rounded-2xl outline-none transition-all text-examsy-text placeholder-examsy-muted/30 text-sm" placeholder="••••••••••••" />
+                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-examsy-primary transition-colors focus:outline-none">
                                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                 </button>
                             </div>
@@ -275,12 +151,9 @@ const LoginPage = () => {
 
                         <div className="flex items-center justify-between text-xs pt-1">
                             <label className="flex items-center gap-2 cursor-pointer text-examsy-muted font-bold">
-                                <input type="checkbox" className="w-4 h-4 rounded accent-examsy-primary border-zinc-300 dark:border-zinc-700" />
-                                Remember me
+                                <input type="checkbox" className="w-4 h-4 rounded accent-examsy-primary border-zinc-300 dark:border-zinc-700" /> Remember me
                             </label>
-                            <Link to="/forgot-password" className="text-examsy-primary font-black hover:underline underline-offset-4">
-                                Forgot Password?
-                            </Link>
+                            <Link to="/forgot-password" className="text-examsy-primary font-black hover:underline underline-offset-4">Forgot Password?</Link>
                         </div>
 
                         <button type="submit" disabled={isLoading} className="w-full bg-examsy-primary hover:bg-examsy-primary/90 text-white h-12 rounded-2xl font-black text-base shadow-lg shadow-examsy-primary/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50">
@@ -289,10 +162,7 @@ const LoginPage = () => {
                     </form>
 
                     <p className="text-center text-examsy-muted mt-6 font-bold text-sm">
-                        Don't have an account yet? {' '}
-                        <Link to={role === 'student' ? "/register-student" : "/register-teacher"} className="text-examsy-primary font-black hover:underline underline-offset-4 transition-all">
-                            Sign up now
-                        </Link>
+                        Don't have an account yet? <Link to={role === 'student' ? "/register-student" : "/register-teacher"} className="text-examsy-primary font-black hover:underline underline-offset-4 transition-all">Sign up now</Link>
                     </p>
                 </div>
             </div>
