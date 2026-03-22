@@ -24,7 +24,7 @@ const LoginPage = () => {
     // Alert State
     const [alert, setAlert] = useState(null);
 
-    // 🟢 NEW: Handle successful Google Auth
+    // 🟢 Handle successful Google Auth with Auto-Redirect
     const handleGoogleSuccess = async (credentialResponse) => {
         setIsLoading(true);
         setAlert(null);
@@ -38,8 +38,6 @@ const LoginPage = () => {
                     await teacherService.rotateClassCodes();
                 } catch (rotationError) {
                     console.error("Failed to rotate class codes during Google login:", rotationError);
-                    // Decide if you want to abort login here, or just log the error and continue.
-                    // For now, we proceed to dashboard.
                 }
             }
 
@@ -47,30 +45,33 @@ const LoginPage = () => {
                 type: 'success',
                 title: 'Login Successful',
                 message: `Welcome back via Google! Redirecting...`,
-                onClose: () => {
-                    setAlert(null);
-                    // Route based on what the backend says they actually are
-                    navigate(result.role === 'ADMIN' ? '/admin/dashboard' : result.role === 'TEACHER' ? '/teacher/dashboard' : '/student/dashboard');
-                }
             });
+
+            // 🟢 NEW: Auto-redirect after 1.5 seconds instead of waiting for a click
+            setTimeout(() => {
+                setAlert(null);
+                navigate(result.role === 'ADMIN' ? '/admin/dashboard' : result.role === 'TEACHER' ? '/teacher/dashboard' : '/student/dashboard');
+            }, 1500);
+
         } catch (error) {
             console.error("Google login failed", error);
             setAlert({
                 type: 'error',
                 title: 'Google Login Failed',
-                message: error.response?.data?.message || "Failed to authenticate with Google. Please try again."
+                message: error.response?.data?.message || "Failed to authenticate with Google. Please try again.",
+                onClose: () => setAlert(null)
             });
-        } finally {
-            setIsLoading(false);
+            setIsLoading(false); // Only stop loading if it failed, otherwise let it ride out the redirect
         }
     };
 
-    // 🟢 NEW: Handle failed Google Auth popup
+    // Handle failed Google Auth popup
     const handleGoogleError = () => {
         setAlert({
             type: 'error',
             title: 'Login Cancelled',
-            message: "Google Sign-In was cancelled or failed to initialize."
+            message: "Google Sign-In was cancelled or failed to initialize.",
+            onClose: () => setAlert(null)
         });
     };
 
@@ -106,11 +107,11 @@ const LoginPage = () => {
                     type: 'success',
                     title: 'Login Successful',
                     message: `Welcome back, ${identifier}! Redirecting to your dashboard.`,
-                    onClose: () => {
-                        setAlert(null);
-                        navigate('/admin/dashboard');
-                    }
                 });
+                setTimeout(() => {
+                    setAlert(null);
+                    navigate('/admin/dashboard');
+                }, 1500);
             }
             else if (userRole === 'TEACHER') {
                 try {
@@ -120,11 +121,11 @@ const LoginPage = () => {
                         type: 'success',
                         title: 'Login Successful',
                         message: `Welcome back, ${identifier}! Redirecting to your dashboard.`,
-                        onClose: () => {
-                            setAlert(null);
-                            navigate('/teacher/dashboard');
-                        }
                     });
+                    setTimeout(() => {
+                        setAlert(null);
+                        navigate('/teacher/dashboard');
+                    }, 1500);
 
                 } catch (rotationError) {
                     console.error("Failed to rotate class codes during login:", rotationError);
@@ -150,11 +151,11 @@ const LoginPage = () => {
                     type: 'success',
                     title: 'Login Successful',
                     message: `Welcome back, ${identifier}! Redirecting to your dashboard.`,
-                    onClose: () => {
-                        setAlert(null);
-                        navigate('/student/dashboard');
-                    }
                 });
+                setTimeout(() => {
+                    setAlert(null);
+                    navigate('/student/dashboard');
+                }, 1500);
             }
         } catch (err) {
             console.error("Login failed", err);
@@ -164,7 +165,6 @@ const LoginPage = () => {
                 message: "Invalid username or password. Please try again.",
                 onClose: () => setAlert(null)
             });
-        } finally {
             setIsLoading(false);
         }
     };
@@ -218,7 +218,6 @@ const LoginPage = () => {
                         </div>
                     </div>
 
-                    {/* 🟢 NEW: Official Google Login Component */}
                     <div className="mb-6 flex justify-center w-full">
                         <GoogleLogin
                             onSuccess={handleGoogleSuccess}
