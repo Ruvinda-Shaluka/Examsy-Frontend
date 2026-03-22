@@ -75,7 +75,7 @@ const RegisterStudent = () => {
 
                         {/* 🟢 Clean, native Google Button Link */}
                         <div className="flex justify-center w-full">
-                            <GoogleAuthButton label="Sign up with Google" />
+                            <GoogleAuthButton label="Sign up with Google" role='studnet'/>
                         </div>
                     </div>
                 ) : (
