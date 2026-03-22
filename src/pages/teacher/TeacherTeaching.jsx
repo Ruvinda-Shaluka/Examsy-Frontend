@@ -37,7 +37,7 @@ const TeacherTeaching = () => {
             return setAlert({type:'error', title:'Error', message:'Please select at least one class to assign the exam.'});
         }
 
-        // 🟢 FIXED: Smart Step 2 Validation
+        // Smart Step 2 Validation
         if (step === 2) {
             if (!examData.title.trim() || !examData.mode || !examData.type || !examData.date) {
                 return setAlert({type:'error', title:'Incomplete Data', message:'Please fill out the Exam Title and select basic formats.'});
@@ -60,11 +60,48 @@ const TeacherTeaching = () => {
     };
 
     const handlePublish = async () => {
+        // 🟢 FINAL STEP VALIDATION: Block publishing if MCQ data is incomplete
+        if (examData.type === 'mcq') {
+            if (!examData.questions || examData.questions.length === 0) {
+                return setAlert({type: 'error', title: 'Empty Exam', message: 'You must add at least one question before publishing.'});
+            }
+
+            // Check for missing correct answers
+            const hasIncompleteQuestions = examData.questions.some(q => q.correctOptionIndex === null);
+            if (hasIncompleteQuestions) {
+                return setAlert({
+                    type: 'error',
+                    title: 'Incomplete Exam',
+                    message: 'All multiple choice questions must have a correct answer selected before publishing.'
+                });
+            }
+
+            // Check for empty question text
+            const hasEmptyText = examData.questions.some(q => !q.questionText || q.questionText.trim() === '');
+            if (hasEmptyText) {
+                return setAlert({
+                    type: 'error',
+                    title: 'Missing Question Text',
+                    message: 'Please ensure all questions have their text written before publishing.'
+                });
+            }
+        }
+
+        // 🟢 FINAL STEP VALIDATION: Check Short Answer and PDF
+        if (examData.type === 'short') {
+            if (!examData.questions || examData.questions.length === 0) {
+                return setAlert({type: 'error', title: 'Empty Exam', message: 'You must add at least one question before publishing.'});
+            }
+        }
+        if (examData.type === 'pdf' && !examData.pdfFile) {
+            return setAlert({type: 'error', title: 'Missing File', message: 'Please upload a PDF document before publishing.'});
+        }
+
         setIsPublishing(true);
         setAlert(null);
 
         try {
-            // 🟢 NEW: Auto-calculate duration for Real-Time exams so the backend doesn't crash!
+            // Auto-calculate duration for Real-Time exams
             let finalDuration = parseInt(examData.duration);
 
             if (examData.mode === 'real-time') {
@@ -97,7 +134,7 @@ const TeacherTeaching = () => {
                 title: examData.title,
                 examMode: examData.mode.toUpperCase(),
                 examType: examData.type.toUpperCase(),
-                durationMinutes: finalDuration, // 🟢 Sends the auto-calculated duration!
+                durationMinutes: finalDuration,
                 scheduledStartTime: examData.mode === 'real-time' ? combineDateTime(examData.date, examData.startTime) : null,
                 deadlineTime: examData.mode === 'deadline' ? combineDateTime(examData.date, examData.deadlineTime) : combineDateTime(examData.date, examData.endTime),
                 pdfResourceUrl: finalPdfUrl,

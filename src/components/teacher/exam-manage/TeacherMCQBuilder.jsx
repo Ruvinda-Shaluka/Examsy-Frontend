@@ -1,7 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, ListChecks, CheckCircle2, XCircle } from 'lucide-react';
+import CustomAlert from '../../common/CustomAlert.jsx'; // Make sure this path matches your project structure
 
 const TeacherMCQBuilder = ({ questions, onChange }) => {
+    // 🟢 NEW: Local state for handling validation alerts
+    const [alert, setAlert] = useState(null);
 
     // Auto-initialize the first empty question if the parent passes an empty array
     useEffect(() => {
@@ -19,14 +22,46 @@ const TeacherMCQBuilder = ({ questions, onChange }) => {
     };
 
     const addQuestion = () => {
+        // 🟢 NEW: Validation check before adding a new question
+        const incompleteIndex = safeQuestions.findIndex(q => q.correctOptionIndex === null);
+
+        if (incompleteIndex !== -1) {
+            setAlert({
+                type: 'error',
+                title: 'Action Blocked',
+                message: `Please select the correct answer for Question ${incompleteIndex + 1} before adding a new one.`,
+                onClose: () => setAlert(null)
+            });
+            return; // Stop execution, don't add the new question
+        }
+
+        // Check if question text is empty (Optional but recommended UX)
+        const emptyTextIndex = safeQuestions.findIndex(q => q.questionText.trim() === '');
+        if (emptyTextIndex !== -1) {
+            setAlert({
+                type: 'error',
+                title: 'Missing Information',
+                message: `Please write the question text for Question ${emptyTextIndex + 1} before moving on.`,
+                onClose: () => setAlert(null)
+            });
+            return;
+        }
+
+        // If everything is valid, add the new question
         onChange([...safeQuestions, { id: Date.now(), questionText: '', points: 1, options: ['', '', '', ''], correctOptionIndex: null }]);
     };
 
     const removeQuestion = (id) => {
         if (safeQuestions.length > 1) {
             onChange(safeQuestions.filter(q => q.id !== id));
+            setAlert(null); // Clear any lingering alerts
         } else {
-            alert("You must have at least one question.");
+            setAlert({
+                type: 'error',
+                title: 'Action Blocked',
+                message: 'You must have at least one question in your exam.',
+                onClose: () => setAlert(null)
+            });
         }
     };
 
@@ -53,6 +88,13 @@ const TeacherMCQBuilder = ({ questions, onChange }) => {
                 newQuestions[qIdx].correctOptionIndex -= 1;
             }
             onChange(newQuestions);
+        } else {
+            setAlert({
+                type: 'error',
+                title: 'Minimum Options',
+                message: 'A multiple choice question must have at least 2 options.',
+                onClose: () => setAlert(null)
+            });
         }
     };
 
@@ -60,10 +102,21 @@ const TeacherMCQBuilder = ({ questions, onChange }) => {
         const newQuestions = [...safeQuestions];
         newQuestions[qIdx].correctOptionIndex = oIdx;
         onChange(newQuestions);
+        setAlert(null); // Clear alert once they select an answer
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
+            {/* 🟢 NEW: Render the alert if it exists */}
+            {alert && (
+                <CustomAlert
+                    type={alert.type}
+                    title={alert.title}
+                    message={alert.message}
+                    onClose={alert.onClose}
+                />
+            )}
+
             <div className="bg-examsy-surface p-6 md:p-10 rounded-[40px] border border-zinc-200 dark:border-zinc-800 shadow-sm">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
                     <div className="flex items-center gap-4">
@@ -79,7 +132,15 @@ const TeacherMCQBuilder = ({ questions, onChange }) => {
 
                 <div className="space-y-10">
                     {safeQuestions.map((q, qIdx) => (
-                        <div key={q.id || qIdx} className="p-6 md:p-8 bg-examsy-bg rounded-[32px] border border-zinc-200 dark:border-zinc-800 relative group animate-in slide-in-from-bottom-2">
+                        <div key={q.id || qIdx} className={`p-6 md:p-8 bg-examsy-bg rounded-[32px] border relative group animate-in slide-in-from-bottom-2 transition-all ${q.correctOptionIndex === null ? 'border-red-400/50 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'border-zinc-200 dark:border-zinc-800'}`}>
+
+                            {/* 🟢 Visual indicator for missing answer */}
+                            {q.correctOptionIndex === null && (
+                                <div className="absolute -top-3 left-8 px-3 py-1 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-md">
+                                    Needs Correct Answer
+                                </div>
+                            )}
+
                             <button
                                 onClick={() => removeQuestion(q.id)}
                                 className="absolute -top-3 -right-3 p-2.5 bg-red-500 text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:scale-110"
