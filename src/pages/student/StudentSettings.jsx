@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import StudentLayout from "../../layouts/StudentLayout.jsx";
 import { studentService } from '../../services/studentService.js';
 import CustomAlert from '../../components/common/CustomAlert.jsx';
-import { Mail, Smartphone, Shield, Save, Camera, User, BookOpen, Hash, FileText } from 'lucide-react';
+// 🟢 Added Calendar, Users, and GraduationCap icons for the new fields
+import { Mail, Smartphone, Shield, Save, Camera, User, BookOpen, Hash, FileText, Calendar, Users, GraduationCap } from 'lucide-react';
 
 const StudentSettings = () => {
     const fileInputRef = useRef(null);
@@ -13,17 +14,20 @@ const StudentSettings = () => {
     const [selectedImageFile, setSelectedImageFile] = useState(null);
     const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
 
-    // State to quietly hold the required database IDs
     const [hiddenIds, setHiddenIds] = useState({
         id: null,
         userAccountId: null
     });
 
+    // 🟢 Added gender, dateOfBirth, and grade to the profile state
     const [profile, setProfile] = useState({
         name: '',
         major: '',
-        id: '', // This is the visible Student ID string, not the DB Primary Key
+        id: '',
         bio: '',
+        gender: 'Male',
+        dateOfBirth: '',
+        grade: 'Grade 10',
         profileImage: null,
         avatar: 'S'
     });
@@ -39,17 +43,20 @@ const StudentSettings = () => {
             try {
                 const data = await studentService.getProfile();
 
-                // Save the strict DTO IDs so we can send them back later
                 setHiddenIds({
                     id: data.id,
                     userAccountId: data.userAccountId
                 });
 
+                // 🟢 Map the new fields from the backend response
                 setProfile({
                     name: data.fullName || '',
                     major: data.major || '',
                     id: data.studentIdentificationNumber || '',
                     bio: data.academicBio || '',
+                    gender: data.gender || 'Male',
+                    dateOfBirth: data.dateOfBirth || '',
+                    grade: data.grade || 'Grade 10',
                     profileImage: data.profilePictureUrl || null,
                     avatar: data.fullName ? data.fullName.charAt(0).toUpperCase() : 'S'
                 });
@@ -123,15 +130,18 @@ const StudentSettings = () => {
                 finalImageUrl = await uploadToCloudinary(selectedImageFile);
             }
 
-            // The payload now includes the exact IDs Spring Boot demands
+            // 🟢 Add the new fields to the PUT payload
             const payload = {
                 id: hiddenIds.id,
                 userAccountId: hiddenIds.userAccountId,
                 fullName: profile.name,
                 major: profile.major,
                 academicBio: profile.bio,
+                gender: profile.gender,
+                dateOfBirth: profile.dateOfBirth,
+                grade: profile.grade,
                 profilePictureUrl: finalImageUrl,
-                studentIdentificationNumber: profile.id, // Pass this back so it doesn't get wiped
+                studentIdentificationNumber: profile.id,
                 notifyEmail: notifs.email,
                 notifyPush: notifs.push,
                 notifyIdentity: notifs.identity
@@ -171,7 +181,6 @@ const StudentSettings = () => {
 
             <div className="max-w-4xl mx-auto space-y-8 pb-10 animate-fade-in">
 
-                {/* --- PROFILE SECTION --- */}
                 <section className="bg-examsy-surface rounded-[40px] border border-zinc-200 dark:border-zinc-800 p-10 shadow-sm transition-colors duration-500">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-10">
                         <div>
@@ -188,7 +197,6 @@ const StudentSettings = () => {
                     </div>
 
                     <div className="flex flex-col lg:flex-row gap-12">
-                        {/* Photo Upload Area */}
                         <div className="flex flex-col items-center gap-4">
                             <div className="relative group">
                                 <div className="w-40 h-40 rounded-[48px] bg-examsy-primary/10 border-4 border-examsy-surface shadow-2xl overflow-hidden flex items-center justify-center text-examsy-primary text-5xl font-black">
@@ -198,10 +206,7 @@ const StudentSettings = () => {
                                         profile.avatar
                                     )}
                                 </div>
-                                <button
-                                    onClick={() => fileInputRef.current.click()}
-                                    className="absolute -bottom-2 -right-2 p-4 bg-examsy-primary text-white rounded-2xl shadow-xl hover:scale-110 transition-transform z-10"
-                                >
+                                <button onClick={() => fileInputRef.current.click()} className="absolute -bottom-2 -right-2 p-4 bg-examsy-primary text-white rounded-2xl shadow-xl hover:scale-110 transition-transform z-10">
                                     <Camera size={20} />
                                 </button>
                                 <input type="file" ref={fileInputRef} onChange={handleImageSelect} className="hidden" accept="image/*" />
@@ -209,7 +214,6 @@ const StudentSettings = () => {
                             <p className="text-[10px] font-black uppercase tracking-widest text-examsy-muted">Square JPG or PNG</p>
                         </div>
 
-                        {/* Text Fields */}
                         <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div className="space-y-1.5">
                                 <label className="text-[10px] font-black text-examsy-muted uppercase tracking-[0.2em] ml-1">Full Name</label>
@@ -224,6 +228,42 @@ const StudentSettings = () => {
                                 <div className="relative">
                                     <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-examsy-muted" size={16} />
                                     <input value={profile.major} onChange={e => setProfile({...profile, major: e.target.value})} className="w-full bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-2xl py-3 pl-12 pr-4 font-bold text-examsy-text outline-none focus:border-examsy-primary transition-all" />
+                                </div>
+                            </div>
+
+                            {/* 🟢 NEW: Date of Birth Field */}
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black text-examsy-muted uppercase tracking-[0.2em] ml-1">Date of Birth</label>
+                                <div className="relative">
+                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-examsy-muted" size={16} />
+                                    <input type="date" value={profile.dateOfBirth} onChange={e => setProfile({...profile, dateOfBirth: e.target.value})} className="w-full bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-2xl py-3 pl-12 pr-4 font-bold text-examsy-text outline-none focus:border-examsy-primary transition-all [&::-webkit-calendar-picker-indicator]:dark:filter [&::-webkit-calendar-picker-indicator]:dark:invert" />
+                                </div>
+                            </div>
+
+                            {/* 🟢 NEW: Gender Dropdown */}
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black text-examsy-muted uppercase tracking-[0.2em] ml-1">Gender</label>
+                                <div className="relative">
+                                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-examsy-muted" size={16} />
+                                    <select value={profile.gender} onChange={e => setProfile({...profile, gender: e.target.value})} className="w-full bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-2xl py-3 pl-12 pr-4 font-bold text-examsy-text outline-none focus:border-examsy-primary transition-all appearance-none cursor-pointer">
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* 🟢 NEW: Grade Dropdown */}
+                            <div className="space-y-1.5 sm:col-span-2">
+                                <label className="text-[10px] font-black text-examsy-muted uppercase tracking-[0.2em] ml-1">Grade Level</label>
+                                <div className="relative">
+                                    <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 text-examsy-muted" size={16} />
+                                    <select value={profile.grade} onChange={e => setProfile({...profile, grade: e.target.value})} className="w-full bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-2xl py-3 pl-12 pr-4 font-bold text-examsy-text outline-none focus:border-examsy-primary transition-all appearance-none cursor-pointer">
+                                        <option value="Grade 10">Grade 10</option>
+                                        <option value="Grade 11">Grade 11</option>
+                                        <option value="Advanced Level">Advanced Level</option>
+                                        <option value="University">University</option>
+                                    </select>
                                 </div>
                             </div>
 
@@ -246,7 +286,6 @@ const StudentSettings = () => {
                     </div>
                 </section>
 
-                {/* --- NOTIFICATIONS SECTION --- */}
                 <section className="bg-examsy-surface rounded-[40px] border border-zinc-200 dark:border-zinc-800 p-10 shadow-sm transition-colors duration-500">
                     <h2 className="text-2xl font-black text-examsy-text mb-8">Notification Preferences</h2>
                     <div className="space-y-4">
