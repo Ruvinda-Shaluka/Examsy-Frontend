@@ -27,6 +27,7 @@ import ProtectedRoute from "../components/auth/ProtectedRoute.jsx";
 import StudentNotificationPage from "../pages/student/StudentNotificationPage.jsx";
 import TeacherNotificationPage from "../pages/teacher/TeacherNotificationPage.jsx";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage.jsx";
+import OAuth2RedirectHandler from "../components/auth/OAuth2RedirectHandler.jsx";
 
 const AppRoutes = () => {
     return (
@@ -36,6 +37,7 @@ const AppRoutes = () => {
             <Route path="/login" element={<LoginPage/>}/>
             <Route path="/register-student" element={<RegisterStudent/>}/>
             <Route path="/register-teacher" element={<RegisterTeacher/>}/>
+            <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
 
 
