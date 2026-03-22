@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Lock, Calendar, Hash, ArrowRight, GraduationCap } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useExamsyAuth } from '../../hooks/useExamsyAuth.js';
-import GoogleAuthButton from '../../components/forms/GoogleAuthButton.jsx';
+// 🟢 NEW: Import the official Google component
+import { GoogleLogin } from '@react-oauth/google';
+
 import { InputField, SelectField } from '../../components/forms/FormHelpers.jsx';
 import AuthLayout from '../../components/auth/AuthLayout.jsx';
 import AuthHeader from '../../components/auth/AuthHeader.jsx';
 import { authService } from '../../services/authService.js';
 import CustomAlert from "../../components/common/CustomAlert.jsx";
 
-// Helper function to generate a unique Student Index Number
 const generateStudentIndexNumber = () => {
     const year = new Date().getFullYear();
     const uniqueHash = Date.now().toString(36).toUpperCase();
@@ -20,16 +20,13 @@ const RegisterStudent = () => {
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
-
     const [alert, setAlert] = useState(null);
-    const { login } = useExamsyAuth(() => setStep(2));
 
     const [formData, setFormData] = useState({
         fullName: '', email: '', username: '', password: '',
         indexNumber: '', dateOfBirth: '', gender: 'Male', grade: 'Grade 10'
     });
 
-    // Automatically generate the ID the millisecond the component loads
     useEffect(() => {
         setFormData(prev => ({
             ...prev,
@@ -41,12 +38,40 @@ const RegisterStudent = () => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
     };
 
+    // 🟢 NEW: Direct Google Authentication (Auto-Registers via Backend)
+    const handleGoogleSuccess = async (credentialResponse) => {
+        setIsLoading(true);
+        setAlert(null);
+        try {
+            // Pass the token and enforce the 'student' role
+            await authService.loginWithGoogle(credentialResponse.credential, 'student');
+
+            setAlert({
+                type: 'success',
+                title: 'Registration Successful',
+                message: `Account created via Google! Redirecting...`,
+                onClose: () => {
+                    setAlert(null);
+                    navigate('/student/dashboard');
+                }
+            });
+        } catch (error) {
+            console.error("Google auth failed", error);
+            setAlert({
+                type: 'error',
+                title: 'Google Sign-Up Failed',
+                message: error.response?.data?.message || "Failed to authenticate with Google."
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleCompleteRegistration = async () => {
         setAlert(null);
         setIsLoading(true);
         try {
             await authService.registerStudent(formData);
-
             setAlert({
                 type: 'success',
                 title: 'Registration Successful',
@@ -58,9 +83,7 @@ const RegisterStudent = () => {
             });
         } catch (err) {
             console.log(err.response);
-
             let errorMessage = "Please check your details and try again.";
-
             if (err.response?.data?.message) {
                 errorMessage = err.response.data.message;
             } else if (err.response?.data?.data) {
@@ -68,7 +91,6 @@ const RegisterStudent = () => {
                     ? err.response.data.data
                     : "Validation failed. Please check your inputs.";
             }
-
             setAlert({
                 type: 'error',
                 title: 'Registration Failed',
@@ -87,20 +109,10 @@ const RegisterStudent = () => {
             author="B.B. King"
         >
             {alert && (
-                <CustomAlert
-                    type={alert.type}
-                    title={alert.title}
-                    message={alert.message}
-                    onClose={alert.onClose}
-                />
+                <CustomAlert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose} />
             )}
 
-            <AuthHeader
-                badgeIcon={GraduationCap}
-                badgeText="Student Account"
-                title="Create Your Account"
-                subtitle={`Step ${step} of 2: ${step === 1 ? 'Basic Information' : 'Academic Profile'}`}
-            />
+            <AuthHeader badgeIcon={GraduationCap} badgeText="Student Account" title="Create Your Account" subtitle={`Step ${step} of 2: ${step === 1 ? 'Basic Information' : 'Academic Profile'}`} />
 
             <div className="min-h-[330px]">
                 {step === 1 ? (
@@ -114,17 +126,27 @@ const RegisterStudent = () => {
                         <button onClick={() => setStep(2)} className="w-full bg-examsy-primary text-white h-12 rounded-2xl font-bold text-base shadow-lg shadow-examsy-primary/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.01]">
                             Next Step <ArrowRight size={20} />
                         </button>
+
                         <div className="relative flex items-center gap-4 my-5 text-center">
                             <div className="h-px bg-zinc-200 dark:bg-zinc-800 flex-1"></div>
                             <span className="text-examsy-muted text-[10px] font-black uppercase tracking-widest">Or sign up with</span>
                             <div className="h-px bg-zinc-200 dark:bg-zinc-800 flex-1"></div>
                         </div>
-                        <GoogleAuthButton onClick={login} />
+
+                        {/* 🟢 NEW: Official Google Component */}
+                        <div className="flex justify-center w-full">
+                            <GoogleLogin
+                                onSuccess={handleGoogleSuccess}
+                                onError={() => setAlert({ type: 'error', title: 'Error', message: 'Google Sign-In failed or was cancelled.' })}
+                                text="signup_with"
+                                shape="rectangular"
+                                width="480px"
+                            />
+                        </div>
                     </div>
                 ) : (
                     <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4">
-                            {/* 🟢 NEW: readOnly flag added here */}
                             <InputField label="Index Number" icon={<Hash size={18} />} id="indexNumber" value={formData.indexNumber} onChange={handleChange} type="text" placeholder="STU-2026-X" readOnly={true} />
                             <InputField label="Date of Birth" icon={<Calendar size={18} />} id="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} type="date" />
                             <SelectField label="Gender" id="gender" value={formData.gender} onChange={handleChange} options={['Male', 'Female', 'Other']} />

@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Lock, Briefcase, BookOpen, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useExamsyAuth } from '../../hooks/useExamsyAuth.js';
-import GoogleAuthButton from '../../components/forms/GoogleAuthButton.jsx';
+// 🟢 NEW: Import the official Google component
+import { GoogleLogin } from '@react-oauth/google';
+
 import { InputField } from '../../components/forms/FormHelpers.jsx';
 import AuthLayout from '../../components/auth/AuthLayout.jsx';
 import AuthHeader from '../../components/auth/AuthHeader.jsx';
 import { authService } from '../../services/authService.js';
 import CustomAlert from "../../components/common/CustomAlert.jsx";
 
-// Helper function to generate the Corporate Format ID
 const generateCorporateInstructorId = () => {
     const year = new Date().getFullYear();
     const uniqueHash = Date.now().toString(36).toUpperCase();
@@ -20,17 +20,13 @@ const RegisterTeacher = () => {
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
-
-    // Alert State
     const [alert, setAlert] = useState(null);
-    const { login } = useExamsyAuth(() => setStep(2));
 
     const [formData, setFormData] = useState({
         fullName: '', workEmail: '', username: '', password: '',
         instructorId: '', specialization: ''
     });
 
-    // Automatically generate the ID the millisecond the component loads
     useEffect(() => {
         setFormData(prev => ({
             ...prev,
@@ -42,12 +38,40 @@ const RegisterTeacher = () => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
     };
 
+    // 🟢 NEW: Direct Google Authentication (Auto-Registers via Backend)
+    const handleGoogleSuccess = async (credentialResponse) => {
+        setIsLoading(true);
+        setAlert(null);
+        try {
+            // Pass the token and enforce the 'teacher' role
+            await authService.loginWithGoogle(credentialResponse.credential, 'teacher');
+
+            setAlert({
+                type: 'success',
+                title: 'Registration Successful',
+                message: `Account created via Google! Redirecting...`,
+                onClose: () => {
+                    setAlert(null);
+                    navigate('/teacher/dashboard');
+                }
+            });
+        } catch (error) {
+            console.error("Google auth failed", error);
+            setAlert({
+                type: 'error',
+                title: 'Google Sign-Up Failed',
+                message: error.response?.data?.message || "Failed to authenticate with Google."
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleCompleteRegistration = async () => {
-        setAlert(null); // Clear any existing alerts
+        setAlert(null);
         setIsLoading(true);
         try {
             await authService.registerTeacher(formData);
-            // Trigger Success Alert
             setAlert({
                 type: 'success',
                 title: 'Registration Successful',
@@ -59,7 +83,6 @@ const RegisterTeacher = () => {
             });
         } catch (err) {
             console.error(err);
-            // Trigger Error Alert
             setAlert({
                 type: 'error',
                 title: 'Registration Failed',
@@ -77,22 +100,11 @@ const RegisterTeacher = () => {
             quote="It is the supreme art of the teacher to awaken joy in creative expression and knowledge."
             author="Albert Einstein"
         >
-            {/* Render the CustomAlert if the alert state is not null */}
             {alert && (
-                <CustomAlert
-                    type={alert.type}
-                    title={alert.title}
-                    message={alert.message}
-                    onClose={alert.onClose}
-                />
+                <CustomAlert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose} />
             )}
 
-            <AuthHeader
-                badgeIcon={ShieldCheck}
-                badgeText="Faculty Registration"
-                title="Join the Faculty"
-                subtitle={step === 1 ? 'Step 1: Account Setup' : 'Step 2: Professional Verification'}
-            />
+            <AuthHeader badgeIcon={ShieldCheck} badgeText="Faculty Registration" title="Join the Faculty" subtitle={step === 1 ? 'Step 1: Account Setup' : 'Step 2: Professional Verification'} />
 
             <div className="min-h-[330px]">
                 {step === 1 ? (
@@ -106,17 +118,28 @@ const RegisterTeacher = () => {
                         <button onClick={() => setStep(2)} className="w-full bg-examsy-primary text-white h-12 rounded-2xl font-bold text-base shadow-lg shadow-examsy-primary/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.01]">
                             Next Step <ArrowRight size={20} />
                         </button>
+
                         <div className="relative flex items-center gap-4 my-5 text-center">
                             <div className="h-px bg-zinc-200 dark:bg-zinc-800 flex-1"></div>
                             <span className="text-examsy-muted text-[10px] font-black uppercase tracking-widest">Institutional Access</span>
                             <div className="h-px bg-zinc-200 dark:bg-zinc-800 flex-1"></div>
                         </div>
-                        <GoogleAuthButton onClick={login} label="Register via Institution Account" />
+
+                        {/* 🟢 NEW: Official Google Component */}
+                        <div className="flex justify-center w-full">
+                            <GoogleLogin
+                                onSuccess={handleGoogleSuccess}
+                                onError={() => setAlert({ type: 'error', title: 'Error', message: 'Google Sign-In failed or was cancelled.' })}
+                                text="signup_with"
+                                shape="rectangular"
+                                width="480px"
+                            />
+                        </div>
                     </div>
                 ) : (
                     <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4">
-                            <InputField label="Instructor ID" icon={<Briefcase size={18} />} id="instructorId" value={formData.instructorId} onChange={handleChange} type="text" placeholder="EMP-2026-X" />
+                            <InputField label="Instructor ID" icon={<Briefcase size={18} />} id="instructorId" value={formData.instructorId} onChange={handleChange} type="text" placeholder="EMP-2026-X" readOnly={true} />
                             <InputField label="Specialization" icon={<BookOpen size={18} />} id="specialization" value={formData.specialization} onChange={handleChange} type="text" placeholder="Java / Physics" />
                         </div>
                         <p className="text-xs text-examsy-muted italic leading-relaxed bg-examsy-surface p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">

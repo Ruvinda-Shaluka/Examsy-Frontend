@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, User, GraduationCap, ChevronLeft, Eye, EyeOff } from 'lucide-react';
+// 🟢 Import the official GoogleLogin component
+import { GoogleLogin } from '@react-oauth/google';
+
 import TextPressure from '../components/logo/TextPressure.jsx';
-import GoogleAuthButton from '../components/forms/GoogleAuthButton.jsx';
 import { useTheme } from '../theme/useTheme.jsx';
 import { authService } from '../services/authService.js';
 import CustomAlert from '../components/common/CustomAlert.jsx';
@@ -17,15 +19,59 @@ const LoginPage = () => {
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-
-    // 🟢 NEW: State for password visibility toggle
     const [showPassword, setShowPassword] = useState(false);
 
     // Alert State
     const [alert, setAlert] = useState(null);
 
-    const handleGoogleLogin = () => {
-        console.log("Google login triggered");
+    // 🟢 NEW: Handle successful Google Auth
+    const handleGoogleSuccess = async (credentialResponse) => {
+        setIsLoading(true);
+        setAlert(null);
+        try {
+            // Send the Google ID Token and the currently selected role to the backend
+            const result = await authService.loginWithGoogle(credentialResponse.credential, role);
+
+            // Handle specific post-login actions (like rotating class codes for teachers)
+            if (result.role === 'TEACHER') {
+                try {
+                    await teacherService.rotateClassCodes();
+                } catch (rotationError) {
+                    console.error("Failed to rotate class codes during Google login:", rotationError);
+                    // Decide if you want to abort login here, or just log the error and continue.
+                    // For now, we proceed to dashboard.
+                }
+            }
+
+            setAlert({
+                type: 'success',
+                title: 'Login Successful',
+                message: `Welcome back via Google! Redirecting...`,
+                onClose: () => {
+                    setAlert(null);
+                    // Route based on what the backend says they actually are
+                    navigate(result.role === 'ADMIN' ? '/admin/dashboard' : result.role === 'TEACHER' ? '/teacher/dashboard' : '/student/dashboard');
+                }
+            });
+        } catch (error) {
+            console.error("Google login failed", error);
+            setAlert({
+                type: 'error',
+                title: 'Google Login Failed',
+                message: error.response?.data?.message || "Failed to authenticate with Google. Please try again."
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // 🟢 NEW: Handle failed Google Auth popup
+    const handleGoogleError = () => {
+        setAlert({
+            type: 'error',
+            title: 'Login Cancelled',
+            message: "Google Sign-In was cancelled or failed to initialize."
+        });
     };
 
     const handleLoginSubmit = async (e) => {
@@ -172,8 +218,16 @@ const LoginPage = () => {
                         </div>
                     </div>
 
-                    <div className="mb-6">
-                        <GoogleAuthButton onClick={handleGoogleLogin} label="Continue with Google" />
+                    {/* 🟢 NEW: Official Google Login Component */}
+                    <div className="mb-6 flex justify-center w-full">
+                        <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={handleGoogleError}
+                            theme={theme === 'dark' ? 'filled_black' : 'outline'}
+                            text="continue_with"
+                            shape="rectangular"
+                            width="480px"
+                        />
                     </div>
 
                     <div className="relative flex items-center gap-4 mb-6">
@@ -203,16 +257,13 @@ const LoginPage = () => {
                             <div className="relative">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
                                 <input
-                                    // 🟢 NEW: Bind the input type to the showPassword state
                                     type={showPassword ? "text" : "password"}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
-                                    // 🟢 NEW: Added pr-12 so the text doesn't overlap the eye icon
                                     className="w-full pl-12 pr-12 h-12 bg-examsy-surface border border-zinc-200 dark:border-zinc-700 focus:border-examsy-primary focus:ring-4 focus:ring-examsy-primary/10 rounded-2xl outline-none transition-all text-examsy-text placeholder-examsy-muted/30 text-sm"
                                     placeholder="••••••••••••"
                                 />
-                                {/* 🟢 NEW: The Toggle Button */}
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}

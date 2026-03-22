@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import TeacherLayout from '../../../layouts/TeacherLayout.jsx';
 import { Search, ChevronLeft, CheckCircle2, ShieldAlert, Sparkles, MessageSquare, Send, Megaphone, X, Clock, Loader2 } from 'lucide-react';
 import StudentActionModal from '../../../components/teacher/live-monitor/StudentActionModal';
+import TeacherProctoringModal from '../../../components/teacher/live-monitor/TeacherProctoringModal'; // 🟢 NEW IMPORT
 import { teacherService } from '../../../services/teacherService';
 import CustomAlert from '../../../components/common/CustomAlert';
 
@@ -14,16 +15,14 @@ const TeacherLiveMonitor = () => {
     const [liveStudents, setLiveStudents] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Global UI Alert State
     const [alertInfo, setAlertInfo] = useState(null);
 
-    // Broadcast Modal State
     const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
     const [broadcastMessage, setBroadcastMessage] = useState("");
     const [isSending, setIsSending] = useState(false);
 
-    // Student Action Modal State
     const [selectedStudent, setSelectedStudent] = useState(null);
+    const [proctoringModalStudent, setProctoringModalStudent] = useState(null); // 🟢 NEW STATE
 
     useEffect(() => {
         const fetchMonitorData = async () => {
@@ -42,7 +41,6 @@ const TeacherLiveMonitor = () => {
         return () => clearInterval(intervalId);
     }, [examId]);
 
-    // 🟢 BULLETPROOF SEARCH LOGIC
     const filteredStudents = useMemo(() => {
         if (!searchTerm.trim()) return liveStudents;
 
@@ -59,7 +57,6 @@ const TeacherLiveMonitor = () => {
         return m > 0 ? `${m}m ${s}s` : `${s}s`;
     };
 
-    // ACTUAL BROADCAST LOGIC
     const handleSendBroadcast = async () => {
         if (!broadcastMessage.trim()) return;
         setIsSending(true);
@@ -76,7 +73,6 @@ const TeacherLiveMonitor = () => {
         }
     };
 
-    // ACTUAL WARNING LOGIC
     const handleWarnStudent = async (studentId, message) => {
         try {
             await teacherService.warnStudent(examId, studentId, message);
@@ -117,12 +113,10 @@ const TeacherLiveMonitor = () => {
 
             <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-fade-in relative hide-scrollbar">
 
-                {/* Custom Alert Overlay */}
                 {alertInfo && (
                     <CustomAlert type={alertInfo.type} title={alertInfo.title} message={alertInfo.message} onClose={() => setAlertInfo(null)} />
                 )}
 
-                {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div className="space-y-2">
                         <button
@@ -145,7 +139,6 @@ const TeacherLiveMonitor = () => {
                     </button>
                 </div>
 
-                {/* Table Container */}
                 <div className="bg-examsy-surface rounded-[40px] border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
                     <div className="p-8 border-b border-zinc-100 dark:border-zinc-800 flex flex-col md:flex-row justify-between items-center gap-6">
                         <div className="flex items-center gap-3">
@@ -212,20 +205,26 @@ const TeacherLiveMonitor = () => {
                                             </div>
                                         </td>
 
+                                        {/* 🟢 UPDATED: Clickable Integrity Check Pill */}
                                         <td className="px-8 py-6">
-                                            {student.flagged ? (
-                                                <div className="flex items-center gap-2 text-red-500 bg-red-500/10 px-4 py-2 rounded-xl border border-red-500/20 inline-flex max-w-full overflow-hidden">
-                                                    <ShieldAlert size={14} className="flex-shrink-0" />
-                                                    <span className="text-[10px] font-black uppercase tracking-wider truncate">
-                                                        Suspicious ({student.flags}x)
-                                                    </span>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center gap-2 text-emerald-500 px-4 py-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20 inline-flex">
-                                                    <CheckCircle2 size={14} className="flex-shrink-0" />
-                                                    <span className="text-[10px] font-black uppercase tracking-wider">Secure</span>
-                                                </div>
-                                            )}
+                                            <button
+                                                onClick={() => setProctoringModalStudent(student)}
+                                                className="text-left hover:scale-105 active:scale-95 transition-all"
+                                            >
+                                                {student.flagged ? (
+                                                    <div className="flex items-center gap-2 text-red-500 bg-red-500/10 px-4 py-2 rounded-xl border border-red-500/20 inline-flex max-w-full overflow-hidden cursor-pointer hover:bg-red-500/20 transition-colors">
+                                                        <ShieldAlert size={14} className="flex-shrink-0" />
+                                                        <span className="text-[10px] font-black uppercase tracking-wider truncate">
+                                                            Suspicious ({student.flags}x)
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-2 text-emerald-500 px-4 py-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20 inline-flex cursor-pointer hover:bg-emerald-500/20 transition-colors">
+                                                        <CheckCircle2 size={14} className="flex-shrink-0" />
+                                                        <span className="text-[10px] font-black uppercase tracking-wider">Secure</span>
+                                                    </div>
+                                                )}
+                                            </button>
                                         </td>
 
                                         <td className="px-8 py-6">
@@ -261,7 +260,6 @@ const TeacherLiveMonitor = () => {
                     </div>
                 </div>
 
-                {/* Broadcast Modal Overlay */}
                 {isBroadcastOpen && (
                     <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
                         <div
@@ -332,6 +330,13 @@ const TeacherLiveMonitor = () => {
                 onClose={() => setSelectedStudent(null)}
                 onWarn={handleWarnStudent}
                 onTerminate={handleTerminateStudent}
+            />
+
+            {/* 🟢 NEW: Proctoring Modal Mounted Here */}
+            <TeacherProctoringModal
+                isOpen={!!proctoringModalStudent}
+                student={proctoringModalStudent}
+                onClose={() => setProctoringModalStudent(null)}
             />
 
         </TeacherLayout>

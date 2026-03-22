@@ -20,3 +20,4 @@ export const useExamsyAuth = (onSuccessCallback) => {
 
     return { login };
 };
+

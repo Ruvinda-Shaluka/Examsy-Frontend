@@ -18,6 +18,21 @@ export const authService = {
         return response.data;
     },
 
+    loginWithGoogle: async (googleToken, requestedRole) => {
+        const response = await api.post('/auth/google', {
+            token: googleToken,
+            role: requestedRole
+        });
+
+        const data = response.data.data;
+        if (data.token) {
+            localStorage.setItem('examsy_token', data.token);
+            localStorage.setItem('examsy_role', data.role);
+            api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+        }
+        return data;
+    },
+
     logout: () => {
         localStorage.removeItem('examsy_token');
         localStorage.removeItem('examsy_role');
