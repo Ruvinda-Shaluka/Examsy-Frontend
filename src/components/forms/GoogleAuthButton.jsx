@@ -1,9 +1,9 @@
 import React from 'react';
 
 const GoogleAuthButton = ({ label = "Continue with Google", role }) => {
-    // 🟢 We append the chosen role as a query parameter!
-    // e.g., http://localhost:8080/oauth2/authorization/google?role=teacher
-    const oauth2Endpoint = `http://localhost:8080/oauth2/authorization/google?role=${role}`;
+
+    const baseUrl = import.meta.env.BASE_URL;
+    const oauth2Endpoint = `${baseUrl}/oauth2/authorization/google?role=${role}`;
 
     return (
         <a
