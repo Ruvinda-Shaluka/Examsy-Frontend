@@ -79,4 +79,9 @@ export const studentService = {
         });
         return response.data.data; // This returns { totalFlags, totalAwaySeconds } to the hook
     },
+
+    generateMockExam: async (config) => {
+        const response = await api.post('/mock-exams/generate', config);
+        return response.data.data;
+    },
 };
