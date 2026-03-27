@@ -1,11 +1,15 @@
-import React, { useEffect } from 'react';
-import { Plus, Trash2, Type, Hash } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Plus, Trash2, Type, Hash, ShieldCheck } from 'lucide-react';
+import CustomAlert from '../../common/CustomAlert';
 
 const TeacherShortAnswerBuilder = ({ questions, onChange }) => {
+    // 🟢 Added Custom Alert State
+    const [alert, setAlert] = useState(null);
 
     useEffect(() => {
         if (!questions || questions.length === 0) {
-            onChange([{ id: Date.now(), questionText: '', points: 5 }]);
+            // 🟢 Initialize with empty modelAnswer
+            onChange([{ id: Date.now(), questionText: '', modelAnswer: '', points: 5 }]);
         }
     }, []);
 
@@ -16,29 +20,63 @@ const TeacherShortAnswerBuilder = ({ questions, onChange }) => {
     };
 
     const addQuestion = () => {
-        onChange([...safeQuestions, { id: Date.now(), questionText: '', points: 5 }]);
+        // 🟢 Validation: Check if existing questions are fully filled out
+        const hasEmptyFields = safeQuestions.some(q => !q.questionText.trim() || !q.modelAnswer?.trim());
+
+        if (hasEmptyFields) {
+            setAlert({
+                type: 'error',
+                title: 'Incomplete Questions',
+                message: 'Please fill out both the Question Text and the Model Answer for all existing questions before adding a new one.',
+                onClose: () => setAlert(null)
+            });
+            return;
+        }
+
+        onChange([...safeQuestions, { id: Date.now(), questionText: '', modelAnswer: '', points: 5 }]);
     };
 
     const removeQuestion = (id) => {
         if (safeQuestions.length > 1) {
             onChange(safeQuestions.filter(q => q.id !== id));
+            setAlert(null);
         } else {
-            alert("An exam must have at least one question.");
+            setAlert({
+                type: 'error',
+                title: 'Minimum Requirements',
+                message: 'An exam must have at least one question.',
+                onClose: () => setAlert(null)
+            });
         }
     };
 
     return (
-        <div className="bg-examsy-surface p-6 md:p-10 rounded-[40px] border border-zinc-200 dark:border-zinc-800 shadow-sm transition-colors duration-500">
+        <div className="bg-examsy-surface p-6 md:p-10 rounded-[40px] border border-zinc-200 dark:border-zinc-800 shadow-sm transition-colors duration-500 relative">
+
+            {/* 🟢 Render Custom Alert */}
+            {alert && <CustomAlert type={alert.type} title={alert.title} message={alert.message} onClose={() => setAlert(null)} />}
+
             <div className="flex items-center gap-4 mb-10">
                 <div className="p-3 bg-examsy-primary/10 rounded-2xl text-examsy-primary">
                     <Type size={24} />
                 </div>
-                <h2 className="text-2xl font-black text-examsy-text">Short Answer Designer</h2>
+                <div>
+                    <h2 className="text-2xl font-black text-examsy-text">Short Answer Designer</h2>
+                    <p className="text-xs font-bold text-examsy-muted uppercase tracking-widest mt-1">Provide Model Answers for AI Grading</p>
+                </div>
             </div>
 
             <div className="space-y-6">
                 {safeQuestions.map((q, idx) => (
-                    <div key={q.id} className="p-6 bg-examsy-bg rounded-3xl border border-zinc-200 dark:border-zinc-800 relative group animate-in slide-in-from-bottom-2">
+                    <div key={q.id} className={`p-6 bg-examsy-bg rounded-3xl border relative group animate-in slide-in-from-bottom-2 transition-all ${(!q.questionText || !q.modelAnswer) ? 'border-red-400/50 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'border-zinc-200 dark:border-zinc-800'}`}>
+
+                        {/* 🟢 Visual indicator for missing data */}
+                        {(!q.questionText || !q.modelAnswer) && (
+                            <div className="absolute -top-3 left-8 px-3 py-1 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-md">
+                                Incomplete
+                            </div>
+                        )}
+
                         <div className="flex flex-col md:flex-row gap-6">
                             <div className="flex-1 space-y-4">
                                 <label className="text-[10px] font-black uppercase text-examsy-muted tracking-widest ml-1">
@@ -48,9 +86,21 @@ const TeacherShortAnswerBuilder = ({ questions, onChange }) => {
                                     value={q.questionText || ''}
                                     onChange={(e) => updateQuestion(q.id, 'questionText', e.target.value)}
                                     placeholder="Enter your question here..."
-                                    className="w-full bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 font-bold text-examsy-text outline-none focus:border-examsy-primary resize-none h-24 transition-colors"
+                                    className="w-full bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 font-bold text-examsy-text outline-none focus:border-examsy-primary resize-none h-20 transition-colors"
+                                />
+
+                                {/* 🟢 NEW: Model Answer Field */}
+                                <label className="flex items-center gap-2 text-[10px] font-black uppercase text-examsy-primary tracking-widest ml-1 mt-4">
+                                    <ShieldCheck size={14} /> AI Model Answer (Expected Key Points)
+                                </label>
+                                <textarea
+                                    value={q.modelAnswer || ''}
+                                    onChange={(e) => updateQuestion(q.id, 'modelAnswer', e.target.value)}
+                                    placeholder="Write the ideal answer or list the key facts the AI should look for to award points..."
+                                    className="w-full bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-4 font-bold text-emerald-700 dark:text-emerald-400 outline-none focus:border-emerald-500 resize-none h-24 transition-colors"
                                 />
                             </div>
+
                             <div className="w-full md:w-32 space-y-4">
                                 <label className="text-[10px] font-black uppercase text-examsy-muted tracking-widest ml-1">
                                     Points

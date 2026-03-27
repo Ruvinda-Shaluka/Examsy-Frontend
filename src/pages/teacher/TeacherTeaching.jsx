@@ -87,12 +87,28 @@ const TeacherTeaching = () => {
             }
         }
 
-        // 🟢 FINAL STEP VALIDATION: Check Short Answer and PDF
+        // 🟢 FINAL STEP VALIDATION: Check Short Answer
         if (examData.type === 'short') {
             if (!examData.questions || examData.questions.length === 0) {
                 return setAlert({type: 'error', title: 'Empty Exam', message: 'You must add at least one question before publishing.'});
             }
+
+            // Check for empty text or missing model answers
+            const hasIncompleteShortQuestions = examData.questions.some(q =>
+                !q.questionText || q.questionText.trim() === '' ||
+                !q.modelAnswer || q.modelAnswer.trim() === ''
+            );
+
+            if (hasIncompleteShortQuestions) {
+                return setAlert({
+                    type: 'error',
+                    title: 'Missing Model Answers',
+                    message: 'All short answer questions must have a Question Text and an AI Model Answer before publishing.'
+                });
+            }
         }
+
+        // 🟢 FINAL STEP VALIDATION: Check PDF
         if (examData.type === 'pdf' && !examData.pdfFile) {
             return setAlert({type: 'error', title: 'Missing File', message: 'Please upload a PDF document before publishing.'});
         }
