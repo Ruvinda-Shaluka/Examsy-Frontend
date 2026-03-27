@@ -1,8 +1,20 @@
 import React from 'react';
-import { CheckCircle2, Download, Home, Award } from 'lucide-react';
+import { CheckCircle2, Home, Award } from 'lucide-react';
 
 const SubmitModal = ({ isOpen, examTitle, resultData, onDashboard }) => {
     if (!isOpen) return null;
+
+    // Helper to color-code the grades
+    const getGradeColor = (grade) => {
+        switch (grade) {
+            case 'A': return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
+            case 'B': return 'text-blue-500 bg-blue-500/10 border-blue-500/20';
+            case 'C': return 'text-purple-500 bg-purple-500/10 border-purple-500/20';
+            case 'S': return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
+            case 'F': return 'text-red-500 bg-red-500/10 border-red-500/20';
+            default: return 'text-examsy-primary bg-examsy-primary/10 border-examsy-primary/20';
+        }
+    };
 
     return (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
@@ -16,14 +28,24 @@ const SubmitModal = ({ isOpen, examTitle, resultData, onDashboard }) => {
                     Your answers for <span className="text-examsy-primary">{examTitle}</span> have been securely recorded.
                 </p>
 
-                {/* REAL-TIME GRADING DISPLAY */}
+                {/* 🟢 REAL-TIME GRADING DISPLAY FOR MCQ & SHORT */}
                 {resultData && resultData.status === 'GRADED' && (
-                    <div className="bg-examsy-primary/10 border border-examsy-primary/20 rounded-3xl p-6 mb-8 flex flex-col items-center">
-                        <Award size={32} className="text-examsy-primary mb-2" />
-                        <p className="text-[10px] font-black uppercase tracking-widest text-examsy-primary mb-1">Instant Auto-Grade</p>
-                        <p className="text-4xl font-black text-examsy-text">
-                            {resultData.score} <span className="text-lg text-examsy-muted">/ {resultData.maxScore}</span>
-                        </p>
+                    <div className="flex gap-4 mb-8">
+                        {/* Score Block */}
+                        <div className="flex-1 bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 flex flex-col items-center">
+                            <Award size={24} className="text-examsy-primary mb-2" />
+                            <p className="text-[9px] font-black uppercase tracking-widest text-examsy-muted mb-1">Final Score</p>
+                            <p className="text-3xl font-black text-examsy-text">
+                                {resultData.score} <span className="text-sm text-examsy-muted">/ {resultData.maxScore}</span>
+                            </p>
+                            <p className="text-xs font-bold text-examsy-primary mt-1">{resultData.percentage}%</p>
+                        </div>
+
+                        {/* 🟢 NEW: Grade Block */}
+                        <div className={`flex-1 border rounded-3xl p-6 flex flex-col items-center justify-center ${getGradeColor(resultData.grade)}`}>
+                            <p className="text-[9px] font-black uppercase tracking-widest mb-1 opacity-80">Grade</p>
+                            <p className="text-6xl font-black leading-none">{resultData.grade}</p>
+                        </div>
                     </div>
                 )}
 
