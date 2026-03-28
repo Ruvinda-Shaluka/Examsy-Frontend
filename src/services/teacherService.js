@@ -132,4 +132,9 @@ export const teacherService = {
         return response.data;
     },
 
+    autoGradeSubmission: async (examId, submissionId) => {
+        const response = await api.post(`/teacher/exams/${examId}/grade/${submissionId}/auto`);
+        return response.data;
+    },
+
 }
