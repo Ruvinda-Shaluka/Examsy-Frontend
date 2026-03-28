@@ -28,16 +28,15 @@ const TeacherTeaching = () => {
         deadlineTime: '',
         duration: '',
         questions: [],
-        pdfFile: null
+        pdfFile: null,
+        maxScore: '' // 🟢 NEW STATE ADDED
     });
 
     const nextStep = () => {
-        // Step 1 Validation
         if (step === 1 && examData.classes.length === 0) {
             return setAlert({type:'error', title:'Error', message:'Please select at least one class to assign the exam.'});
         }
 
-        // Smart Step 2 Validation
         if (step === 2) {
             if (!examData.title.trim() || !examData.mode || !examData.type || !examData.date) {
                 return setAlert({type:'error', title:'Incomplete Data', message:'Please fill out the Exam Title and select basic formats.'});
@@ -50,7 +49,7 @@ const TeacherTeaching = () => {
             }
         }
 
-        setAlert(null); // Clear alerts if validation passes
+        setAlert(null);
         setStep(prev => prev + 1);
     };
 
@@ -60,70 +59,53 @@ const TeacherTeaching = () => {
     };
 
     const handlePublish = async () => {
-        // 🟢 FINAL STEP VALIDATION: Block publishing if MCQ data is incomplete
         if (examData.type === 'mcq') {
             if (!examData.questions || examData.questions.length === 0) {
                 return setAlert({type: 'error', title: 'Empty Exam', message: 'You must add at least one question before publishing.'});
             }
-
-            // Check for missing correct answers
             const hasIncompleteQuestions = examData.questions.some(q => q.correctOptionIndex === null);
             if (hasIncompleteQuestions) {
-                return setAlert({
-                    type: 'error',
-                    title: 'Incomplete Exam',
-                    message: 'All multiple choice questions must have a correct answer selected before publishing.'
-                });
+                return setAlert({type: 'error', title: 'Incomplete Exam', message: 'All multiple choice questions must have a correct answer selected before publishing.'});
             }
-
-            // Check for empty question text
             const hasEmptyText = examData.questions.some(q => !q.questionText || q.questionText.trim() === '');
             if (hasEmptyText) {
-                return setAlert({
-                    type: 'error',
-                    title: 'Missing Question Text',
-                    message: 'Please ensure all questions have their text written before publishing.'
-                });
+                return setAlert({type: 'error', title: 'Missing Question Text', message: 'Please ensure all questions have their text written before publishing.'});
             }
         }
 
-        // 🟢 FINAL STEP VALIDATION: Check Short Answer
         if (examData.type === 'short') {
             if (!examData.questions || examData.questions.length === 0) {
                 return setAlert({type: 'error', title: 'Empty Exam', message: 'You must add at least one question before publishing.'});
             }
-
-            // Check for empty text or missing model answers
             const hasIncompleteShortQuestions = examData.questions.some(q =>
                 !q.questionText || q.questionText.trim() === '' ||
                 !q.modelAnswer || q.modelAnswer.trim() === ''
             );
-
             if (hasIncompleteShortQuestions) {
-                return setAlert({
-                    type: 'error',
-                    title: 'Missing Model Answers',
-                    message: 'All short answer questions must have a Question Text and an AI Model Answer before publishing.'
-                });
+                return setAlert({type: 'error', title: 'Missing Model Answers', message: 'All short answer questions must have a Question Text and an AI Model Answer before publishing.'});
             }
         }
 
-        // 🟢 FINAL STEP VALIDATION: Check PDF
-        if (examData.type === 'pdf' && !examData.pdfFile) {
-            return setAlert({type: 'error', title: 'Missing File', message: 'Please upload a PDF document before publishing.'});
+        // 🟢 FINAL STEP VALIDATION: Check PDF and Max Score
+        if (examData.type === 'pdf') {
+            if (!examData.pdfFile) {
+                return setAlert({type: 'error', title: 'Missing File', message: 'Please upload a PDF document before publishing.'});
+            }
+            if (!examData.maxScore || isNaN(examData.maxScore) || Number(examData.maxScore) <= 0) {
+                return setAlert({type: 'error', title: 'Missing Total Marks', message: 'Please enter valid Total Marks for this exam.'});
+            }
         }
 
         setIsPublishing(true);
         setAlert(null);
 
         try {
-            // Auto-calculate duration for Real-Time exams
             let finalDuration = parseInt(examData.duration);
 
             if (examData.mode === 'real-time') {
                 const start = new Date(`1970-01-01T${examData.startTime}:00`);
                 const end = new Date(`1970-01-01T${examData.endTime}:00`);
-                finalDuration = Math.round((end - start) / 60000); // Converts milliseconds difference to minutes
+                finalDuration = Math.round((end - start) / 60000);
 
                 if (finalDuration <= 0) {
                     setIsPublishing(false);
@@ -136,11 +118,8 @@ const TeacherTeaching = () => {
             if (examData.type === 'pdf' && examData.pdfFile) {
                 const formData = new FormData();
                 formData.append('file', examData.pdfFile);
-
-                // 🟢 USE DOCUMENT PRESET
                 formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_DOCUMENT_PRESET || 'examsy_documents');
 
-                // 🟢 PUBLIC RAW ENDPOINT TO PREVENT 401 & PNG CONVERSION
                 const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`, {
                     method: 'POST', body: formData
                 });
@@ -148,6 +127,7 @@ const TeacherTeaching = () => {
                 finalPdfUrl = data.secure_url;
             }
 
+            // 🟢 UPDATED: Payload now includes maxScore for PDF exams
             const payload = {
                 classIds: examData.classes,
                 title: examData.title,
@@ -157,7 +137,8 @@ const TeacherTeaching = () => {
                 scheduledStartTime: examData.mode === 'real-time' ? combineDateTime(examData.date, examData.startTime) : null,
                 deadlineTime: examData.mode === 'deadline' ? combineDateTime(examData.date, examData.deadlineTime) : combineDateTime(examData.date, examData.endTime),
                 pdfResourceUrl: finalPdfUrl,
-                questions: examData.questions
+                questions: examData.questions,
+                maxScore: examData.type === 'pdf' ? parseFloat(examData.maxScore) : null
             };
 
             await teacherService.publishExam(payload);
@@ -225,13 +206,19 @@ const TeacherTeaching = () => {
                                 <TeacherShortAnswerBuilder questions={examData.questions} onChange={(q) => setExamData({...examData, questions: q})} />
                             )}
                             {examData.type === 'pdf' && (
-                                <TeacherPDFUploader file={examData.pdfFile} onChange={(f) => setExamData({...examData, pdfFile: f})} />
-                            )}
-                        </>
+                                {/* 🟢 UPDATED PROPS */}
+                                <TeacherPDFUploader
+                                file={examData.pdfFile}
+                            onFileChange={(f) => setExamData({...examData, pdfFile: f})}
+                            maxScore={examData.maxScore}
+                            onMaxScoreChange={(v) => setExamData({...examData, maxScore: v})}
+                        />
                     )}
-                </div>
+                </>
+                )}
             </div>
-        </TeacherLayout>
-    );
+        </div>
+</TeacherLayout>
+);
 };
 export default TeacherTeaching;

@@ -1,12 +1,12 @@
 import React from 'react';
 import { FileUp, X, FileText } from 'lucide-react';
 
-const TeacherPDFUploader = ({ file, onChange }) => {
+const TeacherPDFUploader = ({ file, onFileChange, maxScore, onMaxScoreChange }) => {
 
     const handleFile = (e) => {
         const selected = e.target.files[0];
         if (selected && selected.type === "application/pdf") {
-            onChange(selected); // Pass file to parent state
+            onFileChange(selected);
         } else {
             alert("Please upload a valid PDF file.");
         }
@@ -22,40 +22,55 @@ const TeacherPDFUploader = ({ file, onChange }) => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                {/* Left: Upload Zone */}
+                {/* Left: Upload Zone & Marks */}
                 <div className="space-y-6">
-                    <label className="text-[10px] font-black uppercase text-examsy-muted tracking-widest ml-2">Upload Exam Paper (PDF)</label>
-                    {!file ? (
-                        <label className="flex flex-col items-center justify-center w-full h-64 border-4 border-dashed border-zinc-200 dark:border-zinc-800 rounded-[40px] cursor-pointer hover:border-examsy-primary hover:bg-examsy-primary/5 transition-all group">
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <div className="p-4 bg-examsy-bg rounded-2xl text-examsy-muted group-hover:text-examsy-primary transition-colors mb-4">
-                                    <FileUp size={32} />
+                    <div>
+                        <label className="text-[10px] font-black uppercase text-examsy-muted tracking-widest ml-2">Upload Exam Paper (PDF)</label>
+                        {!file ? (
+                            <label className="mt-2 flex flex-col items-center justify-center w-full h-64 border-4 border-dashed border-zinc-200 dark:border-zinc-800 rounded-[40px] cursor-pointer hover:border-examsy-primary hover:bg-examsy-primary/5 transition-all group">
+                                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <div className="p-4 bg-examsy-bg rounded-2xl text-examsy-muted group-hover:text-examsy-primary transition-colors mb-4">
+                                        <FileUp size={32} />
+                                    </div>
+                                    <p className="mb-2 text-sm text-examsy-text font-black">Click to upload or drag and drop</p>
+                                    <p className="text-xs text-examsy-muted font-bold tracking-tight mt-1">PDF documents only (Max 10MB)</p>
                                 </div>
-                                <p className="mb-2 text-sm text-examsy-text font-black">Click to upload or drag and drop</p>
-                                <p className="text-xs text-examsy-muted font-bold tracking-tight mt-1">PDF documents only (Max 10MB)</p>
-                            </div>
-                            <input type="file" className="hidden" accept=".pdf" onChange={handleFile} />
-                        </label>
-                    ) : (
-                        <div className="p-6 bg-examsy-bg rounded-[32px] border border-examsy-primary/30 flex items-center justify-between animate-zoom-in">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-examsy-primary text-white rounded-xl"><FileText size={20}/></div>
-                                <div className="overflow-hidden">
-                                    <p className="text-sm font-black text-examsy-text truncate max-w-[150px]">{file.name}</p>
-                                    <p className="text-[10px] font-bold text-examsy-muted">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                                <input type="file" className="hidden" accept=".pdf" onChange={handleFile} />
+                            </label>
+                        ) : (
+                            <div className="mt-2 p-6 bg-examsy-bg rounded-[32px] border border-examsy-primary/30 flex items-center justify-between animate-zoom-in">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-examsy-primary text-white rounded-xl"><FileText size={20}/></div>
+                                    <div className="overflow-hidden">
+                                        <p className="text-sm font-black text-examsy-text truncate max-w-[150px]">{file.name}</p>
+                                        <p className="text-[10px] font-bold text-examsy-muted">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                                    </div>
                                 </div>
+                                <button
+                                    onClick={() => onFileChange(null)}
+                                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors"
+                                >
+                                    <X size={20} />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => onChange(null)}
-                                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
-                    )}
+                        )}
+                    </div>
+
+                    {/* 🟢 NEW: Total Marks Input */}
+                    <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
+                        <label className="text-[10px] font-black uppercase text-examsy-muted tracking-widest ml-2">Total Exam Marks</label>
+                        <input
+                            type="number"
+                            value={maxScore}
+                            onChange={(e) => onMaxScoreChange(e.target.value)}
+                            placeholder="e.g., 100"
+                            min="1"
+                            className="w-full mt-2 bg-examsy-bg border-2 border-zinc-200 dark:border-zinc-800 rounded-2xl px-6 py-4 font-black text-xl text-examsy-text outline-none focus:border-examsy-primary transition-colors"
+                        />
+                    </div>
                 </div>
 
-                {/* Right: Instructions (Since scheduling is handled in Step 2) */}
+                {/* Right: Instructions */}
                 <div className="flex flex-col justify-center">
                     <div className="p-8 bg-examsy-primary/5 rounded-[32px] border border-examsy-primary/20">
                         <h4 className="text-sm font-black text-examsy-primary uppercase tracking-wider mb-3">Student Instructions</h4>
