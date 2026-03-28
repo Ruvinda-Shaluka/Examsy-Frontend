@@ -80,19 +80,21 @@ const ExamInterface = () => {
             })) || [];
 
             let uploadedPdfUrl = null;
+
             if (exam.examType === 'PDF' && answers['pdfFile']) {
                 const formData = new FormData();
                 formData.append('file', answers['pdfFile']);
-                formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
 
-                // 🟢 FIXED: Changed 'image/upload' to 'auto/upload' to prevent PDF-to-PNG conversion
-                const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/auto/upload`, {
+                // KEEP your new document preset
+                formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_DOCUMENT_PRESET || 'examsy_documents');
+
+                // 🟢 FIXED: Change 'raw/upload' back to 'image/upload'
+                const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`, {
                     method: 'POST', body: formData
                 });
                 const data = await uploadRes.json();
                 uploadedPdfUrl = data.secure_url;
             }
-
             const payload = {
                 pdfSubmissionUrl: uploadedPdfUrl,
                 answers: formattedAnswers

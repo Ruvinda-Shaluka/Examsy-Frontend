@@ -136,10 +136,12 @@ const TeacherTeaching = () => {
             if (examData.type === 'pdf' && examData.pdfFile) {
                 const formData = new FormData();
                 formData.append('file', examData.pdfFile);
-                formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
 
-                // 🟢 FIXED: Changed 'image/upload' to 'auto/upload' to prevent PDF-to-PNG conversion
-                const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/auto/upload`, {
+                // 🟢 USE DOCUMENT PRESET
+                formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_DOCUMENT_PRESET || 'examsy_documents');
+
+                // 🟢 PUBLIC RAW ENDPOINT TO PREVENT 401 & PNG CONVERSION
+                const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`, {
                     method: 'POST', body: formData
                 });
                 const data = await uploadRes.json();
@@ -232,5 +234,4 @@ const TeacherTeaching = () => {
         </TeacherLayout>
     );
 };
-
 export default TeacherTeaching;
