@@ -21,12 +21,13 @@ const TeacherGrading = () => {
     const [pdfError, setPdfError] = useState(false);
     const [finalScore, setFinalScore] = useState("");
 
-    // 🟢 FETCH REAL PENDING DATA ON MOUNT
+    // 🟢 NEW STATE: For the approve button spinner
+    const [isApproving, setIsApproving] = useState(false);
+
     useEffect(() => {
         const loadPendingGradings = async () => {
             try {
                 const res = await teacherService.getPendingGradings();
-                // Assumes your APIResponse sends data inside res.data
                 setSubmissions(res.data || []);
             } catch (error) {
                 console.error("Failed to load pending submissions", error);
@@ -80,12 +81,40 @@ const TeacherGrading = () => {
         }
     };
 
-    const handleApproveGrade = () => {
+    // 🟢 UPDATED: Fully integrated with backend API
+    const handleApproveGrade = async () => {
         if (!finalScore) {
             return setAlert({ type: 'error', title: 'Missing Score', message: 'Please enter a final score before approving.' });
         }
-        // TODO: Call your service to save the final grade to the database
-        setAlert({ type: 'success', title: 'Success', message: `Grade of ${finalScore} saved successfully!` });
+
+        setIsApproving(true);
+        setAlert(null);
+
+        try {
+            await teacherService.approveAndReleaseGrade(
+                selectedSubmission.examId,
+                selectedSubmission.id,
+                finalScore,
+                aiFeedback?.comments || "Manually Graded"
+            );
+
+            setAlert({ type: 'success', title: 'Success', message: `Grade of ${finalScore} released successfully! Student has been notified.` });
+
+            // Clear the workspace
+            setSelectedSubmission(null);
+            setAiFeedback(null);
+            setFinalScore("");
+
+            // Refresh the pending list so the graded student disappears
+            const res = await teacherService.getPendingGradings();
+            setSubmissions(res.data || []);
+
+        } catch (error) {
+            console.error("Failed to release grade:", error);
+            setAlert({ type: 'error', title: 'Action Failed', message: error.message || 'Could not save the grade.' });
+        } finally {
+            setIsApproving(false);
+        }
     };
 
     return (
@@ -148,7 +177,6 @@ const TeacherGrading = () => {
                                     <div className="px-4 py-2 border-b border-zinc-200 dark:border-zinc-800 mb-4 flex justify-between items-center">
                                         <h3 className="font-black text-sm text-examsy-text">Student Answer Script</h3>
 
-                                        {/* 🟢 NEW: Open in New Tab Button */}
                                         <a
                                             href={selectedSubmission.pdfUrl}
                                             target="_blank"
@@ -257,11 +285,15 @@ const TeacherGrading = () => {
                                                     className="w-full bg-transparent border-2 border-zinc-200 dark:border-zinc-800 rounded-2xl px-6 py-4 font-black text-2xl text-examsy-text outline-none focus:border-examsy-primary transition-colors"
                                                 />
                                             </div>
+
+                                            {/* 🟢 UPDATED: Submit button with loading state */}
                                             <button
                                                 onClick={handleApproveGrade}
-                                                className="w-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-2xl font-black py-4 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                                                disabled={isApproving}
+                                                className="w-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-2xl font-black py-4 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
                                             >
-                                                <Save size={18} /> Approve & Release Grade
+                                                {isApproving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                                                {isApproving ? 'Saving & Notifying...' : 'Approve & Release Grade'}
                                             </button>
                                         </div>
                                     </div>

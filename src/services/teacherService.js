@@ -141,4 +141,9 @@ export const teacherService = {
         const response = await api.get(`/teacher/exams/pending-gradings`);
         return response.data;
     },
+
+    approveAndReleaseGrade: async (examId, submissionId, score, comments) => {
+        const response = await api.post(`/teacher/exams/${examId}/grade/${submissionId}/approve?score=${score}`, { comments });
+        return response.data;
+    },
 }
