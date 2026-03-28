@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TeacherLayout from '../../layouts/TeacherLayout';
-import { FileText, Sparkles, CheckCircle, AlertCircle, Loader2, Save } from 'lucide-react';
+import { FileText, Sparkles, CheckCircle, AlertCircle, Loader2, Save, ExternalLink } from 'lucide-react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import CustomAlert from '../../components/common/CustomAlert';
 import { teacherService } from '../../services/teacherService';
@@ -8,13 +8,9 @@ import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 
-// Mock Data: Replace with a fetch to get actual submissions for the exam
-const mockSubmissions = [
-    { id: 1, examId: 101, studentName: "Alice Johnson", status: "PENDING", pdfUrl: "https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf" },
-];
-
 const TeacherGrading = () => {
-    const [submissions, setSubmissions] = useState(mockSubmissions);
+    const [submissions, setSubmissions] = useState([]);
+    const [isLoadingData, setIsLoadingData] = useState(true);
     const [selectedSubmission, setSelectedSubmission] = useState(null);
     const [alert, setAlert] = useState(null);
 
@@ -23,8 +19,24 @@ const TeacherGrading = () => {
 
     const [numPages, setNumPages] = useState(null);
     const [pdfError, setPdfError] = useState(false);
-
     const [finalScore, setFinalScore] = useState("");
+
+    // 🟢 FETCH REAL PENDING DATA ON MOUNT
+    useEffect(() => {
+        const loadPendingGradings = async () => {
+            try {
+                const res = await teacherService.getPendingGradings();
+                // Assumes your APIResponse sends data inside res.data
+                setSubmissions(res.data || []);
+            } catch (error) {
+                console.error("Failed to load pending submissions", error);
+                setAlert({ type: 'error', title: 'Data Load Error', message: 'Could not fetch pending gradings.' });
+            } finally {
+                setIsLoadingData(false);
+            }
+        };
+        loadPendingGradings();
+    }, []);
 
     const handleSelectStudent = (submission) => {
         setSelectedSubmission(submission);
@@ -42,8 +54,6 @@ const TeacherGrading = () => {
 
         try {
             const apiRes = await teacherService.autoGradeSubmission(selectedSubmission.examId, selectedSubmission.id);
-
-            // Extract the actual data payload from your APIResponse wrapper
             const aiData = apiRes.data;
 
             setAiFeedback({
@@ -74,7 +84,6 @@ const TeacherGrading = () => {
         if (!finalScore) {
             return setAlert({ type: 'error', title: 'Missing Score', message: 'Please enter a final score before approving.' });
         }
-
         // TODO: Call your service to save the final grade to the database
         setAlert({ type: 'success', title: 'Success', message: `Grade of ${finalScore} saved successfully!` });
     };
@@ -97,20 +106,30 @@ const TeacherGrading = () => {
                     {/* LEFT COLUMN: Student Roster */}
                     <div className="lg:col-span-1 space-y-4">
                         <h3 className="text-[10px] font-black uppercase tracking-widest text-examsy-muted ml-2">Pending Reviews</h3>
-                        <div className="space-y-3">
-                            {submissions.map(sub => (
-                                <button
-                                    key={sub.id}
-                                    onClick={() => handleSelectStudent(sub)}
-                                    className={`w-full p-4 rounded-[24px] border text-left transition-all hover:scale-[1.02] ${selectedSubmission?.id === sub.id ? 'bg-examsy-primary text-white shadow-lg shadow-purple-500/30 border-examsy-primary' : 'bg-examsy-surface border-zinc-200 dark:border-zinc-800 text-examsy-text hover:border-examsy-primary/50'}`}
-                                >
-                                    <p className="font-black">{sub.studentName}</p>
-                                    <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${selectedSubmission?.id === sub.id ? 'text-white/80' : 'text-examsy-muted'}`}>
-                                        Status: {sub.status}
-                                    </p>
-                                </button>
-                            ))}
-                        </div>
+
+                        {isLoadingData ? (
+                            <div className="flex justify-center py-10"><Loader2 className="animate-spin text-examsy-primary" size={24} /></div>
+                        ) : submissions.length === 0 ? (
+                            <div className="p-4 text-center bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-3xl">
+                                <p className="text-sm font-bold text-examsy-muted">No pending gradings.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {submissions.map(sub => (
+                                    <button
+                                        key={sub.id}
+                                        onClick={() => handleSelectStudent(sub)}
+                                        className={`w-full p-4 rounded-[24px] border text-left transition-all hover:scale-[1.02] ${selectedSubmission?.id === sub.id ? 'bg-examsy-primary text-white shadow-lg shadow-purple-500/30 border-examsy-primary' : 'bg-examsy-surface border-zinc-200 dark:border-zinc-800 text-examsy-text hover:border-examsy-primary/50'}`}
+                                    >
+                                        <p className="font-black truncate">{sub.studentName}</p>
+                                        <p className="text-[10px] font-bold text-examsy-text/70 mt-0.5 truncate">{sub.examTitle}</p>
+                                        <p className={`text-[9px] font-black uppercase tracking-widest mt-2 ${selectedSubmission?.id === sub.id ? 'text-white/80' : 'text-amber-500'}`}>
+                                            Status: {sub.status}
+                                        </p>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* MIDDLE & RIGHT COLUMNS: Workspace */}
@@ -128,6 +147,16 @@ const TeacherGrading = () => {
                                 <div className="bg-examsy-surface rounded-[40px] border border-zinc-200 dark:border-zinc-800 p-4 flex flex-col h-[700px] shadow-sm">
                                     <div className="px-4 py-2 border-b border-zinc-200 dark:border-zinc-800 mb-4 flex justify-between items-center">
                                         <h3 className="font-black text-sm text-examsy-text">Student Answer Script</h3>
+
+                                        {/* 🟢 NEW: Open in New Tab Button */}
+                                        <a
+                                            href={selectedSubmission.pdfUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 bg-examsy-primary/10 text-examsy-primary px-3 py-1.5 rounded-xl text-xs font-black hover:bg-examsy-primary hover:text-white transition-all"
+                                        >
+                                            <ExternalLink size={14} /> Open in Tab
+                                        </a>
                                     </div>
                                     <div className="flex-1 overflow-y-auto bg-zinc-100 dark:bg-zinc-900 rounded-3xl border-2 border-zinc-200 dark:border-zinc-800 p-4 relative">
                                         {!pdfError ? (
@@ -155,7 +184,6 @@ const TeacherGrading = () => {
                                 {/* RIGHT: AI Assistant & Final Score */}
                                 <div className="flex flex-col gap-6">
 
-                                    {/* AI Control Panel */}
                                     <div className="bg-examsy-surface rounded-[40px] border border-zinc-200 dark:border-zinc-800 p-6 md:p-8 shadow-sm">
                                         <div className="flex items-center gap-3 mb-6">
                                             <div className="p-3 bg-examsy-primary/10 rounded-2xl text-examsy-primary">
@@ -191,7 +219,6 @@ const TeacherGrading = () => {
                                                         {aiFeedback.comments}
                                                     </p>
 
-                                                    {/* Rendering the advanced prompt arrays */}
                                                     {aiFeedback.missingConcepts?.length > 0 && (
                                                         <div className="mt-4 p-3 bg-red-500/10 rounded-xl border border-red-500/20">
                                                             <p className="text-[10px] font-black uppercase text-red-600 mb-1">Missing Concepts</p>
@@ -217,7 +244,6 @@ const TeacherGrading = () => {
                                         )}
                                     </div>
 
-                                    {/* Final Decision Form */}
                                     <div className="bg-examsy-surface rounded-[40px] border border-zinc-200 dark:border-zinc-800 p-6 md:p-8 shadow-sm mt-auto">
                                         <h3 className="font-black text-sm text-examsy-text mb-4">Final Teacher Verdict</h3>
                                         <div className="flex flex-col gap-4">

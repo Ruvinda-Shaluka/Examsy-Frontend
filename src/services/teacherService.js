@@ -137,4 +137,8 @@ export const teacherService = {
         return response.data;
     },
 
+    getPendingGradings: async () => {
+        const response = await api.get(`/teacher/exams/pending-gradings`);
+        return response.data;
+    },
 }
