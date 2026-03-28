@@ -14,7 +14,6 @@ import CustomAlert from '../../common/CustomAlert.jsx';
 const ExamInterface = () => {
     const { examId } = useParams();
     const navigate = useNavigate();
-
     const numericExamId = parseInt(examId, 10);
 
     const {
@@ -49,7 +48,14 @@ const ExamInterface = () => {
             try {
                 const data = await studentService.getExam(numericExamId);
                 setExam(data);
-                setTimeLeft(data.durationMinutes * 60);
+
+                // 🟢 NEW: PDF Upload 10-Minute Grace Period Logic
+                let baseTimeSeconds = data.durationMinutes ? data.durationMinutes * 60 : 0;
+                if (data.examType === 'PDF' && baseTimeSeconds > 0) {
+                    baseTimeSeconds += (10 * 60); // Add 600 seconds
+                }
+
+                setTimeLeft(baseTimeSeconds);
                 setIsLoading(false);
             } catch (error) {
                 console.error("Failed to load exam", error);
@@ -65,7 +71,6 @@ const ExamInterface = () => {
         loadExam();
     }, [numericExamId, navigate]);
 
-    // 🟢 MOVED: handleSubmit must be declared BEFORE the useEffect that calls it!
     const handleSubmit = async () => {
         try {
             const formattedAnswers = exam.questions?.map(q => ({
@@ -80,7 +85,8 @@ const ExamInterface = () => {
                 formData.append('file', answers['pdfFile']);
                 formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
 
-                const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                // 🟢 FIXED: Changed 'image/upload' to 'auto/upload' to prevent PDF-to-PNG conversion
+                const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/auto/upload`, {
                     method: 'POST', body: formData
                 });
                 const data = await uploadRes.json();
@@ -105,12 +111,12 @@ const ExamInterface = () => {
 
     // TIMER LOGIC
     useEffect(() => {
-        if (!exam) return;
+        if (!exam || !exam.durationMinutes || exam.durationMinutes <= 0) return;
         const timer = setInterval(() => {
             setTimeLeft(prev => {
                 if (prev <= 1) {
                     clearInterval(timer);
-                    handleSubmit(); // <--- This is why it crashed previously.
+                    handleSubmit();
                     return 0;
                 }
                 return prev - 1;
@@ -118,7 +124,7 @@ const ExamInterface = () => {
         }, 1000);
         return () => clearInterval(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [exam]); // We ignore handleSubmit in deps to prevent infinite loops from recreation
+    }, [exam]);
 
     const formatTime = (seconds) => {
         const h = Math.floor(seconds / 3600);
@@ -151,7 +157,7 @@ const ExamInterface = () => {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }); // Safe to omit deps here for keyboard listeners
+    });
 
     if (isLoading || !exam) {
         return (
@@ -171,7 +177,6 @@ const ExamInterface = () => {
     return (
         <div className="fixed inset-0 bg-examsy-bg z-[100] flex flex-col text-examsy-text select-none">
 
-            {/* FLOATING ALERT IN MAIN UI */}
             {alertData && (
                 <div className="absolute top-24 left-1/2 -translate-x-1/2 w-full max-w-lg px-4 z-[300] animate-in slide-in-from-top-4">
                     <CustomAlert type={alertData.type} title={alertData.title} message={alertData.message} onClose={() => setAlertData(null)} />
@@ -198,14 +203,21 @@ const ExamInterface = () => {
                 violationType={violationType}
             />
 
-            {/* --- RESPONSIVE HEADER --- */}
             <header className="h-20 bg-examsy-surface border-b border-zinc-200 dark:border-zinc-800 px-4 md:px-12 flex items-center justify-between shadow-xl relative z-20">
                 <div className="flex items-center gap-3 md:gap-6">
                     <button onClick={() => navigate(-1)} className="p-2 md:p-2.5 bg-examsy-bg rounded-lg md:rounded-xl text-examsy-muted hover:text-red-500 transition-all shrink-0">
                         <ArrowLeft size={20}/>
                     </button>
-                    <div className="overflow-hidden">
+                    <div className="overflow-hidden flex items-center gap-3">
                         <h2 className="text-base md:text-xl font-black uppercase tracking-tighter leading-none mb-1 truncate max-w-[120px] sm:max-w-xs md:max-w-md">{exam.title}</h2>
+
+                        {/* 🟢 NEW: Visual Grace Period Badge */}
+                        {exam.examType === 'PDF' && exam.durationMinutes > 0 && (
+                            <span className="hidden md:inline-block px-2 py-1 bg-emerald-500/10 text-emerald-500 text-[9px] font-black rounded-lg border border-emerald-500/20 uppercase tracking-widest">
+                                +10 Min Upload Time
+                            </span>
+                        )}
+
                         <div className="flex items-center gap-2">
                             {tabWarnings > 0 ? (
                                 <div className="flex items-center gap-1 text-red-500 bg-red-500/10 px-1.5 md:px-2 py-0.5 rounded-md animate-pulse">
@@ -229,11 +241,17 @@ const ExamInterface = () => {
                             <p className="text-[10px] font-black uppercase tracking-widest">Time Remaining</p>
                         </div>
                         <div className="flex items-center gap-1.5 md:hidden text-examsy-muted mb-0.5">
-                            <Clock size={12} className={timeLeft < 300 ? 'text-red-500' : ''} />
+                            <Clock size={12} className={timeLeft > 0 && timeLeft < 300 ? 'text-red-500' : ''} />
                         </div>
-                        <span className={`text-lg md:text-2xl font-black tabular-nums tracking-widest leading-none ${timeLeft < 300 ? 'text-red-500 animate-pulse' : 'text-examsy-text'}`}>
-                            {formatTime(timeLeft)}
-                        </span>
+                        {exam.durationMinutes > 0 ? (
+                            <span className={`text-lg md:text-2xl font-black tabular-nums tracking-widest leading-none ${timeLeft < 300 ? 'text-red-500 animate-pulse' : 'text-examsy-text'}`}>
+                                {formatTime(timeLeft)}
+                            </span>
+                        ) : (
+                            <span className="text-sm md:text-lg font-black tracking-widest leading-none text-emerald-500">
+                                NO LIMIT
+                            </span>
+                        )}
                     </div>
                     <button
                         onClick={handleSubmit}
@@ -271,37 +289,9 @@ const ExamInterface = () => {
                     </div>
                 </aside>
 
-                <main className="flex-1 p-4 md:p-12 overflow-y-auto bg-examsy-bg">
-                    <div className="max-w-4xl mx-auto h-full flex flex-col">
-
-                        <div className="flex flex-row justify-between items-center gap-4 mb-6 md:mb-10">
-                            <div>
-                                <span className="text-[9px] md:text-[10px] font-black uppercase text-examsy-primary tracking-widest bg-examsy-primary/10 px-3 md:px-4 py-1.5 md:py-2 rounded-full border border-examsy-primary/20">
-                                    {exam.examType?.replace('-', ' ')} Mode
-                                </span>
-                                <h3 className="mt-3 md:mt-4 text-2xl md:text-3xl font-black text-examsy-text">Question {currentQuestionIdx + 1}</h3>
-                            </div>
-
-                            <div className="hidden md:flex items-center gap-3 bg-examsy-surface p-1.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                                <button
-                                    onClick={handlePrev}
-                                    disabled={currentQuestionIdx === 0}
-                                    className="p-3 hover:bg-examsy-bg rounded-xl text-examsy-muted hover:text-examsy-text disabled:opacity-30 disabled:hover:bg-transparent transition-all"
-                                >
-                                    <ChevronLeft size={20} />
-                                </button>
-                                <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800"></div>
-                                <button
-                                    onClick={handleNext}
-                                    disabled={currentQuestionIdx === (exam?.questions?.length || 1) - 1}
-                                    className="p-3 hover:bg-examsy-bg rounded-xl text-examsy-muted hover:text-examsy-text disabled:opacity-30 disabled:hover:bg-transparent transition-all"
-                                >
-                                    <ChevronRight size={20} />
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="flex-1 animate-in slide-in-from-right-4 duration-300">
+                <main className="flex-1 p-4 md:p-8 overflow-y-auto bg-examsy-bg">
+                    <div className="max-w-5xl mx-auto h-full flex flex-col">
+                        <div className="flex-1 animate-in slide-in-from-right-4 duration-300 h-full">
                             {exam.examType === 'MCQ' && (
                                 <MCQView
                                     question={currentQ}
@@ -325,11 +315,6 @@ const ExamInterface = () => {
                                     onUpload={(file) => setAnswers(prev => ({ ...prev, pdfFile: file }))}
                                 />
                             )}
-                        </div>
-
-                        <div className="md:hidden flex justify-between mt-8 pt-6 border-t border-zinc-200 dark:border-zinc-800 pb-4">
-                            <button onClick={handlePrev} disabled={currentQuestionIdx === 0} className="px-6 py-3.5 bg-examsy-surface rounded-xl font-bold text-sm disabled:opacity-50 border border-zinc-200 dark:border-zinc-800 shadow-sm">Previous</button>
-                            <button onClick={handleNext} disabled={currentQuestionIdx === (exam?.questions?.length || 1) - 1} className="px-8 py-3.5 bg-examsy-primary text-white rounded-xl font-black text-sm disabled:opacity-50 shadow-lg shadow-purple-500/20">Next</button>
                         </div>
                     </div>
                 </main>

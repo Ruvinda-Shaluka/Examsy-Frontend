@@ -138,7 +138,8 @@ const TeacherTeaching = () => {
                 formData.append('file', examData.pdfFile);
                 formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
 
-                const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                // 🟢 FIXED: Changed 'image/upload' to 'auto/upload' to prevent PDF-to-PNG conversion
+                const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/auto/upload`, {
                     method: 'POST', body: formData
                 });
                 const data = await uploadRes.json();

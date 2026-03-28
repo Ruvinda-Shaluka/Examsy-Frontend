@@ -64,16 +64,31 @@ const useTabSecurity = (examId) => {
 
         // EVENT 1: Minimized or Switched Tabs
         const handleVisibility = () => {
+            // 🟢 BYPASS HACK: Ignore visibility changes if the OS File Picker is open
+            if (window.isUploadingFile) return;
+
             if (document.visibilityState === 'hidden') handleViolationStart('TAB_SWITCHED');
             else handleViolationEnd();
         };
 
         // EVENT 2: Clicked on another app (like an IDE on a split screen)
-        const handleBlur = () => handleViolationStart('WINDOW_LOST_FOCUS');
-        const handleFocus = () => handleViolationEnd();
+        const handleBlur = () => {
+            // 🟢 BYPASS HACK: Ignore window blur if the OS File Picker is open
+            if (window.isUploadingFile) return;
+
+            handleViolationStart('WINDOW_LOST_FOCUS');
+        };
+
+        const handleFocus = () => {
+            // We don't need the bypass here, just end the violation normally if it existed
+            handleViolationEnd();
+        };
 
         // EVENT 3: Shrunk the browser to split the screen
         const handleResize = () => {
+            // 🟢 BYPASS HACK: Do not trigger resize penalties during a file upload
+            if (window.isUploadingFile) return;
+
             const screenWidth = window.screen.width;
             const windowWidth = window.innerWidth;
 
