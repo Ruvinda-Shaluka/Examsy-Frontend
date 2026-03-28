@@ -29,7 +29,7 @@ const TeacherTeaching = () => {
         duration: '',
         questions: [],
         pdfFile: null,
-        maxScore: '' // 🟢 NEW STATE ADDED
+        maxScore: ''
     });
 
     const nextStep = () => {
@@ -86,7 +86,6 @@ const TeacherTeaching = () => {
             }
         }
 
-        // 🟢 FINAL STEP VALIDATION: Check PDF and Max Score
         if (examData.type === 'pdf') {
             if (!examData.pdfFile) {
                 return setAlert({type: 'error', title: 'Missing File', message: 'Please upload a PDF document before publishing.'});
@@ -127,7 +126,6 @@ const TeacherTeaching = () => {
                 finalPdfUrl = data.secure_url;
             }
 
-            // 🟢 UPDATED: Payload now includes maxScore for PDF exams
             const payload = {
                 classIds: examData.classes,
                 title: examData.title,
@@ -206,19 +204,19 @@ const TeacherTeaching = () => {
                                 <TeacherShortAnswerBuilder questions={examData.questions} onChange={(q) => setExamData({...examData, questions: q})} />
                             )}
                             {examData.type === 'pdf' && (
-                                {/* 🟢 UPDATED PROPS */}
                                 <TeacherPDFUploader
-                                file={examData.pdfFile}
-                            onFileChange={(f) => setExamData({...examData, pdfFile: f})}
-                            maxScore={examData.maxScore}
-                            onMaxScoreChange={(v) => setExamData({...examData, maxScore: v})}
-                        />
+                                    file={examData.pdfFile}
+                                    onFileChange={(f) => setExamData({...examData, pdfFile: f})}
+                                    maxScore={examData.maxScore}
+                                    onMaxScoreChange={(v) => setExamData({...examData, maxScore: v})}
+                                />
+                            )}
+                        </>
                     )}
-                </>
-                )}
+                </div>
             </div>
-        </div>
-</TeacherLayout>
-);
+        </TeacherLayout>
+    );
 };
+
 export default TeacherTeaching;
