@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import TeacherLayout from '../../layouts/TeacherLayout';
-import { FileText, Sparkles, CheckCircle, AlertCircle, Loader2, Save, ExternalLink } from 'lucide-react';
+import { FileText, Sparkles, CheckCircle, AlertCircle, Loader2, Save, ExternalLink, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import CustomAlert from '../../components/common/CustomAlert';
 import { teacherService } from '../../services/teacherService';
@@ -21,8 +21,23 @@ const TeacherGrading = () => {
     const [pdfError, setPdfError] = useState(false);
     const [finalScore, setFinalScore] = useState("");
 
-    // 🟢 NEW STATE: For the approve button spinner
     const [isApproving, setIsApproving] = useState(false);
+
+    // 🟢 NEW FILTER STATES
+    const [filterMenuOpen, setFilterMenuOpen] = useState(false);
+    const [activeFilter, setActiveFilter] = useState("All Exams");
+    const dropdownRef = useRef(null);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setFilterMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     useEffect(() => {
         const loadPendingGradings = async () => {
@@ -81,7 +96,6 @@ const TeacherGrading = () => {
         }
     };
 
-    // 🟢 UPDATED: Fully integrated with backend API
     const handleApproveGrade = async () => {
         if (!finalScore) {
             return setAlert({ type: 'error', title: 'Missing Score', message: 'Please enter a final score before approving.' });
@@ -100,12 +114,10 @@ const TeacherGrading = () => {
 
             setAlert({ type: 'success', title: 'Success', message: `Grade of ${finalScore} released successfully! Student has been notified.` });
 
-            // Clear the workspace
             setSelectedSubmission(null);
             setAiFeedback(null);
             setFinalScore("");
 
-            // Refresh the pending list so the graded student disappears
             const res = await teacherService.getPendingGradings();
             setSubmissions(res.data || []);
 
@@ -116,6 +128,22 @@ const TeacherGrading = () => {
             setIsApproving(false);
         }
     };
+
+    // 🟢 EXTRACT UNIQUE EXAM TITLES FOR THE FILTER DROPDOWN
+    const uniqueExams = ["All Exams", ...new Set(submissions.map(sub => sub.examTitle))];
+
+    // 🟢 APPLY THE SELECTED FILTER
+    const filteredSubmissions = submissions.filter(sub =>
+        activeFilter === "All Exams" || sub.examTitle === activeFilter
+    );
+
+    // Group the filtered results
+    const groupedSubmissions = filteredSubmissions.reduce((group, sub) => {
+        const { examTitle } = sub;
+        group[examTitle] = group[examTitle] ?? [];
+        group[examTitle].push(sub);
+        return group;
+    }, {});
 
     return (
         <TeacherLayout>
@@ -128,40 +156,86 @@ const TeacherGrading = () => {
                         <h1 className="text-2xl font-black text-examsy-text">Exam Grading Workspace</h1>
                         <p className="text-examsy-muted font-bold text-sm">Review PDF submissions, utilize AI analysis, and finalize grades.</p>
                     </div>
+
+                    {/* 🟢 FILTER DROPDOWN COMPONENT */}
+                    <div className="relative z-10 w-full md:w-64" ref={dropdownRef}>
+                        <button
+                            onClick={() => setFilterMenuOpen(!filterMenuOpen)}
+                            className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${filterMenuOpen ? 'bg-[#1C182B] border-[#4A3D7A] text-white' : 'bg-transparent border-[#4A3D7A] text-white hover:bg-[#1C182B]'}`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <Filter size={18} className="text-[#6D5DD3]" />
+                                <span className="font-black text-sm truncate">{activeFilter}</span>
+                            </div>
+                            {filterMenuOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                        </button>
+
+                        {filterMenuOpen && (
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-[#1C182B] border border-[#2D2644] rounded-2xl overflow-hidden shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="max-h-64 overflow-y-auto custom-scrollbar p-2 space-y-1">
+                                    {uniqueExams.map((examName, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => {
+                                                setActiveFilter(examName);
+                                                setFilterMenuOpen(false);
+                                            }}
+                                            className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${activeFilter === examName ? 'bg-[#2D2644] text-[#6D5DD3]' : 'text-zinc-400 hover:bg-[#2D2644] hover:text-white'}`}
+                                        >
+                                            {examName === "All Exams" ? <Filter size={16} /> : <FileText size={16} />}
+                                            <span className="font-black text-xs truncate">{examName}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
 
                     {/* LEFT COLUMN: Student Roster */}
                     <div className="lg:col-span-1 space-y-4">
-                        <h3 className="text-[10px] font-black uppercase tracking-widest text-examsy-muted ml-2">Pending Reviews</h3>
+                        <div className="flex justify-between items-center ml-2">
+                            <h3 className="text-[10px] font-black uppercase tracking-widest text-examsy-muted">Pending Reviews</h3>
+                            <span className="text-[10px] font-black bg-examsy-primary/10 text-examsy-primary px-2 py-0.5 rounded-full">{filteredSubmissions.length} Total</span>
+                        </div>
 
                         {isLoadingData ? (
                             <div className="flex justify-center py-10"><Loader2 className="animate-spin text-examsy-primary" size={24} /></div>
-                        ) : submissions.length === 0 ? (
+                        ) : filteredSubmissions.length === 0 ? (
                             <div className="p-4 text-center bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-3xl">
-                                <p className="text-sm font-bold text-examsy-muted">No pending gradings.</p>
+                                <p className="text-sm font-bold text-examsy-muted">No pending gradings match this filter.</p>
                             </div>
                         ) : (
-                            <div className="space-y-3">
-                                {submissions.map(sub => (
-                                    <button
-                                        key={sub.id}
-                                        onClick={() => handleSelectStudent(sub)}
-                                        className={`w-full p-4 rounded-[24px] border text-left transition-all hover:scale-[1.02] ${selectedSubmission?.id === sub.id ? 'bg-examsy-primary text-white shadow-lg shadow-purple-500/30 border-examsy-primary' : 'bg-examsy-surface border-zinc-200 dark:border-zinc-800 text-examsy-text hover:border-examsy-primary/50'}`}
-                                    >
-                                        <p className="font-black truncate">{sub.studentName}</p>
-                                        <p className="text-[10px] font-bold text-examsy-text/70 mt-0.5 truncate">{sub.examTitle}</p>
-                                        <p className={`text-[9px] font-black uppercase tracking-widest mt-2 ${selectedSubmission?.id === sub.id ? 'text-white/80' : 'text-amber-500'}`}>
-                                            Status: {sub.status}
-                                        </p>
-                                    </button>
+                            <div className="space-y-8">
+                                {Object.entries(groupedSubmissions).map(([examTitle, subs]) => (
+                                    <div key={examTitle} className="space-y-3">
+                                        <h4 className="text-xs font-black text-examsy-text px-2 border-b border-zinc-200 dark:border-zinc-800 pb-2 flex justify-between items-center">
+                                            <span className="truncate">{examTitle}</span>
+                                            <span className="ml-2 text-[10px] bg-examsy-primary/10 text-examsy-primary px-2 py-0.5 rounded-full flex-shrink-0">
+                                                {subs.length}
+                                            </span>
+                                        </h4>
+                                        {subs.map(sub => (
+                                            <button
+                                                key={sub.id}
+                                                onClick={() => handleSelectStudent(sub)}
+                                                className={`w-full p-4 rounded-[24px] border text-left transition-all hover:scale-[1.02] ${selectedSubmission?.id === sub.id ? 'bg-examsy-primary text-white shadow-lg shadow-purple-500/30 border-examsy-primary' : 'bg-examsy-surface border-zinc-200 dark:border-zinc-800 text-examsy-text hover:border-examsy-primary/50'}`}
+                                            >
+                                                <p className="font-black truncate">{sub.studentName}</p>
+                                                <p className={`text-[9px] font-black uppercase tracking-widest mt-2 ${selectedSubmission?.id === sub.id ? 'text-white/80' : 'text-amber-500'}`}>
+                                                    Status: {sub.status}
+                                                </p>
+                                            </button>
+                                        ))}
+                                    </div>
                                 ))}
                             </div>
                         )}
                     </div>
 
-                    {/* MIDDLE & RIGHT COLUMNS: Workspace */}
+                    {/* MIDDLE & RIGHT COLUMNS: WORKSPACE RESTRUCTURED */}
                     <div className="lg:col-span-3">
                         {!selectedSubmission ? (
                             <div className="h-[600px] flex flex-col items-center justify-center bg-examsy-surface rounded-[40px] border border-dashed border-zinc-300 dark:border-zinc-800 text-examsy-muted">
@@ -170,23 +244,22 @@ const TeacherGrading = () => {
                                 <p className="font-bold text-sm">Select a student from the roster to begin grading.</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                            <div className="flex flex-col gap-8">
 
-                                {/* MIDDLE: Native PDF Viewer */}
-                                <div className="bg-examsy-surface rounded-[40px] border border-zinc-200 dark:border-zinc-800 p-4 flex flex-col h-[700px] shadow-sm">
+                                {/* 🟢 ROW 1: PDF Viewer (Full Width) */}
+                                <div className="w-full bg-examsy-surface rounded-[40px] border border-zinc-200 dark:border-zinc-800 p-4 flex flex-col h-[700px] shadow-sm">
                                     <div className="px-4 py-2 border-b border-zinc-200 dark:border-zinc-800 mb-4 flex justify-between items-center">
                                         <h3 className="font-black text-sm text-examsy-text">Student Answer Script</h3>
-
                                         <a
                                             href={selectedSubmission.pdfUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="flex items-center gap-2 bg-examsy-primary/10 text-examsy-primary px-3 py-1.5 rounded-xl text-xs font-black hover:bg-examsy-primary hover:text-white transition-all"
                                         >
-                                            <ExternalLink size={14} /> Open in Tab
+                                            <ExternalLink size={14} /> Open Full Screen
                                         </a>
                                     </div>
-                                    <div className="flex-1 overflow-y-auto bg-zinc-100 dark:bg-zinc-900 rounded-3xl border-2 border-zinc-200 dark:border-zinc-800 p-4 relative">
+                                    <div className="flex-1 overflow-y-auto bg-zinc-100 dark:bg-zinc-900 rounded-3xl border-2 border-zinc-200 dark:border-zinc-800 p-4 relative flex justify-center">
                                         {!pdfError ? (
                                             <Document
                                                 file={selectedSubmission.pdfUrl}
@@ -195,8 +268,8 @@ const TeacherGrading = () => {
                                                 loading={<div className="flex justify-center mt-20"><Loader2 className="animate-spin text-examsy-muted" size={32} /></div>}
                                             >
                                                 {Array.from(new Array(numPages), (el, index) => (
-                                                    <div key={`page_${index + 1}`} className="mb-4 rounded-xl overflow-hidden shadow-md">
-                                                        <Page pageNumber={index + 1} renderTextLayer={false} renderAnnotationLayer={false} width={400} />
+                                                    <div key={`page_${index + 1}`} className="mb-4 rounded-xl overflow-hidden shadow-md max-w-full">
+                                                        <Page pageNumber={index + 1} renderTextLayer={false} renderAnnotationLayer={false} width={800} className="max-w-full" />
                                                     </div>
                                                 ))}
                                             </Document>
@@ -209,10 +282,11 @@ const TeacherGrading = () => {
                                     </div>
                                 </div>
 
-                                {/* RIGHT: AI Assistant & Final Score */}
-                                <div className="flex flex-col gap-6">
+                                {/* 🟢 ROW 2: AI Assistant & Final Score Side-by-Side */}
+                                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
 
-                                    <div className="bg-examsy-surface rounded-[40px] border border-zinc-200 dark:border-zinc-800 p-6 md:p-8 shadow-sm">
+                                    {/* LEFT SIDE: AI Control Panel */}
+                                    <div className="bg-examsy-surface rounded-[40px] border border-zinc-200 dark:border-zinc-800 p-6 md:p-8 shadow-sm flex flex-col h-full">
                                         <div className="flex items-center gap-3 mb-6">
                                             <div className="p-3 bg-examsy-primary/10 rounded-2xl text-examsy-primary">
                                                 <Sparkles size={24} />
@@ -227,10 +301,10 @@ const TeacherGrading = () => {
                                             <button
                                                 onClick={handleAiGrade}
                                                 disabled={isGrading}
-                                                className="w-full bg-examsy-primary text-white py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-purple-500/30"
+                                                className="w-full bg-examsy-primary text-white py-6 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-purple-500/30 mt-auto"
                                             >
                                                 {isGrading ? <Loader2 className="animate-spin" size={20} /> : <FileText size={20} />}
-                                                {isGrading ? 'Extracting & Analyzing Text...' : 'Run Smart Grading'}
+                                                {isGrading ? 'Extracting & Analyzing Text...' : 'Run Smart Grading Pipeline'}
                                             </button>
                                         ) : (
                                             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-4">
@@ -272,28 +346,28 @@ const TeacherGrading = () => {
                                         )}
                                     </div>
 
-                                    <div className="bg-examsy-surface rounded-[40px] border border-zinc-200 dark:border-zinc-800 p-6 md:p-8 shadow-sm mt-auto">
-                                        <h3 className="font-black text-sm text-examsy-text mb-4">Final Teacher Verdict</h3>
-                                        <div className="flex flex-col gap-4">
-                                            <div className="relative">
-                                                <label className="absolute -top-2.5 left-4 bg-examsy-surface px-2 text-[10px] font-black uppercase tracking-widest text-examsy-muted">Final Score</label>
+                                    {/* 🟢 RIGHT SIDE: Final Teacher Verdict (Stacked Layout) */}
+                                    <div className="bg-examsy-surface rounded-[40px] border border-zinc-200 dark:border-zinc-800 p-6 md:p-8 shadow-sm flex flex-col justify-center h-full">
+                                        <h3 className="font-black text-sm text-examsy-text uppercase tracking-widest mb-6">Final Verdict</h3>
+
+                                        <div className="flex flex-col gap-4 w-full">
+                                            <div className="relative w-full">
                                                 <input
                                                     type="number"
                                                     value={finalScore}
                                                     onChange={(e) => setFinalScore(e.target.value)}
-                                                    placeholder="0"
-                                                    className="w-full bg-transparent border-2 border-zinc-200 dark:border-zinc-800 rounded-2xl px-6 py-4 font-black text-2xl text-examsy-text outline-none focus:border-examsy-primary transition-colors"
+                                                    placeholder="Score"
+                                                    className="w-full h-[64px] bg-zinc-100 dark:bg-zinc-800/50 border-2 border-zinc-200 dark:border-zinc-700/50 rounded-2xl px-4 font-black text-2xl text-examsy-text outline-none focus:border-examsy-primary transition-colors text-center"
                                                 />
                                             </div>
 
-                                            {/* 🟢 UPDATED: Submit button with loading state */}
                                             <button
                                                 onClick={handleApproveGrade}
                                                 disabled={isApproving}
-                                                className="w-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-2xl font-black py-4 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
+                                                className="w-full h-[64px] bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-2xl font-black text-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:hover:scale-100 shadow-lg"
                                             >
-                                                {isApproving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                                                {isApproving ? 'Saving & Notifying...' : 'Approve & Release Grade'}
+                                                {isApproving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+                                                {isApproving ? 'Saving & Notifying...' : 'Release Grade'}
                                             </button>
                                         </div>
                                     </div>
