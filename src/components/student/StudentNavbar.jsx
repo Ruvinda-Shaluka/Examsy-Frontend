@@ -23,7 +23,7 @@ const StudentNavbar = ({ toggleSidebar }) => {
                 const [profileData, countData, classData] = await Promise.all([
                     studentService.getProfile(),
                     notificationService.getUnreadCount(),
-                    studentService.getEnrolledClasses()
+                    studentService.getEnrolledClasses() // This returns an array of StudentClassCardDTO
                 ]);
                 setProfile(profileData);
                 setUnreadCount(countData);
@@ -36,7 +36,6 @@ const StudentNavbar = ({ toggleSidebar }) => {
         fetchNavData();
     }, []);
 
-    // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (searchRef.current && !searchRef.current.contains(event.target)) {
@@ -50,13 +49,13 @@ const StudentNavbar = ({ toggleSidebar }) => {
     const initial = profile.fullName && profile.fullName !== 'Loading...'
         ? profile.fullName.charAt(0).toUpperCase() : 'S';
 
-    // 🟢 SAFE FILTER LOGIC: Checks multiple possible backend property names
+    // 🟢 FILTER LOGIC: Mapped specifically to StudentClassCardDTO
     const filteredClasses = classes.filter(cls => {
-        const safeCourseName = String(cls.courseName || cls.name || cls.className || '').toLowerCase();
-        const safeTeacherName = String(cls.teacherName || cls.teacher || '').toLowerCase();
+        const safeTitle = String(cls.title || '').toLowerCase();
+        const safeTeacher = String(cls.teacher || '').toLowerCase();
         const query = searchQuery.toLowerCase();
 
-        return safeCourseName.includes(query) || safeTeacherName.includes(query);
+        return safeTitle.includes(query) || safeTeacher.includes(query);
     });
 
     const handleSearchChange = (e) => {
@@ -85,7 +84,6 @@ const StudentNavbar = ({ toggleSidebar }) => {
                         />
                     </div>
 
-                    {/* SEARCH DROPDOWN */}
                     {isDropdownOpen && (
                         <div className="absolute top-full left-0 right-0 mt-2 bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
                             {filteredClasses.length > 0 ? (
@@ -93,11 +91,11 @@ const StudentNavbar = ({ toggleSidebar }) => {
                                     <p className="text-[9px] font-black uppercase tracking-widest text-examsy-muted px-3 py-1">Enrolled Classes</p>
                                     {filteredClasses.map(cls => (
                                         <button
-                                            key={cls.courseId || cls.id}
+                                            key={cls.id}
                                             onClick={() => {
                                                 setIsDropdownOpen(false);
                                                 setSearchQuery('');
-                                                navigate(`/student/class/${cls.courseId || cls.id}`);
+                                                navigate(`/student/class/${cls.id}`);
                                             }}
                                             className="w-full flex items-center gap-3 p-3 hover:bg-examsy-bg rounded-xl transition-all text-left group"
                                         >
@@ -105,11 +103,12 @@ const StudentNavbar = ({ toggleSidebar }) => {
                                                 <BookOpen size={16} />
                                             </div>
                                             <div className="overflow-hidden">
+                                                {/* 🟢 Safely render mapped properties */}
                                                 <p className="text-sm font-black text-examsy-text truncate">
-                                                    {cls.courseName || cls.name || cls.className || 'Unnamed Class'}
+                                                    {cls.title}
                                                 </p>
                                                 <p className="text-[10px] font-bold text-examsy-muted truncate">
-                                                    {cls.teacherName || cls.teacher || ''}
+                                                    {cls.teacher}
                                                 </p>
                                             </div>
                                         </button>

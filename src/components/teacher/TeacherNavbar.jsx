@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Bell, Menu, BookOpen, Loader2 } from 'lucide-react';
+import { Search, Bell, Menu, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ToggleButton from '../landingPage/ToggleButton.jsx';
 import { teacherService } from '../../services/teacherService.js';
@@ -15,7 +15,6 @@ const TeacherNavbar = ({ toggleSidebar }) => {
     // 🟢 SEARCH STATES
     const [searchQuery, setSearchQuery] = useState('');
     const [classes, setClasses] = useState([]);
-    const [isSearching, setIsSearching] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     useEffect(() => {
@@ -24,7 +23,7 @@ const TeacherNavbar = ({ toggleSidebar }) => {
                 const [profileData, countData, classData] = await Promise.all([
                     teacherService.getProfile(),
                     notificationService.getUnreadCount(),
-                    teacherService.getClasses()
+                    teacherService.getClasses() // This returns an array of TeacherClassCardDTO
                 ]);
                 setProfile(profileData);
                 setUnreadCount(countData);
@@ -37,7 +36,6 @@ const TeacherNavbar = ({ toggleSidebar }) => {
         fetchNavData();
     }, []);
 
-    // Close search dropdown if clicked outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (searchRef.current && !searchRef.current.contains(event.target)) {
@@ -51,13 +49,13 @@ const TeacherNavbar = ({ toggleSidebar }) => {
     const initial = profile.fullName && profile.fullName !== 'Loading...'
         ? profile.fullName.charAt(0).toUpperCase() : 'T';
 
-    // 🟢 BULLETPROOF FILTER LOGIC: Checks multiple possible backend property names
+    // 🟢 FILTER LOGIC: Mapped specifically to TeacherClassCardDTO
     const filteredClasses = classes.filter(cls => {
-        const safeName = String(cls.name || cls.courseName || cls.className || '').toLowerCase();
-        const safeSection = String(cls.sectionName || cls.section || '').toLowerCase();
+        const safeTitle = String(cls.title || '').toLowerCase();
+        const safeSection = String(cls.section || '').toLowerCase();
         const query = searchQuery.toLowerCase();
 
-        return safeName.includes(query) || safeSection.includes(query);
+        return safeTitle.includes(query) || safeSection.includes(query);
     });
 
     const handleSearchChange = (e) => {
@@ -86,7 +84,6 @@ const TeacherNavbar = ({ toggleSidebar }) => {
                         />
                     </div>
 
-                    {/* SEARCH DROPDOWN */}
                     {isDropdownOpen && (
                         <div className="absolute top-full left-0 right-0 mt-2 bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
                             {filteredClasses.length > 0 ? (
@@ -94,11 +91,11 @@ const TeacherNavbar = ({ toggleSidebar }) => {
                                     <p className="text-[9px] font-black uppercase tracking-widest text-examsy-muted px-3 py-1">Classes</p>
                                     {filteredClasses.map(cls => (
                                         <button
-                                            key={cls.id || cls.courseId}
+                                            key={cls.id}
                                             onClick={() => {
                                                 setIsDropdownOpen(false);
                                                 setSearchQuery('');
-                                                navigate(`/teacher/class/${cls.id || cls.courseId}`);
+                                                navigate(`/teacher/class/${cls.id}`);
                                             }}
                                             className="w-full flex items-center gap-3 p-3 hover:bg-examsy-bg rounded-xl transition-all text-left group"
                                         >
@@ -106,11 +103,12 @@ const TeacherNavbar = ({ toggleSidebar }) => {
                                                 <BookOpen size={16} />
                                             </div>
                                             <div className="overflow-hidden">
+                                                {/* 🟢 Safely render mapped properties */}
                                                 <p className="text-sm font-black text-examsy-text truncate">
-                                                    {cls.name || cls.courseName || cls.className || 'Unnamed Class'}
+                                                    {cls.title}
                                                 </p>
                                                 <p className="text-[10px] font-bold text-examsy-muted truncate">
-                                                    {cls.sectionName || cls.section || ''}
+                                                    {cls.section}
                                                 </p>
                                             </div>
                                         </button>
