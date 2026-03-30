@@ -149,4 +149,9 @@ export const teacherService = {
         });
         return response.data;
     },
+
+    triggerUpcomingReminders: async () => {
+        const response = await api.post('/teacher/exams/trigger-reminders');
+        return response.data;
+    },
 }

@@ -52,7 +52,14 @@ const LoginPage = () => {
             }
             else if (userRole === 'TEACHER') {
                 try {
+                    // 1. Rotate class codes for security
                     await teacherService.rotateClassCodes();
+
+                    // 2. 🟢 FIRE AND FORGET: Trigger the 48-hour reminders silently in the background
+                    teacherService.triggerUpcomingReminders().catch(err => {
+                        console.error("Silent Reminder Dispatch Failed:", err);
+                    });
+
                     setAlert({ type: 'success', title: 'Login Successful', message: `Welcome back, ${identifier}! Redirecting to your dashboard.` });
                     setTimeout(() => { setAlert(null); window.location.href = '/teacher/dashboard'; }, 1500);
                 } catch (rotationError) {
@@ -118,7 +125,6 @@ const LoginPage = () => {
                         </div>
                     </div>
 
-                    {/* 🟢 Clean, native Google Button Link */}
                     <div className="mb-6 flex justify-center w-full">
                         <GoogleAuthButton label="Continue with Google" role={role}/>
                     </div>
