@@ -94,7 +94,6 @@ const AcademicVault = () => {
                         {vaultData.upcomingExams.map(ex => {
                             const isCompleted = ex.studentStatus === 'SUBMITTED';
 
-                            // 🟢 TIME LOGIC CALCULATIONS
                             const startTime = new Date(ex.scheduledStartTime);
                             const endTime = new Date(startTime.getTime() + ex.durationMinutes * 60000);
 
