@@ -105,10 +105,12 @@ const TeacherGrading = () => {
         setAlert(null);
 
         try {
+            // 🟢 FIXED: Now passing aiFeedback.suggestedScore to track the original AI calculation
             await teacherService.approveAndReleaseGrade(
                 selectedSubmission.examId,
                 selectedSubmission.id,
                 finalScore,
+                aiFeedback?.suggestedScore || null,
                 aiFeedback?.comments || "Manually Graded"
             );
 

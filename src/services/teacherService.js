@@ -142,8 +142,11 @@ export const teacherService = {
         return response.data;
     },
 
-    approveAndReleaseGrade: async (examId, submissionId, score, comments) => {
-        const response = await api.post(`/teacher/exams/${examId}/grade/${submissionId}/approve?score=${score}`, { comments });
+    approveAndReleaseGrade: async (examId, submissionId, score, aiScore, comments) => {
+        const response = await api.post(`/teacher/exams/${examId}/grade/${submissionId}/approve?score=${score}`, {
+            aiScore: aiScore,
+            comments: comments
+        });
         return response.data;
     },
 }
