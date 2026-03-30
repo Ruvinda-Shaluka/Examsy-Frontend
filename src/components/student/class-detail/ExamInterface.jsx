@@ -291,8 +291,35 @@ const ExamInterface = () => {
                     </div>
                 </aside>
 
-                <main className="flex-1 p-4 md:p-8 overflow-y-auto bg-examsy-bg">
+                <main className="flex-1 p-4 md:p-8 overflow-y-auto bg-examsy-bg relative">
                     <div className="max-w-5xl mx-auto h-full flex flex-col">
+
+                        {/* 🟢 NEW: Top Navigation Bar */}
+                        {exam.examType !== 'PDF' && (
+                            <div className="flex justify-between items-center mb-8 bg-examsy-surface p-4 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm shrink-0">
+                                <button
+                                    onClick={handlePrev}
+                                    disabled={currentQuestionIdx === 0}
+                                    className="flex items-center gap-2 px-6 py-3 bg-examsy-bg border border-zinc-200 dark:border-zinc-800 rounded-2xl font-black text-sm text-examsy-text hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                >
+                                    <ChevronLeft size={18} /> Previous
+                                </button>
+
+                                <div className="text-center">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-examsy-muted">Question</p>
+                                    <p className="text-lg font-black text-examsy-text">{currentQuestionIdx + 1} <span className="text-sm text-examsy-muted">/ {exam?.questions?.length || 1}</span></p>
+                                </div>
+
+                                <button
+                                    onClick={handleNext}
+                                    disabled={currentQuestionIdx === (exam?.questions?.length || 1) - 1}
+                                    className="flex items-center gap-2 px-6 py-3 bg-examsy-primary text-white rounded-2xl font-black text-sm hover:bg-examsy-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
+                                >
+                                    Next <ChevronRight size={18} />
+                                </button>
+                            </div>
+                        )}
+
                         <div className="flex-1 animate-in slide-in-from-right-4 duration-300 h-full">
                             {exam.examType === 'MCQ' && (
                                 <MCQView
