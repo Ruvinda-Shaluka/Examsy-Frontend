@@ -84,4 +84,9 @@ export const studentService = {
         const response = await api.post('/mock-exams/generate', config);
         return response.data.data;
     },
+
+    getStudentAnalytics: async () => {
+        const response = await api.get('/student/exams/analytics');
+        return response.data.data;
+    },
 };
