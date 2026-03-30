@@ -1,25 +1,86 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import {
     BarChart3, Users, Trophy, Target, ChevronDown,
     PieChart as PieIcon, TrendingDown, Activity,
-    Award, ShieldAlert
+    Award, ShieldAlert, Loader2
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { MOCK_EXAMS_RESULTS, MOCK_GRADE_ANALYTICS } from '../../../data/TeacherMockData.js';
+import { teacherService } from '../../../services/teacherService';
 
 const COLORS = {
     'A (85+)': '#10b981',
     'B (70-84)': '#3b82f6',
     'C (55-69)': '#8b5cf6',
-    'D (40-54)': '#f59e0b',
+    'S (40-54)': '#f59e0b',
     'F (<40)': '#ef4444',
 };
 
 const GradesView = () => {
-    const [selectedExamId, setSelectedExamId] = useState(MOCK_EXAMS_RESULTS[0].id);
-    const analytics = MOCK_GRADE_ANALYTICS[selectedExamId];
+    const { classId } = useParams();
+    const [exams, setExams] = useState([]);
+    const [selectedExamId, setSelectedExamId] = useState("");
+    const [analytics, setAnalytics] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const chartData = Object.entries(analytics.distribution).map(([name, value]) => ({
+    // 1. Fetch the list of exams for this class to populate the dropdown
+    useEffect(() => {
+        const fetchExams = async () => {
+            try {
+                const examList = await teacherService.getClassExams(classId);
+                setExams(examList);
+                if (examList.length > 0) {
+                    setSelectedExamId(examList[0].id.toString());
+                } else {
+                    setIsLoading(false);
+                }
+            } catch (error) {
+                console.error("Failed to fetch class exams", error);
+                setIsLoading(false);
+            }
+        };
+        if (classId) fetchExams();
+    }, [classId]);
+
+    // 2. Fetch the specific analytics whenever the selected exam changes
+    useEffect(() => {
+        const fetchAnalytics = async () => {
+            if (!selectedExamId) return;
+            setIsLoading(true);
+            try {
+                const data = await teacherService.getExamAnalytics(selectedExamId);
+                setAnalytics(data);
+            } catch (error) {
+                console.error("Failed to fetch analytics", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchAnalytics();
+    }, [selectedExamId]);
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center py-32 text-examsy-primary animate-in fade-in">
+                <Loader2 className="animate-spin mb-4" size={48} />
+                <p className="font-black tracking-widest uppercase text-sm">Crunching Analytics...</p>
+            </div>
+        );
+    }
+
+    if (exams.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 text-examsy-muted">
+                <BarChart3 size={48} className="mb-4 opacity-20" />
+                <p className="font-black text-xl">No Exams Available</p>
+                <p className="text-sm font-bold mt-1">Publish an exam to this class to view analytics.</p>
+            </div>
+        );
+    }
+
+    if (!analytics) return null;
+
+    const chartData = Object.entries(analytics.gradeDistribution).map(([name, value]) => ({
         name,
         value
     }));
@@ -39,7 +100,7 @@ const GradesView = () => {
                         onChange={(e) => setSelectedExamId(e.target.value)}
                         className="w-full bg-examsy-surface border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl font-bold text-examsy-text outline-none appearance-none focus:border-examsy-primary transition-all cursor-pointer"
                     >
-                        {MOCK_EXAMS_RESULTS.map(ex => (
+                        {exams.map(ex => (
                             <option key={ex.id} value={ex.id}>{ex.title}</option>
                         ))}
                     </select>
@@ -47,20 +108,18 @@ const GradesView = () => {
                 </div>
             </div>
 
-            {/* --- New Two-Column Layout --- */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
                 {/* LEFT SIDE: Vertical Stack of Metric Cards */}
                 <div className="lg:col-span-4 space-y-4">
                     <h3 className="text-xs font-black uppercase tracking-[0.2em] text-examsy-muted ml-2 mb-2">Performance Metrics</h3>
 
-                    <MetricCard icon={<Target />} label="Average Score" value={`${analytics.average}%`} color="text-blue-500" />
-                    <MetricCard icon={<Trophy />} label="Top Scorer" value={analytics.topScorer} subValue={`${analytics.topScore}%`} color="text-amber-500" />
-                    <MetricCard icon={<TrendingDown />} label="Lowest Score" value="32%" subValue="F Grade" color="text-red-500" />
-                    <MetricCard icon={<Award />} label="Median Score" value="74.2%" color="text-indigo-500" />
+                    <MetricCard icon={<Target />} label="Average Score" value={`${analytics.averageScore}%`} color="text-blue-500" />
+                    <MetricCard icon={<Trophy />} label="Top Scorer" value={analytics.topScorerName} subValue={`${analytics.topScore}%`} color="text-amber-500" />
+                    <MetricCard icon={<TrendingDown />} label="Lowest Score" value={`${analytics.lowestScore}%`} subValue="Needs Review" color="text-red-500" />
+                    <MetricCard icon={<Award />} label="Median Score" value={`${analytics.medianScore}%`} color="text-indigo-500" />
                     <MetricCard icon={<Users />} label="Total Students" value={analytics.totalStudents} color="text-purple-500" />
-                    <MetricCard icon={<Activity />} label="Participation" value="98.2%" color="text-emerald-500" />
-                    <MetricCard icon={<ShieldAlert />} label="At Risk" value="3 Students" subValue="Score < 40" color="text-rose-500" />
+                    <MetricCard icon={<Activity />} label="Participation" value={`${analytics.participationRate}%`} color="text-emerald-500" />
+                    <MetricCard icon={<ShieldAlert />} label="At Risk" value={`${analytics.atRiskCount} Students`} subValue="Score < 40" color="text-rose-500" />
                 </div>
 
                 {/* RIGHT SIDE: Large Analytics Component */}
@@ -77,47 +136,56 @@ const GradesView = () => {
                                 </div>
                             </div>
                             <div className="text-right">
-                                <span className="text-2xl font-black text-examsy-primary">93%</span>
+                                <span className="text-2xl font-black text-examsy-primary">{analytics.passRate}%</span>
                                 <p className="text-[10px] font-black text-examsy-muted uppercase tracking-widest">Pass Rate</p>
                             </div>
                         </div>
 
                         {/* Large Recharts Responsive Container */}
                         <div className="h-[400px] w-full relative">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={chartData}
-                                        innerRadius={110}
-                                        outerRadius={150}
-                                        paddingAngle={8}
-                                        dataKey="value"
-                                        stroke="none"
-                                        animationBegin={200}
-                                    >
-                                        {chartData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[entry.name]} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: '#18181b',
-                                            borderRadius: '24px',
-                                            border: '1px solid #27272a',
-                                            fontSize: '14px',
-                                            fontWeight: 'bold',
-                                            padding: '12px 20px'
-                                        }}
-                                        itemStyle={{ color: "white" }}
-                                    />
-                                </PieChart>
-                            </ResponsiveContainer>
+                            {chartData.every(d => d.value === 0) ? (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center text-examsy-muted">
+                                    <PieIcon size={48} className="mb-4 opacity-20" />
+                                    <p className="font-black">No Graded Submissions Yet</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={chartData}
+                                                innerRadius={110}
+                                                outerRadius={150}
+                                                paddingAngle={8}
+                                                dataKey="value"
+                                                stroke="none"
+                                                animationBegin={200}
+                                            >
+                                                {chartData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={COLORS[entry.name]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip
+                                                contentStyle={{
+                                                    backgroundColor: '#18181b',
+                                                    borderRadius: '24px',
+                                                    border: '1px solid #27272a',
+                                                    fontSize: '14px',
+                                                    fontWeight: 'bold',
+                                                    padding: '12px 20px'
+                                                }}
+                                                itemStyle={{ color: "white" }}
+                                            />
+                                        </PieChart>
+                                    </ResponsiveContainer>
 
-                            {/* Center Labels */}
-                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                <span className="text-4xl font-black text-examsy-text">{analytics.average}%</span>
-                                <span className="text-xs font-black text-examsy-muted uppercase tracking-[0.2em]">Class AVG</span>
-                            </div>
+                                    {/* Center Labels */}
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                        <span className="text-4xl font-black text-examsy-text">{analytics.averageScore}%</span>
+                                        <span className="text-xs font-black text-examsy-muted uppercase tracking-[0.2em]">Class AVG</span>
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                         {/* Extended Legend Grid */}

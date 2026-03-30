@@ -154,4 +154,9 @@ export const teacherService = {
         const response = await api.post('/teacher/exams/trigger-reminders');
         return response.data;
     },
+
+    getExamAnalytics: async (examId) => {
+        const response = await api.get(`/teacher/exams/${examId}/analytics`);
+        return response.data.data;
+    },
 }
