@@ -1,28 +1,41 @@
 import api from './api';
+import { getCachedData, setCachedData, appCache } from './cacheManager';
 
 export const teacherService = {
-    getProfile: async () => {
+
+    getProfile: async (forceRefresh = false) => {
+        const cached = getCachedData('teacherProfile');
+        if (!forceRefresh && cached) return cached;
+
         const response = await api.get('/teachers/me');
-        return response.data.data; // Assumes your APIResponse puts the teacher in the "data" field
+        setCachedData('teacherProfile', response.data.data);
+        return response.data.data;
     },
 
     updateProfile: async (profileData) => {
         const response = await api.put('/teachers/me', profileData);
+        setCachedData('teacherProfile', response.data.data);
         return response.data.data;
     },
 
-    getClasses: async () => {
+    getClasses: async (forceRefresh = false) => {
+        const cached = getCachedData('teacherClasses');
+        if (!forceRefresh && cached) return cached;
+
         const response = await api.get('/teacher/dashboard/classes');
+        setCachedData('teacherClasses', response.data.data);
         return response.data.data;
     },
 
     createClass: async (classData) => {
         const response = await api.post('/teacher/dashboard/classes', classData);
+        appCache.teacherClasses.data = null; // Invalidate cache
         return response.data.data;
     },
 
     deleteClass: async (classId) => {
         const response = await api.delete(`/teacher/dashboard/classes/${classId}`);
+        appCache.teacherClasses.data = null; // Invalidate cache
         return response.data;
     },
 
@@ -87,7 +100,6 @@ export const teacherService = {
     },
 
     inviteStudent: async (classId, email) => {
-        // Send the email wrapped in an object so it matches the DTO!
         const response = await api.post(`/teacher/classes/${classId}/invite`, { email });
         return response.data;
     },
@@ -159,4 +171,4 @@ export const teacherService = {
         const response = await api.get(`/teacher/exams/${examId}/analytics`);
         return response.data.data;
     },
-}
+};

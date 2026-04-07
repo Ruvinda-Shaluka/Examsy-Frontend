@@ -1,4 +1,5 @@
 import api from './api';
+import { getCachedData, setCachedData } from './cacheManager';
 
 export const adminService = {
     getReports: async () => {
@@ -27,23 +28,31 @@ export const adminService = {
     },
 
     replyToStudent: async (reportId, message) => {
-        // Send the message as a query parameter
         const response = await api.post(`/admin/reports/${reportId}/reply-student?message=${encodeURIComponent(message)}`);
         return response.data;
     },
 
-    getProfile: async () => {
+    getProfile: async (forceRefresh = false) => {
+        const cached = getCachedData('adminProfile');
+        if (!forceRefresh && cached) return cached;
+
         const response = await api.get('/admins/me');
+        setCachedData('adminProfile', response.data.data);
         return response.data.data;
     },
 
     updateProfile: async (profileData) => {
         const response = await api.put('/admins/me', profileData);
+        setCachedData('adminProfile', response.data.data);
         return response.data.data;
     },
 
-    getDashboardMetrics: async () => {
+    getDashboardMetrics: async (forceRefresh = false) => {
+        const cached = getCachedData('adminMetrics');
+        if (!forceRefresh && cached) return cached;
+
         const response = await api.get('/admin/dashboard/metrics');
+        setCachedData('adminMetrics', response.data.data);
         return response.data.data;
     }
 };

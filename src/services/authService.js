@@ -1,4 +1,5 @@
-import api from './api'; // Import the base station we just made
+import api from './api';
+import {clearAllCaches} from "./cacheManager.js";
 
 export const authService = {
 
@@ -21,6 +22,7 @@ export const authService = {
     logout: () => {
         localStorage.removeItem('examsy_token');
         localStorage.removeItem('examsy_role');
+        clearAllCaches();
     },
 
     // TASK 2: REGISTER A STUDENT

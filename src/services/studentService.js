@@ -1,31 +1,41 @@
 import api from './api';
+import { getCachedData, setCachedData, appCache } from './cacheManager';
 
 export const studentService = {
 
-    getProfile: async () => {
+    getProfile: async (forceRefresh = false) => {
+        const cached = getCachedData('studentProfile');
+        if (!forceRefresh && cached) return cached;
+
         const response = await api.get('/students/me');
-        return response.data.data; // Assumes your APIResponse puts the student in the "data" field
+        setCachedData('studentProfile', response.data.data);
+        return response.data.data;
     },
 
     updateProfile: async (profileData) => {
         const response = await api.put('/students/me', profileData);
+        setCachedData('studentProfile', response.data.data);
         return response.data.data;
     },
 
-    getEnrolledClasses: async () => {
+    getEnrolledClasses: async (forceRefresh = false) => {
+        const cached = getCachedData('studentClasses');
+        if (!forceRefresh && cached) return cached;
+
         const response = await api.get('/student/dashboard/classes');
+        setCachedData('studentClasses', response.data.data);
         return response.data.data;
     },
 
     unenrollClass: async (courseId) => {
         const response = await api.delete(`/student/dashboard/classes/${courseId}/unenroll`);
+        appCache.studentClasses.data = null; // Invalidate cache
         return response.data;
     },
 
     joinClass: async (joinData) => {
-        // joinData is simply { inviteLink: "https://examsy.com/join/5/CODE" }
         const response = await api.post('/student/dashboard/classes/join', joinData);
-        // Return the nested DTO so your dashboard can immediately add it to the state!
+        appCache.studentClasses.data = null; // Invalidate cache
         return response.data.data;
     },
 
@@ -35,7 +45,6 @@ export const studentService = {
     },
 
     getExam: async (examId) => {
-        // 🟢 SAFETY NET: Prevent bad API calls
         if (!examId || examId === 'undefined' || examId === 'null') {
             throw new Error("Invalid Exam ID passed to service");
         }
@@ -77,7 +86,7 @@ export const studentService = {
             eventType,
             durationSeconds
         });
-        return response.data.data; // This returns { totalFlags, totalAwaySeconds } to the hook
+        return response.data.data;
     },
 
     generateMockExam: async (config) => {
@@ -85,8 +94,12 @@ export const studentService = {
         return response.data.data;
     },
 
-    getStudentAnalytics: async () => {
+    getStudentAnalytics: async (forceRefresh = false) => {
+        const cached = getCachedData('studentAnalytics');
+        if (!forceRefresh && cached) return cached;
+
         const response = await api.get('/student/exams/analytics');
+        setCachedData('studentAnalytics', response.data.data);
         return response.data.data;
     },
 };
