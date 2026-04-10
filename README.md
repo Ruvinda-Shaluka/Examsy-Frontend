@@ -38,7 +38,7 @@ Welcome to **Examsy**, a modern, feature-rich online learning and examination pl
 * **Routing & HTTP:** React Router DOM, Axios (with JWT Interceptors)
 
 **Backend (Server-Side)**
-* **Framework:** Java 17+, Spring Boot 3
+* **Framework:** Java 21+, Spring Boot 4
 * **Security:** Spring Security, JSON Web Tokens (JWT)
 * **Database:** MySQL, Spring Data JPA / Hibernate
 * **Integrations:** Groq API (LLM for grading), JavaMailSender (SMTP)
@@ -73,7 +73,7 @@ graph TD
 To run Examsy locally, you must run both the Spring Boot backend and the React frontend simultaneously. Follow these steps in order.
 
 ### Prerequisites
-* **Java:** JDK 17 or higher
+* **Java:** JDK 21 or higher
 * **Node.js:** v16 or higher (with `npm` or `yarn`)
 * **Database:** MySQL Server installed and running locally
 * **External Accounts:** A [Groq API Key](https://console.groq.com/), a [Cloudinary](https://cloudinary.com/) account, and a Gmail account with "App Passwords" enabled for SMTP.
