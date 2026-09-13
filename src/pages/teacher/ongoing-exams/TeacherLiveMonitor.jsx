@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TeacherLayout from '../../../layouts/TeacherLayout.jsx';
-import { Search, ChevronLeft, CheckCircle2, ShieldAlert, Sparkles, MessageSquare, Send, Megaphone, X, Clock, Loader2 } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, CheckCircle2, ShieldAlert, Sparkles, MessageSquare, Send, Megaphone, X, Clock, Loader2 } from 'lucide-react';
 import StudentActionModal from '../../../components/teacher/live-monitor/StudentActionModal';
 import TeacherProctoringModal from '../../../components/teacher/live-monitor/TeacherProctoringModal'; // 🟢 NEW IMPORT
 import { teacherService } from '../../../services/teacherService';
@@ -24,6 +24,10 @@ const TeacherLiveMonitor = () => {
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [proctoringModalStudent, setProctoringModalStudent] = useState(null); // 🟢 NEW STATE
 
+    // 🟢 Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
+
     useEffect(() => {
         const fetchMonitorData = async () => {
             try {
@@ -41,6 +45,11 @@ const TeacherLiveMonitor = () => {
         return () => clearInterval(intervalId);
     }, [examId]);
 
+    // Reset to page 1 on search change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
+
     const filteredStudents = useMemo(() => {
         if (!Array.isArray(liveStudents)) return [];
         if (!searchTerm.trim()) return liveStudents;
@@ -50,6 +59,12 @@ const TeacherLiveMonitor = () => {
             return studentName.toLowerCase().includes(searchTerm.toLowerCase().trim());
         });
     }, [liveStudents, searchTerm]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredStudents.length / pageSize));
+    const paginatedStudents = useMemo(() => {
+        const start = (currentPage - 1) * pageSize;
+        return filteredStudents.slice(start, start + pageSize);
+    }, [filteredStudents, currentPage, pageSize]);
 
     const formatTime = (totalSeconds) => {
         if (!totalSeconds) return "0s";
@@ -182,8 +197,8 @@ const TeacherLiveMonitor = () => {
                             </thead>
 
                             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                            {filteredStudents.length > 0 ? (
-                                filteredStudents.map((student) => {
+                            {paginatedStudents.length > 0 ? (
+                                paginatedStudents.map((student) => {
                                     const studentName = student.name || student.studentName || student.studentUsername || "Student";
                                     const initial = studentName.charAt(0).toUpperCase();
                                     const studentStatus = student.status || student.submissionStatus || "active";
@@ -268,6 +283,51 @@ const TeacherLiveMonitor = () => {
                             </tbody>
                         </table>
                     </div>
+
+                    {/* 🟢 Pagination Toolbar */}
+                    {filteredStudents.length > 0 && totalPages > 1 && (
+                        <div className="p-6 border-t border-zinc-100 dark:border-zinc-800 flex flex-col sm:flex-row justify-between items-center gap-4 bg-examsy-bg/20">
+                            <p className="text-xs font-bold text-examsy-muted">
+                                Showing <span className="font-black text-examsy-text">{Math.min(filteredStudents.length, (currentPage - 1) * pageSize + 1)}</span> to{" "}
+                                <span className="font-black text-examsy-text">{Math.min(filteredStudents.length, currentPage * pageSize)}</span> of{" "}
+                                <span className="font-black text-examsy-text">{filteredStudents.length}</span> students
+                            </p>
+
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1}
+                                    className="p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 text-examsy-muted hover:text-examsy-text hover:bg-examsy-surface transition-all disabled:opacity-30 disabled:pointer-events-none"
+                                >
+                                    <ChevronLeft size={16} />
+                                </button>
+
+                                <div className="flex items-center gap-1">
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                                        <button
+                                            key={pageNum}
+                                            onClick={() => setCurrentPage(pageNum)}
+                                            className={`w-9 h-9 rounded-xl text-xs font-black transition-all ${
+                                                currentPage === pageNum
+                                                    ? 'bg-examsy-primary text-white shadow-md shadow-examsy-primary/25'
+                                                    : 'text-examsy-muted hover:text-examsy-text hover:bg-examsy-surface border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800'
+                                            }`}
+                                        >
+                                            {pageNum}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 text-examsy-muted hover:text-examsy-text hover:bg-examsy-surface transition-all disabled:opacity-30 disabled:pointer-events-none"
+                                >
+                                    <ChevronRight size={16} />
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {isBroadcastOpen && (
