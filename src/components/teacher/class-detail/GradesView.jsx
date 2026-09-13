@@ -147,7 +147,7 @@ const GradesView = () => {
                         </div>
 
                         {/* Large Recharts Responsive Container */}
-                        <div className="h-[400px] w-full relative">
+                        <div className="h-[400px] w-full relative min-w-0 min-h-[350px]">
                             {chartData.every(d => d.value === 0) ? (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-examsy-muted">
                                     <PieIcon size={48} className="mb-4 opacity-20" />
@@ -155,7 +155,7 @@ const GradesView = () => {
                                 </div>
                             ) : (
                                 <>
-                                    <ResponsiveContainer width="100%" height="100%">
+                                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={350}>
                                         <PieChart>
                                             <Pie
                                                 data={chartData}
