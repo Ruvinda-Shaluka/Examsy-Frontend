@@ -12,11 +12,36 @@ const TeacherProctoringModal = ({ isOpen, student, onClose }) => {
     };
 
     const getEventDetails = (type) => {
-        switch (type) {
-            case 'TAB_SWITCHED': return { label: 'Switched Tabs', icon: <EyeOff size={16} /> };
-            case 'WINDOW_LOST_FOCUS': return { label: 'Clicked Outside Exam', icon: <AlertTriangle size={16} /> };
-            case 'SPLIT_SCREEN_DETECTED': return { label: 'Split Screen Detected', icon: <Maximize size={16} /> };
-            default: return { label: 'Unknown Violation', icon: <ShieldAlert size={16} /> };
+        const raw = (type || '').trim();
+        const normalized = raw.toUpperCase();
+
+        switch (normalized) {
+            case 'TAB_SWITCH':
+            case 'TAB_SWITCHED':
+            case 'TAB_CHANGE':
+                return { label: 'Switched Tabs', icon: <EyeOff size={16} /> };
+            case 'FULLSCREEN_EXIT':
+            case 'FULLSCREEN_EXITED':
+            case 'FULL_SCREEN_EXIT':
+                return { label: 'Exited Fullscreen', icon: <Maximize size={16} /> };
+            case 'WINDOW_LOST_FOCUS':
+            case 'WINDOW_BLUR':
+            case 'LOST_FOCUS':
+            case 'FOCUS_LOST':
+                return { label: 'Clicked Outside Exam', icon: <AlertTriangle size={16} /> };
+            case 'SPLIT_SCREEN_DETECTED':
+            case 'SPLIT_SCREEN':
+                return { label: 'Split Screen Detected', icon: <Maximize size={16} /> };
+            default:
+                if (!raw) {
+                    return { label: 'Suspicious Activity', icon: <ShieldAlert size={16} /> };
+                }
+                // Convert SNAKE_CASE to clean Title Case (e.g. AUDIO_DETECTED -> "Audio Detected")
+                const formatted = raw
+                    .replace(/_/g, ' ')
+                    .toLowerCase()
+                    .replace(/\b\w/g, (char) => char.toUpperCase());
+                return { label: formatted, icon: <ShieldAlert size={16} /> };
         }
     };
 
@@ -60,7 +85,13 @@ const TeacherProctoringModal = ({ isOpen, student, onClose }) => {
                                 </p>
                             ) : (
                                 student.proctoringHistory.map((log, idx) => {
-                                    const { label, icon } = getEventDetails(log.eventType);
+                                    const eventType = log?.eventType || log?.event_type || log?.violationType || log?.type;
+                                    const { label, icon } = getEventDetails(eventType);
+                                    const recordedTime = log?.recordedAt
+                                        ? (!isNaN(new Date(log.recordedAt).getTime())
+                                            ? new Date(log.recordedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})
+                                            : String(log.recordedAt))
+                                        : 'Recent';
                                     return (
                                         <div key={idx} className="bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center justify-between">
                                             <div className="flex items-center gap-3">
@@ -70,13 +101,13 @@ const TeacherProctoringModal = ({ isOpen, student, onClose }) => {
                                                 <div>
                                                     <p className="text-sm font-black text-examsy-text">{label}</p>
                                                     <p className="text-[10px] font-bold text-examsy-muted mt-0.5">
-                                                        {new Date(log.recordedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}
+                                                        {recordedTime}
                                                     </p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
                                                 <span className="text-xs font-black bg-red-500/10 text-red-500 px-3 py-1 rounded-full">
-                                                    {formatTime(log.durationSeconds)}
+                                                    {formatTime(log?.durationSeconds ?? 0)}
                                                 </span>
                                             </div>
                                         </div>
