@@ -42,10 +42,11 @@ const TeacherLiveMonitor = () => {
     }, [examId]);
 
     const filteredStudents = useMemo(() => {
+        if (!Array.isArray(liveStudents)) return [];
         if (!searchTerm.trim()) return liveStudents;
 
         return liveStudents.filter(s => {
-            const studentName = s.name || "";
+            const studentName = s.name || s.studentName || s.studentUsername || "";
             return studentName.toLowerCase().includes(searchTerm.toLowerCase().trim());
         });
     }, [liveStudents, searchTerm]);
@@ -182,59 +183,67 @@ const TeacherLiveMonitor = () => {
 
                             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                             {filteredStudents.length > 0 ? (
-                                filteredStudents.map((student) => (
-                                    <tr
-                                        key={student.id}
-                                        className={`transition-colors duration-200 ${student.flagged ? 'bg-red-500/[0.03]' : 'hover:bg-examsy-bg/30'}`}
-                                    >
-                                        <td className="px-8 py-6">
-                                            <div className="flex items-center gap-4 overflow-hidden">
-                                                <div className="w-10 h-10 rounded-xl bg-examsy-primary text-white flex-shrink-0 flex items-center justify-center font-black">
-                                                    {student.name.charAt(0)}
+                                filteredStudents.map((student) => {
+                                    const studentName = student.name || student.studentName || student.studentUsername || "Student";
+                                    const initial = studentName.charAt(0).toUpperCase();
+                                    const studentStatus = student.status || student.submissionStatus || "active";
+                                    const isFlagged = student.flagged ?? ((student.flags || student.suspiciousEvents || 0) > 0);
+                                    const flagCount = student.flags ?? student.suspiciousEvents ?? 0;
+                                    const awaySec = student.totalAwaySeconds ?? student.timeAwaySeconds ?? 0;
+
+                                    return (
+                                        <tr
+                                            key={student.id || student.studentId}
+                                            className={`transition-colors duration-200 ${isFlagged ? 'bg-red-500/[0.03]' : 'hover:bg-examsy-bg/30'}`}
+                                        >
+                                            <td className="px-8 py-6">
+                                                <div className="flex items-center gap-4 overflow-hidden">
+                                                    <div className="w-10 h-10 rounded-xl bg-examsy-primary text-white flex-shrink-0 flex items-center justify-center font-black">
+                                                        {initial}
+                                                    </div>
+                                                    <span className="font-black text-examsy-text truncate">
+                                                        {studentName}
+                                                    </span>
                                                 </div>
-                                                <span className="font-black text-examsy-text truncate">
-                                                    {student.name}
-                                                </span>
-                                            </div>
-                                        </td>
+                                            </td>
 
-                                        <td className="px-8 py-6">
-                                            <div className="flex items-center justify-center gap-2">
-                                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${student.status === 'active' ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'}`} />
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-examsy-text">{student.status}</span>
-                                            </div>
-                                        </td>
+                                            <td className="px-8 py-6">
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${studentStatus.toLowerCase() === 'active' || studentStatus.toLowerCase() === 'in_progress' ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'}`} />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-examsy-text">{studentStatus}</span>
+                                                </div>
+                                            </td>
 
-                                        {/* 🟢 UPDATED: Clickable Integrity Check Pill */}
-                                        <td className="px-8 py-6">
-                                            <button
-                                                onClick={() => setProctoringModalStudent(student)}
-                                                className="text-left hover:scale-105 active:scale-95 transition-all"
-                                            >
-                                                {student.flagged ? (
-                                                    <div className="flex items-center gap-2 text-red-500 bg-red-500/10 px-4 py-2 rounded-xl border border-red-500/20 inline-flex max-w-full overflow-hidden cursor-pointer hover:bg-red-500/20 transition-colors">
-                                                        <ShieldAlert size={14} className="flex-shrink-0" />
-                                                        <span className="text-[10px] font-black uppercase tracking-wider truncate">
-                                                            Suspicious ({student.flags}x)
-                                                        </span>
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex items-center gap-2 text-emerald-500 px-4 py-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20 inline-flex cursor-pointer hover:bg-emerald-500/20 transition-colors">
-                                                        <CheckCircle2 size={14} className="flex-shrink-0" />
-                                                        <span className="text-[10px] font-black uppercase tracking-wider">Secure</span>
-                                                    </div>
-                                                )}
-                                            </button>
-                                        </td>
+                                            {/* 🟢 UPDATED: Clickable Integrity Check Pill */}
+                                            <td className="px-8 py-6">
+                                                <button
+                                                    onClick={() => setProctoringModalStudent(student)}
+                                                    className="text-left hover:scale-105 active:scale-95 transition-all"
+                                                >
+                                                    {isFlagged ? (
+                                                        <div className="flex items-center gap-2 text-red-500 bg-red-500/10 px-4 py-2 rounded-xl border border-red-500/20 inline-flex max-w-full overflow-hidden cursor-pointer hover:bg-red-500/20 transition-colors">
+                                                            <ShieldAlert size={14} className="flex-shrink-0" />
+                                                            <span className="text-[10px] font-black uppercase tracking-wider truncate">
+                                                                Suspicious ({flagCount}x)
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center gap-2 text-emerald-500 px-4 py-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20 inline-flex cursor-pointer hover:bg-emerald-500/20 transition-colors">
+                                                            <CheckCircle2 size={14} className="flex-shrink-0" />
+                                                            <span className="text-[10px] font-black uppercase tracking-wider">Secure</span>
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            </td>
 
-                                        <td className="px-8 py-6">
-                                            <div className="flex items-center gap-2 font-bold text-sm">
-                                                <Clock size={16} className={student.totalAwaySeconds > 90 ? 'text-red-500' : 'text-examsy-muted'} />
-                                                <span className={student.totalAwaySeconds > 90 ? 'text-red-500 animate-pulse' : 'text-examsy-text'}>
-                                                    {formatTime(student.totalAwaySeconds)}
-                                                </span>
-                                            </div>
-                                        </td>
+                                            <td className="px-8 py-6">
+                                                <div className="flex items-center gap-2 font-bold text-sm">
+                                                    <Clock size={16} className={awaySec > 90 ? 'text-red-500' : 'text-examsy-muted'} />
+                                                    <span className={awaySec > 90 ? 'text-red-500 animate-pulse' : 'text-examsy-text'}>
+                                                        {formatTime(awaySec)}
+                                                    </span>
+                                                </div>
+                                            </td>
 
                                         <td className="px-8 py-6">
                                             <div className="flex items-center justify-end gap-2">

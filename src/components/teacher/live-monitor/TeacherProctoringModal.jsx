@@ -27,7 +27,7 @@ const TeacherProctoringModal = ({ isOpen, student, onClose }) => {
                 <div className="p-8 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center shrink-0">
                     <div>
                         <h3 className="text-xl font-black text-examsy-text">Integrity Report</h3>
-                        <p className="text-sm font-bold text-examsy-primary mt-1">{student.name}</p>
+                        <p className="text-sm font-bold text-examsy-primary mt-1">{student.name || student.studentName || student.studentUsername || "Student"}</p>
                     </div>
                     <button onClick={onClose} className="p-2 text-examsy-muted hover:bg-examsy-bg rounded-xl transition-colors">
                         <X size={20} />
@@ -39,11 +39,11 @@ const TeacherProctoringModal = ({ isOpen, student, onClose }) => {
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4">
                             <p className="text-[10px] font-black uppercase tracking-widest text-examsy-muted mb-1">Total Flags</p>
-                            <p className="text-2xl font-black text-red-500">{student.flags}</p>
+                            <p className="text-2xl font-black text-red-500">{student.flags ?? student.suspiciousEvents ?? 0}</p>
                         </div>
                         <div className="bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4">
                             <p className="text-[10px] font-black uppercase tracking-widest text-examsy-muted mb-1">Time Lost</p>
-                            <p className="text-2xl font-black text-examsy-text">{formatTime(student.totalAwaySeconds)}</p>
+                            <p className="text-2xl font-black text-examsy-text">{formatTime(student.totalAwaySeconds ?? student.timeAwaySeconds ?? 0)}</p>
                         </div>
                     </div>
 

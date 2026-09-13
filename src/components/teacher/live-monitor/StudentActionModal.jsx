@@ -8,14 +8,17 @@ const StudentActionModal = ({ student, isOpen, onClose, onWarn, onTerminate }) =
     if (!isOpen || !student) return null;
 
     // Condition to terminate: More than 3 flags OR more than 90 seconds (1.30 min) away
-    const canTerminate = student.flags > 3 || student.totalAwaySeconds > 90;
+    const flags = student.flags ?? student.suspiciousEvents ?? 0;
+    const awaySec = student.totalAwaySeconds ?? student.timeAwaySeconds ?? 0;
+    const studentName = student.name || student.studentName || student.studentUsername || "Student";
+    const canTerminate = flags > 3 || awaySec > 90;
 
     const handleSendWarning = () => {
         if (!warningMessage.trim()) return;
         setIsSending(true);
         // Simulate API delay
         setTimeout(() => {
-            onWarn(student.id, warningMessage);
+            onWarn(student.id || student.studentId, warningMessage);
             setIsSending(false);
             setWarningMessage("");
             onClose();
@@ -36,7 +39,7 @@ const StudentActionModal = ({ student, isOpen, onClose, onWarn, onTerminate }) =
                     <div className="flex justify-between items-start mb-2">
                         <div>
                             <h3 className="text-xl font-black text-examsy-text">Student Action</h3>
-                            <p className="text-xs font-bold text-examsy-muted mt-1">Directly manage {student.name}</p>
+                            <p className="text-xs font-bold text-examsy-muted mt-1">Directly manage {studentName}</p>
                         </div>
                         <button onClick={onClose} className="p-2 text-examsy-muted hover:bg-examsy-bg rounded-xl transition-colors">
                             <X size={20} />
