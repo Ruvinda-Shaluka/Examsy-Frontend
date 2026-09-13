@@ -54,29 +54,17 @@ const LoginPage = () => {
                 try {
                     // 1. Rotate class codes for security
                     await teacherService.rotateClassCodes();
-
-                    // 2. 🟢 FIRE AND FORGET: Trigger the 48-hour reminders silently in the background
-                    teacherService.triggerUpcomingReminders().catch(err => {
-                        console.error("Silent Reminder Dispatch Failed:", err);
-                    });
-
-                    setAlert({ type: 'success', title: 'Login Successful', message: `Welcome back, ${identifier}! Redirecting to your dashboard.` });
-                    setTimeout(() => { setAlert(null); window.location.href = '/teacher/dashboard'; }, 1500);
                 } catch (rotationError) {
-                    console.error("Failed to rotate class codes during login:", rotationError);
-                    setIsLoading(false);
-                    setAlert({
-                        type: 'error',
-                        title: 'System Update Failed',
-                        message: 'Updating class codes failed. For security reasons, you will be logged out. Please try again.',
-                        onClose: () => {
-                            localStorage.removeItem('examsy_token');
-                            localStorage.removeItem('examsy_role');
-                            setAlert(null);
-                        }
-                    });
-                    return;
+                    console.warn("Failed to rotate class codes during login:", rotationError);
                 }
+
+                // 2. 🟢 FIRE AND FORGET: Trigger the 48-hour reminders silently in the background
+                teacherService.triggerUpcomingReminders().catch(err => {
+                    console.error("Silent Reminder Dispatch Failed:", err);
+                });
+
+                setAlert({ type: 'success', title: 'Login Successful', message: `Welcome back, ${identifier}! Redirecting to your dashboard.` });
+                setTimeout(() => { setAlert(null); window.location.href = '/teacher/dashboard'; }, 1500);
             } else {
                 setAlert({ type: 'success', title: 'Login Successful', message: `Welcome back, ${identifier}! Redirecting to your dashboard.` });
                 setTimeout(() => { setAlert(null); window.location.href = '/student/dashboard'; }, 1500);
