@@ -14,6 +14,11 @@ const COLORS = {
     'C (55-69)': '#8b5cf6',
     'S (40-54)': '#f59e0b',
     'F (<40)': '#ef4444',
+    'A': '#10b981',
+    'B': '#3b82f6',
+    'C': '#8b5cf6',
+    'S': '#f59e0b',
+    'F': '#ef4444',
 };
 
 const GradesView = () => {
@@ -80,7 +85,7 @@ const GradesView = () => {
 
     if (!analytics) return null;
 
-    const chartData = Object.entries(analytics.gradeDistribution).map(([name, value]) => ({
+    const chartData = Object.entries(analytics.gradeDistribution || {}).map(([name, value]) => ({
         name,
         value
     }));
@@ -113,13 +118,13 @@ const GradesView = () => {
                 <div className="lg:col-span-4 space-y-4">
                     <h3 className="text-xs font-black uppercase tracking-[0.2em] text-examsy-muted ml-2 mb-2">Performance Metrics</h3>
 
-                    <MetricCard icon={<Target />} label="Average Score" value={`${analytics.averageScore}%`} color="text-blue-500" />
-                    <MetricCard icon={<Trophy />} label="Top Scorer" value={analytics.topScorerName} subValue={`${analytics.topScore}%`} color="text-amber-500" />
-                    <MetricCard icon={<TrendingDown />} label="Lowest Score" value={`${analytics.lowestScore}%`} subValue="Needs Review" color="text-red-500" />
-                    <MetricCard icon={<Award />} label="Median Score" value={`${analytics.medianScore}%`} color="text-indigo-500" />
-                    <MetricCard icon={<Users />} label="Total Students" value={analytics.totalStudents} color="text-purple-500" />
-                    <MetricCard icon={<Activity />} label="Participation" value={`${analytics.participationRate}%`} color="text-emerald-500" />
-                    <MetricCard icon={<ShieldAlert />} label="At Risk" value={`${analytics.atRiskCount} Students`} subValue="Score < 40" color="text-rose-500" />
+                    <MetricCard icon={<Target />} label="Average Score" value={`${analytics.averageScore ?? 0}%`} color="text-blue-500" />
+                    <MetricCard icon={<Trophy />} label="Top Scorer" value={analytics.topScorerName || 'N/A'} subValue={`${analytics.topScore ?? analytics.highestScore ?? 0}%`} color="text-amber-500" />
+                    <MetricCard icon={<TrendingDown />} label="Lowest Score" value={`${analytics.lowestScore ?? 0}%`} subValue="Needs Review" color="text-red-500" />
+                    <MetricCard icon={<Award />} label="Median Score" value={`${analytics.medianScore ?? 0}%`} color="text-indigo-500" />
+                    <MetricCard icon={<Users />} label="Total Students" value={analytics.totalStudents ?? analytics.totalParticipants ?? 0} color="text-purple-500" />
+                    <MetricCard icon={<Activity />} label="Participation" value={`${analytics.participationRate ?? 100}%`} color="text-emerald-500" />
+                    <MetricCard icon={<ShieldAlert />} label="At Risk" value={`${analytics.atRiskCount ?? 0} Students`} subValue="Score < 40" color="text-rose-500" />
                 </div>
 
                 {/* RIGHT SIDE: Large Analytics Component */}
@@ -136,7 +141,7 @@ const GradesView = () => {
                                 </div>
                             </div>
                             <div className="text-right">
-                                <span className="text-2xl font-black text-examsy-primary">{analytics.passRate}%</span>
+                                <span className="text-2xl font-black text-examsy-primary">{analytics.passRate ?? analytics.passingRate ?? 0}%</span>
                                 <p className="text-[10px] font-black text-examsy-muted uppercase tracking-widest">Pass Rate</p>
                             </div>
                         </div>
@@ -162,7 +167,7 @@ const GradesView = () => {
                                                 animationBegin={200}
                                             >
                                                 {chartData.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={COLORS[entry.name]} />
+                                                    <Cell key={`cell-${index}`} fill={COLORS[entry.name] || '#6366f1'} />
                                                 ))}
                                             </Pie>
                                             <Tooltip
@@ -193,7 +198,7 @@ const GradesView = () => {
                             {chartData.map((entry) => (
                                 <div key={entry.name} className="flex items-center justify-between p-2">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[entry.name] }} />
+                                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[entry.name] || '#6366f1' }} />
                                         <span className="text-sm font-bold text-examsy-muted">{entry.name}</span>
                                     </div>
                                     <span className="text-sm font-black text-examsy-text">

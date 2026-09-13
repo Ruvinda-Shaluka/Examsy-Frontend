@@ -56,7 +56,7 @@ const StudentGradesView = () => {
                             </div>
                         </div>
 
-                        {analytics.chartData.length === 0 ? (
+                        {(!analytics.chartData || analytics.chartData.length === 0) ? (
                             <div className="h-[400px] w-full flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl text-examsy-muted">
                                 <TrendingUp size={48} className="mb-4 opacity-20" />
                                 <p className="font-black text-lg">No Chart Data</p>
@@ -65,7 +65,7 @@ const StudentGradesView = () => {
                         ) : (
                             <div className="h-[400px] w-full">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={analytics.chartData}>
+                                    <AreaChart data={analytics.chartData || []}>
                                         <defs>
                                             <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
