@@ -2,17 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { X, ShieldAlert, Clock, AlertTriangle, Maximize, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const TeacherProctoringModal = ({ isOpen, student, onClose }) => {
-    if (!isOpen || !student) return null;
-
     const [page, setPage] = useState(1);
-    const pageSize = 5;
-    const history = Array.isArray(student.proctoringHistory) ? student.proctoringHistory : [];
-    const totalPages = Math.max(1, Math.ceil(history.length / pageSize));
-    const paginatedLogs = history.slice((page - 1) * pageSize, page * pageSize);
 
     useEffect(() => {
         setPage(1);
     }, [student]);
+
+    if (!isOpen || !student) return null;
+
+    const pageSize = 5;
+    const history = Array.isArray(student?.proctoringHistory) ? student.proctoringHistory : [];
+    const totalPages = Math.max(1, Math.ceil(history.length / pageSize));
+    const paginatedLogs = history.slice((page - 1) * pageSize, page * pageSize);
 
     const formatTime = (seconds) => {
         if (!seconds) return "0s";
