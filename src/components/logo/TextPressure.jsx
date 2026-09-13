@@ -23,9 +23,8 @@ const debounce = (func, delay) => {
 
 const TextPressure = ({
                           text = 'Compressa',
-                          fontFamily = 'Compressa VF',
-                          // This font is just an example, you should not use it in commercial projects.
-                          fontUrl = 'https://res.cloudinary.com/dr6lvwubh/raw/upload/v1529908256/CompressaPRO-GX.woff2',
+                          fontFamily = 'Inter, system-ui, sans-serif',
+                          fontUrl = '',
 
                           width = true,
                           weight = true,
@@ -162,11 +161,11 @@ const TextPressure = ({
     const styleElement = useMemo(() => {
         return (
             <style>{`
-        @font-face {
+        ${fontUrl ? `@font-face {
           font-family: '${fontFamily}';
           src: url('${fontUrl}');
           font-style: normal;
-        }
+        }` : ''}
         .stroke span {
           position: relative;
           color: ${textColor};
