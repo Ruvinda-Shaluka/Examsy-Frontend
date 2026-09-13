@@ -1,8 +1,18 @@
-import React from 'react';
-import { X, ShieldAlert, Clock, AlertTriangle, Maximize, EyeOff } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, ShieldAlert, Clock, AlertTriangle, Maximize, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const TeacherProctoringModal = ({ isOpen, student, onClose }) => {
     if (!isOpen || !student) return null;
+
+    const [page, setPage] = useState(1);
+    const pageSize = 5;
+    const history = Array.isArray(student.proctoringHistory) ? student.proctoringHistory : [];
+    const totalPages = Math.max(1, Math.ceil(history.length / pageSize));
+    const paginatedLogs = history.slice((page - 1) * pageSize, page * pageSize);
+
+    useEffect(() => {
+        setPage(1);
+    }, [student]);
 
     const formatTime = (seconds) => {
         if (!seconds) return "0s";
@@ -45,9 +55,12 @@ const TeacherProctoringModal = ({ isOpen, student, onClose }) => {
         }
     };
 
+    const totalFlags = Math.max(student.flags ?? student.suspiciousEvents ?? 0, history.length);
+    const totalTimeLost = student.totalAwaySeconds ?? student.timeAwaySeconds ?? (history.reduce((acc, curr) => acc + (curr.durationSeconds || 0), 0) || 0);
+
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="bg-examsy-surface w-full max-w-lg rounded-[40px] border border-zinc-200 dark:border-zinc-800 shadow-2xl relative animate-in zoom-in-95 duration-300 overflow-hidden flex flex-col max-h-[80vh]">
+            <div className="bg-examsy-surface w-full max-w-lg rounded-[40px] border border-zinc-200 dark:border-zinc-800 shadow-2xl relative animate-in zoom-in-95 duration-300 overflow-hidden flex flex-col max-h-[85vh]">
 
                 <div className="p-8 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center shrink-0">
                     <div>
@@ -64,27 +77,34 @@ const TeacherProctoringModal = ({ isOpen, student, onClose }) => {
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4">
                             <p className="text-[10px] font-black uppercase tracking-widest text-examsy-muted mb-1">Total Flags</p>
-                            <p className="text-2xl font-black text-red-500">{student.flags ?? student.suspiciousEvents ?? 0}</p>
+                            <p className="text-2xl font-black text-red-500">{totalFlags}</p>
                         </div>
                         <div className="bg-examsy-surface border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4">
                             <p className="text-[10px] font-black uppercase tracking-widest text-examsy-muted mb-1">Time Lost</p>
-                            <p className="text-2xl font-black text-examsy-text">{formatTime(student.totalAwaySeconds ?? student.timeAwaySeconds ?? 0)}</p>
+                            <p className="text-2xl font-black text-examsy-text">{formatTime(totalTimeLost)}</p>
                         </div>
                     </div>
 
                     {/* Detailed Log History */}
                     <div>
-                        <h4 className="text-xs font-black uppercase tracking-widest text-examsy-muted mb-4 flex items-center gap-2">
-                            <Clock size={14}/> Incident Timeline
-                        </h4>
+                        <div className="flex justify-between items-center mb-4">
+                            <h4 className="text-xs font-black uppercase tracking-widest text-examsy-muted flex items-center gap-2">
+                                <Clock size={14}/> Incident Timeline ({history.length})
+                            </h4>
+                            {totalPages > 1 && (
+                                <span className="text-[11px] font-bold text-examsy-muted">
+                                    Page {page} of {totalPages}
+                                </span>
+                            )}
+                        </div>
 
                         <div className="space-y-3">
-                            {(!student.proctoringHistory || student.proctoringHistory.length === 0) ? (
+                            {history.length === 0 ? (
                                 <p className="text-sm font-bold text-emerald-500 bg-emerald-500/10 p-4 rounded-xl text-center">
                                     No suspicious activity recorded.
                                 </p>
                             ) : (
-                                student.proctoringHistory.map((log, idx) => {
+                                paginatedLogs.map((log, idx) => {
                                     const eventType = log?.eventType || log?.event_type || log?.violationType || log?.type;
                                     const { label, icon } = getEventDetails(eventType);
                                     const recordedTime = log?.recordedAt
@@ -115,6 +135,29 @@ const TeacherProctoringModal = ({ isOpen, student, onClose }) => {
                                 })
                             )}
                         </div>
+
+                        {/* Modal Pagination Controls */}
+                        {totalPages > 1 && (
+                            <div className="flex justify-center items-center gap-2 mt-4 pt-2">
+                                <button
+                                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                                    disabled={page === 1}
+                                    className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 text-examsy-muted hover:text-examsy-text hover:bg-examsy-surface transition-all disabled:opacity-30 disabled:pointer-events-none"
+                                >
+                                    <ChevronLeft size={14} />
+                                </button>
+                                <span className="text-xs font-black text-examsy-text px-2">
+                                    {page} / {totalPages}
+                                </span>
+                                <button
+                                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={page === totalPages}
+                                    className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 text-examsy-muted hover:text-examsy-text hover:bg-examsy-surface transition-all disabled:opacity-30 disabled:pointer-events-none"
+                                >
+                                    <ChevronRight size={14} />
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
