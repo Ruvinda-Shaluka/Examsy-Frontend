@@ -16,9 +16,13 @@ const TeacherOngoing = () => {
         const fetchExams = async () => {
             try {
                 const data = await teacherService.getOngoingExams();
-                setOngoingExams(data);
+                setOngoingExams({
+                    realTime: Array.isArray(data?.realTime) ? data.realTime : [],
+                    deadline: Array.isArray(data?.deadline) ? data.deadline : []
+                });
             } catch (error) {
                 console.error("Failed to load ongoing exams", error);
+                setOngoingExams({ realTime: [], deadline: [] });
             } finally {
                 setIsLoading(false);
             }
@@ -104,11 +108,11 @@ const TeacherOngoing = () => {
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {ongoingExams.realTime.map(exam => (
+                                {(ongoingExams?.realTime || []).map(exam => (
                                     <TeacherOngoingExamCard key={exam.id} exam={exam} type="real-time" />
                                 ))}
                             </div>
-                            {ongoingExams.realTime.length === 0 && (
+                            {(!ongoingExams?.realTime || ongoingExams.realTime.length === 0) && (
                                 <p className="text-center py-10 text-examsy-muted font-bold italic">No live exams at this moment.</p>
                             )}
                         </section>
@@ -125,11 +129,11 @@ const TeacherOngoing = () => {
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {ongoingExams.deadline.map(exam => (
+                                {(ongoingExams?.deadline || []).map(exam => (
                                     <TeacherOngoingExamCard key={exam.id} exam={exam} type="deadline" />
                                 ))}
                             </div>
-                            {ongoingExams.deadline.length === 0 && (
+                            {(!ongoingExams?.deadline || ongoingExams.deadline.length === 0) && (
                                 <p className="text-center py-10 text-examsy-muted font-bold italic">No pending deadlines at this moment.</p>
                             )}
                         </section>
