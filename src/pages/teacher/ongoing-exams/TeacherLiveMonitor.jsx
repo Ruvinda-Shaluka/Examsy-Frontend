@@ -256,8 +256,9 @@ const TeacherLiveMonitor = () => {
                                             </div>
                                         </td>
                                     </tr>
-                                ))
-                            ) : (
+                                );
+                            })
+                        ) : (
                                 <tr>
                                     <td colSpan="5" className="p-20 text-center">
                                         <p className="text-examsy-muted font-black">No matching students found.</p>
