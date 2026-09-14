@@ -15,9 +15,11 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { studentService } from '../../../services/studentService.js';
 
-const AcademicVault = () => {
+const AcademicVault = ({ classId: propClassId }) => {
     const navigate = useNavigate();
-    const { classId } = useParams();
+    const params = useParams();
+    const classId = propClassId || params?.classId;
+
 
     const [vaultData, setVaultData] = useState({ upcomingExams: [], availableExams: [] });
     const [isLoading, setIsLoading] = useState(true);

@@ -107,7 +107,7 @@ const StudentClassDetailPage = () => {
                     </div>
                 )}
 
-                {activeTab === 'classwork' && <AcademicVault/>}
+                {activeTab === 'classwork' && <AcademicVault classId={classId} />}
 
                 {activeTab === 'people' && <ClassPeopleList classId={classId} isTeacher={false} />}
 
